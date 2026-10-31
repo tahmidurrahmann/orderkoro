@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" role="img" aria-label="Sleeve Cuff &amp; Side Pocket Detail - Deep Indigo">
+  <rect width="800" height="1000" fill="#F4F1EA"/>
+  <rect x="64" y="64" width="672" height="780" rx="24" fill="#2C5282"/>
+
+  <!-- Diagonal Sleeve & Cuff Illustration -->
+  <path d="M64 220 L580 420 L510 640 L64 490 Z" fill="#1E3A5F" stroke="#E2C08D" stroke-width="2"/>
+  <path d="M530 401 L595 426 L525 646 L460 621 Z" fill="#132640" stroke="#E2C08D" stroke-width="3"/>
+  <line x1="505" y1="412" x2="438" y2="612" stroke="#E2C08D" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- Side Pocket Cutaway -->
+  <rect x="140" y="540" width="520" height="230" rx="18" fill="#132640" opacity="0.92" stroke="#E2C08D" stroke-width="2"/>
+  <text x="185" y="615" font-family="'Hind Siliguri', 'Noto Sans Bengali', sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">ডাবল স্টিচ কাফ ও গভীর সাইড পকেট</text>
+  <text x="185" y="660" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="500" fill="#E2C08D">• Reinforced double-needle cuff hem that holds shape after wash</text>
+  <text x="185" y="698" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="500" fill="#E2C08D">• Deep 7.5-inch side-seam pockets for phone &amp; wallet security</text>
+
+  <!-- Caption Pill -->
+  <rect x="48" y="885" width="704" height="68" rx="14" fill="#FFFFFF" opacity="0.94"/>
+  <circle cx="88" cy="919" r="14" fill="#1E3A5F" stroke="#E2C08D" stroke-width="2"/>
+  <text x="118" y="914" font-family="'Hind Siliguri', 'Noto Sans Bengali', sans-serif" font-size="22" font-weight="700" fill="#141413">নিখুঁত কাফ ফিনিশিং ও সাইড পকেট — গভীর নীল</text>
+  <text x="118" y="938" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="500" fill="#4B4A46">Tailored Cuff &amp; Deep Utility Pockets (3/4)</text>
+</svg>

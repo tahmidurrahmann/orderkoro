@@ -1,0 +1,40 @@
+{
+  "name": "orderpage",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Config-driven single-product COD order page template for Bangladeshi Facebook sellers",
+  "engines": {
+    "node": ">=24.17.0"
+  },
+  "scripts": {
+    "prebuild": "node scripts/validate-clients.mjs",
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:stage2": "npx tsx scripts/test-stage2.mjs && npx tsx scripts/test-api-routes.mjs",
+    "test:enhancements": "node scripts/test-enhancements.mjs",
+    "test": "npm run typecheck && npm run lint && npm run test:stage2 && npm run test:enhancements",
+    "validate:clients": "node scripts/validate-clients.mjs",
+    "new-client": "node scripts/new-client.mjs"
+  },
+  "dependencies": {
+    "@upstash/redis": "1.40.0",
+    "jose": "6.2.13",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "24.6.2",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.3",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3"
+  }
+}

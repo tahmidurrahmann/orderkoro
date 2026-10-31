@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" role="img" aria-label="Premium Cotton Panjabi - Olive Green Full View">
+  <defs>
+    <linearGradient id="bg-olive-1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F3F4EE"/>
+      <stop offset="100%" stop-color="#E2E5D8"/>
+    </linearGradient>
+    <linearGradient id="garment-olive" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#4E6B52"/>
+      <stop offset="45%" stop-color="#3B523E"/>
+      <stop offset="100%" stop-color="#263829"/>
+    </linearGradient>
+    <pattern id="weave-olive" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M0 6h12M6 0v12" stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.06"/>
+    </pattern>
+    <filter id="shadow-olive" x="-10%" y="-5%" width="120%" height="115%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#141413" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="1000" fill="url(#bg-olive-1)"/>
+  <!-- Subtle studio arch backdrop -->
+  <path d="M140 920 V300 A260 260 0 0 1 660 300 V920 Z" fill="#FFFFFF" opacity="0.55"/>
+
+  <!-- Panjabi Tailored Silhouette -->
+  <g filter="url(#shadow-olive)">
+    <!-- Left & Right Sleeves -->
+    <path d="M250 185 L125 470 L185 500 L275 290 Z" fill="url(#garment-olive)"/>
+    <path d="M550 185 L675 470 L615 500 L525 290 Z" fill="url(#garment-olive)"/>
+    <!-- Sleeve Cuffs -->
+    <path d="M125 470 L185 500 L194 480 L134 450 Z" fill="#263829" stroke="#DFC39D" stroke-width="1.5"/>
+    <path d="M675 470 L615 500 L606 480 L666 450 Z" fill="#263829" stroke="#DFC39D" stroke-width="1.5"/>
+
+    <!-- Main Kurta / Panjabi Body -->
+    <path d="M250 185 L335 160 L465 160 L550 185 L540 810 L260 810 Z" fill="url(#garment-olive)"/>
+    <path d="M250 185 L335 160 L465 160 L550 185 L540 810 L260 810 Z" fill="url(#weave-olive)"/>
+
+    <!-- Side Slits -->
+    <line x1="265" y1="620" x2="262" y2="810" stroke="#E2E5D8" stroke-width="4"/>
+    <line x1="535" y1="620" x2="538" y2="810" stroke="#E2E5D8" stroke-width="4"/>
+
+    <!-- Mandarin Collar (Band Gala) -->
+    <path d="M335 160 Q400 190 465 160 L458 132 Q400 155 342 132 Z" fill="#263829" stroke="#DFC39D" stroke-width="2"/>
+    <path d="M348 145 Q400 166 452 145" fill="none" stroke="#DFC39D" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+    <!-- Embroidered Nakshi Placket -->
+    <rect x="382" y="172" width="36" height="230" rx="4" fill="#263829" stroke="#DFC39D" stroke-width="2"/>
+    <rect x="376" y="170" width="48" height="236" rx="6" fill="none" stroke="#DFC39D" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.85"/>
+
+    <!-- 4 Wood/Shell Buttons -->
+    <circle cx="400" cy="206" r="5.5" fill="#DFC39D" stroke="#3E2723" stroke-width="1.5"/>
+    <circle cx="400" cy="252" r="5.5" fill="#DFC39D" stroke="#3E2723" stroke-width="1.5"/>
+    <circle cx="400" cy="298" r="5.5" fill="#DFC39D" stroke="#3E2723" stroke-width="1.5"/>
+    <circle cx="400" cy="344" r="5.5" fill="#DFC39D" stroke="#3E2723" stroke-width="1.5"/>
+
+    <!-- Chest Pocket -->
+    <path d="M448 275 h58 v66 l-29 12 l-29 -12 z" fill="#263829" fill-opacity="0.35" stroke="#DFC39D" stroke-width="1.2" stroke-opacity="0.6"/>
+  </g>
+
+  <!-- Editorial Caption Pill -->
+  <rect x="48" y="885" width="704" height="68" rx="14" fill="#FFFFFF" opacity="0.92"/>
+  <circle cx="88" cy="919" r="14" fill="#3B523E" stroke="#DFC39D" stroke-width="2"/>
+  <text x="118" y="914" font-family="'Hind Siliguri', 'Noto Sans Bengali', sans-serif" font-size="22" font-weight="700" fill="#141413">বুনন নকশী কলার সুতি পাঞ্জাবি — জলপাই সবুজ</text>
+  <text x="118" y="938" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="500" fill="#4B4A46">100% Combed Narsingdi Cotton • Olive Green • Full Silhouette (1/4)</text>
+</svg>

@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+:root {
+  --bg-canvas: #f6f8f7;
+  --bg-surface: #ffffff;
+  --bg-subtle: #edf3f0;
+  --text-primary: #111a16;
+  --text-secondary: #3b4e44;
+  --text-muted: #64786e;
+  --border-subtle: #e3ebe6;
+  --border-strong: #cbd8d1;
+
+  --brand-primary: #1e3a5f;
+  --brand-primary-hover: #152944;
+  --brand-primary-soft: rgba(30, 58, 95, 0.08);
+  --brand-accent: #b45309;
+
+  --status-success-bg: #ecfdf3;
+  --status-success-text: #065f46;
+  --status-error-bg: #fef2f2;
+  --status-error-text: #b91c1c;
+
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.125rem;
+
+  --shadow-card: 0 1px 3px rgba(17, 26, 22, 0.04), 0 1px 2px rgba(17, 26, 22, 0.02);
+  --shadow-sticky: 0 -4px 20px rgba(17, 26, 22, 0.08);
+
+  --container-max: 480px;
+  --container-desktop: 1200px;
+  --tap-min: 48px;
+}
+
+@theme inline {
+  --color-canvas: var(--bg-canvas);
+  --color-surface: var(--bg-surface);
+  --color-subtle: var(--bg-subtle);
+  --color-ink: var(--text-primary);
+  --color-ink-secondary: var(--text-secondary);
+  --color-ink-muted: var(--text-muted);
+  --color-line: var(--border-subtle);
+  --color-line-strong: var(--border-strong);
+  --color-brand: var(--brand-primary);
+  --color-brand-hover: var(--brand-primary-hover);
+  --color-brand-soft: var(--brand-primary-soft);
+  --color-accent: var(--brand-accent);
+  --font-sans: "Anek Bangla", var(--font-anek-bangla), system-ui, -apple-system, sans-serif;
+}
+
+html {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: "Anek Bangla", var(--font-anek-bangla), system-ui, -apple-system, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Bangla typography line-height & baseline comfort (Anek Bangla optimized) */
+[data-lang="bn"] {
+  line-height: 1.62;
+  letter-spacing: 0;
+}
+
+[data-lang="en"] {
+  line-height: 1.5;
+}
+
+/* Viewport height helper with vh fallback before dvh for Facebook in-app browser */
+.max-h-sheet {
+  max-height: 88vh;
+  max-height: 88dvh;
+}
+
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Safe area padding for sticky bottom bar */
+.pb-safe-bar {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Hide scrollbars on horizontal swipe carousel while keeping touch scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Diagonal strike for unavailable size pills */
+.diagonal-strike {
+  position: relative;
+  overflow: hidden;
+}
+.diagonal-strike::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -10%;
+  width: 120%;
+  height: 1.5px;
+  background-color: #9ca3af;
+  transform: rotate(-18deg);
+  pointer-events: none;
+}
+
+/* Interactive selections, pills, swatches, controls must show cursor: pointer */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="tab"]:not([aria-disabled="true"]),
+input[type="radio"],
+input[type="checkbox"],
+select,
+summary,
+label[for],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Lightbox zoomable canvas */
+.lightbox-pinch-canvas {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}

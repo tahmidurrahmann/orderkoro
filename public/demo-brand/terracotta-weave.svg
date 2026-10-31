@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" role="img" aria-label="100% Combed Cotton Fabric Weave - Warm Terracotta">
+  <defs>
+    <pattern id="macro-weave-terracotta" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="#7C3E29"/>
+      <path d="M0 8h32M0 24h32" stroke="#995138" stroke-width="5" stroke-opacity="0.55"/>
+      <path d="M8 0v32M24 0v32" stroke="#562818" stroke-width="5" stroke-opacity="0.55"/>
+      <path d="M0 16h32M16 0v32" stroke="#F0D5B1" stroke-width="1" stroke-opacity="0.22"/>
+    </pattern>
+  </defs>
+
+  <rect width="800" height="1000" fill="#EBDCD0"/>
+  <rect x="64" y="64" width="672" height="780" rx="24" fill="url(#macro-weave-terracotta)" stroke="#FFFFFF" stroke-width="4"/>
+
+  <!-- Loupe / Macro Callout Circle -->
+  <circle cx="400" cy="430" r="190" fill="#562818" fill-opacity="0.92" stroke="#F0D5B1" stroke-width="4"/>
+  <text x="400" y="375" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="700" letter-spacing="2" fill="#F0D5B1">160 GSM COMBED COTTON</text>
+  <text x="400" y="428" text-anchor="middle" font-family="'Hind Siliguri', 'Noto Sans Bengali', sans-serif" font-size="34" font-weight="700" fill="#FFFFFF">১০০% সুতি বুনন</text>
+  <text x="400" y="472" text-anchor="middle" font-family="'Hind Siliguri', 'Noto Sans Bengali', sans-serif" font-size="20" font-weight="500" fill="#E6E4DD">গরমে বাতাস চলাচল ও ঘাম শোষণকারী</text>
+  <text x="400" y="512" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="500" fill="#F0D5B1">Pre-shrunk • Colorfast • Soft Handfeel</text>
+
+  <!-- Caption Pill -->
+  <rect x="48" y="885" width="704" height="68" rx="14" fill="#FFFFFF" opacity="0.94"/>
+  <circle cx="88" cy="919" r="14" fill="#7C3E29" stroke="#F0D5B1" stroke-width="2"/>
+  <text x="118" y="914" font-family="'Hind Siliguri', 'Noto Sans Bengali', sans-serif" font-size="22" font-weight="700" fill="#141413">ফেব্রিক টেক্সচার ও বুনন মান — মাটিয়া বাদামী</text>
+  <text x="118" y="938" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="500" fill="#4B4A46">Breathable 160 GSM Narsingdi Cotton Macro (3/3)</text>
+</svg>

@@ -1,0 +1,169 @@
+{
+  "slug": "demo-brand",
+  "orderPrefix": "BNN",
+  "brand": {
+    "name": {
+      "bn": "বুনন",
+      "en": "Bunon Atelier"
+    },
+    "logoUrl": {
+      "bn": "/demo-brand/logo-bn.svg",
+      "en": "/demo-brand/logo.svg"
+    },
+    "primaryColor": "#1E3A5F",
+    "accentColor": "#B45309"
+  },
+  "language": {
+    "default": "bn",
+    "allowSwitch": true
+  },
+  "product": {
+    "title": {
+      "bn": "প্রিমিয়াম সুতি পাঞ্জাবি (নকশী কলার এডিশন)",
+      "en": "Premium Cotton Panjabi: Nakshi Collar Edition"
+    },
+    "price": 1490,
+    "oldPrice": 1850,
+    "shortDescription": {
+      "bn": "১০০% প্রাকৃতিক চিকন সুতার নরসিংদী কটন ফেব্রিকে তৈরি আরামদায়ক রেগুলার ফিট পাঞ্জাবি। গরমে সারাদিন বাতাস চলাচলের উপযোগী এবং কলার ও প্ল্যাকেটে সূক্ষ্ম হাতে বোনা নকশী স্টিচ।",
+      "en": "Tailored from breathable 100% combed Narsingdi cotton in a relaxed regular fit. Features subtle tonal Nakshi embroidery along the mandarin collar and placket with natural shell buttons."
+    },
+    "details": [
+      {
+        "bn": "ফেব্রিক: ১০০% প্রিমিয়াম কম্‌বড সুতি (১৬০ জিএসএম, প্রি-শ্রাঙ্ক)",
+        "en": "Fabric: 100% Premium Combed Cotton (160 GSM, pre-shrunk)"
+      },
+      {
+        "bn": "কলার ও প্ল্যাকেট: সূক্ষ্ম টোনাল নকশী এমব্রয়ডারি ও কাঠ-ফিনিশ বোতাম",
+        "en": "Collar & Placket: Tonal Nakshi stitch embroidery with matte wood-finish buttons"
+      },
+      {
+        "bn": "পকেট: দুই পাশে গভীর সাইড পকেট এবং বাম বুকে ১টি পকেট",
+        "en": "Pockets: Two deep side-seam pockets plus one chest pocket"
+      },
+      {
+        "bn": "যত্ন: ঠান্ডা পানিতে আলাদাভাবে মৃদু ডিটারজেন্টে ধুয়ে ছায়ায় শুকান",
+        "en": "Care: Gentle cold wash separately with mild detergent; line dry in shade"
+      }
+    ],
+    "images": [
+      "/demo-brand/indigo-front.svg",
+      "/demo-brand/indigo-collar.svg",
+      "/demo-brand/indigo-cuff.svg",
+      "/demo-brand/indigo-weave.svg"
+    ],
+    "sizeChartImage": "/demo-brand/size-chart.svg"
+  },
+  "colors": [
+    {
+      "id": "deep-indigo",
+      "name": {
+        "bn": "গভীর নীল (Deep Indigo)",
+        "en": "Deep Indigo"
+      },
+      "hex": "#1E3A5F",
+      "images": [
+        "/demo-brand/indigo-front.svg",
+        "/demo-brand/indigo-collar.svg",
+        "/demo-brand/indigo-cuff.svg",
+        "/demo-brand/indigo-weave.svg"
+      ]
+    },
+    {
+      "id": "olive-green",
+      "name": {
+        "bn": "জলপাই সবুজ (Olive Green)",
+        "en": "Olive Green"
+      },
+      "hex": "#3B523E",
+      "images": [
+        "/demo-brand/olive-front.svg",
+        "/demo-brand/olive-collar.svg",
+        "/demo-brand/olive-weave.svg"
+      ]
+    },
+    {
+      "id": "warm-terracotta",
+      "name": {
+        "bn": "মাটিয়া বাদামী (Terracotta)",
+        "en": "Warm Terracotta"
+      },
+      "hex": "#7C3E29",
+      "images": [
+        "/demo-brand/terracotta-front.svg",
+        "/demo-brand/terracotta-collar.svg",
+        "/demo-brand/terracotta-weave.svg"
+      ]
+    }
+  ],
+  "sizes": [
+    { "name": "S (38)", "available": true },
+    { "name": "M (40)", "available": true },
+    { "name": "L (42)", "available": true },
+    { "name": "XL (44)", "available": true },
+    { "name": "XXL (46)", "available": false }
+  ],
+  "maxQuantity": 5,
+  "soldOut": false,
+  "delivery": {
+    "zones": [
+      {
+        "id": "dhaka-city",
+        "label": {
+          "bn": "ঢাকা সিটি",
+          "en": "Dhaka City"
+        },
+        "charge": 70,
+        "daysMin": 1,
+        "daysMax": 2
+      },
+      {
+        "id": "dhaka-suburb",
+        "label": {
+          "bn": "ঢাকার পার্শ্ববর্তী এলাকা",
+          "en": "Dhaka Suburb"
+        },
+        "charge": 100,
+        "daysMin": 2,
+        "daysMax": 3
+      },
+      {
+        "id": "outside-dhaka",
+        "label": {
+          "bn": "ঢাকার বাইরে সারাদেশ",
+          "en": "Outside Dhaka"
+        },
+        "charge": 130,
+        "daysMin": 3,
+        "daysMax": 5
+      }
+    ],
+    "districtZoneMap": {
+      "Dhaka": "dhaka-city",
+      "Gazipur": "dhaka-suburb",
+      "Narayanganj": "dhaka-suburb"
+    },
+    "suburbZoneId": "dhaka-suburb",
+    "defaultZoneId": "outside-dhaka",
+    "freeDeliveryAbove": 2800,
+    "courierNote": {
+      "bn": "পার্সেল রিসিভ করার সময় ডেলিভারি ম্যানের সামনে পণ্যের রঙ ও সাইজ মিলিয়ে দেখে নিন।",
+      "en": "Check your garment color and size in front of the delivery rider before paying."
+    }
+  },
+  "returnPolicyText": {
+    "bn": "পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানের সামনে চেক করে নিন। সাইজ বা পণ্যে কোনো ত্রুটি থাকলে তাৎক্ষণিক রিটার্ন অথবা ৩ দিনের মধ্যে সহজ এক্সচেঞ্জ সুবিধা রয়েছে।",
+    "en": "Inspect your Panjabi in front of the rider upon delivery. Instant return for any defect, or easy size exchange within 3 days of delivery."
+  },
+  "contact": {
+    "phone": "01711002233",
+    "messengerPageUsername": "bunonatelier.bd"
+  },
+  "sheetId": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+  "telegramChatId": "-1001987654321",
+  "pixelId": "109283746501928",
+  "confirmationMode": "call",
+  "highValueThreshold": 3500,
+  "ogImage": "/demo-brand/indigo-front.svg",
+  "showPoweredBy": true
+}
