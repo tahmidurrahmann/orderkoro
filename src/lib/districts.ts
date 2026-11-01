@@ -11,6 +11,8 @@ export interface DistrictInfo {
   aliases?: string[];
 }
 
+export type District = DistrictInfo;
+
 export const BANGLADESH_DISTRICTS: readonly DistrictInfo[] = [
   // Dhaka Division (13)
   { id: "Dhaka", en: "Dhaka", bn: "ঢাকা", division: "Dhaka", aliases: ["dacca", "savar", "keraniganj", "tongi"] },

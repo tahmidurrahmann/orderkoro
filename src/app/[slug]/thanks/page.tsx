@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import MetaPixel from "@/components/MetaPixel";
 import ThankYouClient from "@/components/ThankYouClient";
-import { getAllClients, getClientBySlug } from "@/lib/clients";
+import { getAllClients, getPublicClientBySlug } from "@/lib/clients";
 import { resolveLocalizedText } from "@/lib/i18n";
 
 interface ThankYouPageProps {
   params: Promise<{ slug: string }>;
 }
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export function generateStaticParams() {
   return getAllClients().map((client) => ({
@@ -18,10 +21,11 @@ export async function generateMetadata({
   params,
 }: ThankYouPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const config = getClientBySlug(slug);
+  const config = getPublicClientBySlug(slug);
 
   if (!config) {
     return {
+      metadataBase: new URL(siteUrl),
       title: "পেজটি পাওয়া যায়নি | Page Not Found",
     };
   }
@@ -30,6 +34,7 @@ export async function generateMetadata({
   const brandName = resolveLocalizedText(config.brand.name, lang);
 
   return {
+    metadataBase: new URL(siteUrl),
     title:
       lang === "bn"
         ? `অর্ডার সম্পন্ন | ${brandName}`
@@ -43,11 +48,16 @@ export async function generateMetadata({
 
 export default async function ThankYouPage({ params }: ThankYouPageProps) {
   const { slug } = await params;
-  const config = getClientBySlug(slug);
+  const config = getPublicClientBySlug(slug);
 
   if (!config) {
     notFound();
   }
 
-  return <ThankYouClient config={config} />;
+  return (
+    <>
+      <MetaPixel pixelId={config.pixelId} />
+      <ThankYouClient config={config} />
+    </>
+  );
 }

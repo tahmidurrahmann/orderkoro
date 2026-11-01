@@ -23,10 +23,21 @@ export const HexColorSchema = z
   })
   .transform((val) => normalizeHex(val));
 
+export const DEFAULT_RETURN_POLICY_TEXT = {
+  bn: "পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানের সামনে চেক করে নিন। সাইজ বা পণ্যে কোনো ত্রুটি থাকলে তাৎক্ষণিক রিটার্ন অথবা ৩ দিনের মধ্যে সহজ এক্সচেঞ্জ সুবিধা রয়েছে।",
+  en: "Inspect your product in front of the rider upon delivery. Instant return for any defect, or easy exchange within 3 days of delivery.",
+};
+
+export const DEFAULT_BUSINESS_ADDRESS = {
+  bn: "ঢাকা, বাংলাদেশ",
+  en: "Dhaka, Bangladesh",
+};
+
 export const ColorOptionSchema = z.object({
   id: z.string().min(1).optional(),
   name: LocalizedStringSchema,
   hex: HexColorSchema,
+  available: z.boolean().default(true),
   images: z
     .array(z.string().min(1), {
       error: "Each color must define an images array",
@@ -86,6 +97,7 @@ export const ClientConfigSchema = z
           .min(3, { error: "product.images must contain at least 3 images" })
           .max(8, { error: "product.images can contain at most 8 images" }),
         sizeChartImage: z.string().min(1).optional(),
+        sizeAdviceText: LocalizedStringSchema.optional(),
       })
       .refine(
         (prod) => prod.oldPrice === undefined || prod.oldPrice > prod.price,
@@ -154,13 +166,20 @@ export const ClientConfigSchema = z
           }
         }
       }),
-    returnPolicyText: LocalizedStringSchema,
+    returnPolicyText: LocalizedStringSchema.optional().default(DEFAULT_RETURN_POLICY_TEXT),
     contact: z.object({
       phone: z.string().min(6, { error: "contact.phone is required" }),
       messengerPageUsername: z
         .string()
         .min(1, { error: "contact.messengerPageUsername is required" }),
+      businessAddress: LocalizedStringSchema.optional().default(DEFAULT_BUSINESS_ADDRESS),
     }),
+    status: z.enum(["active", "paused"]).default("active"),
+    seo: z
+      .object({
+        index: z.boolean().default(true),
+      })
+      .default({ index: true }),
     sheetId: z.string().min(1, { error: "sheetId is required" }),
     telegramChatId: z.string().min(1, { error: "telegramChatId is required" }),
     pixelId: z
@@ -200,6 +219,46 @@ export const ClientConfigSchema = z
 
 export type ClientConfigInput = z.input<typeof ClientConfigSchema>;
 export type ClientConfig = z.output<typeof ClientConfigSchema>;
+
+/**
+ * Public client configuration safe to serialize and pass to browser / Client Components.
+ * Secret integration credentials (sheetId, telegramChatId) are strictly excluded.
+ * Meta Pixel ID (pixelId) is preserved as it is executed on the client.
+ */
+export type PublicClientConfig = Omit<ClientConfig, "sheetId" | "telegramChatId" | "highValueThreshold">;
+
+export type ServerClientSecrets = {
+  sheetId: string;
+  telegramChatId: string;
+  highValueThreshold?: number;
+};
+
+/**
+ * Strips server-only secrets (sheetId, telegramChatId, highValueThreshold) from a ClientConfig,
+ * producing a browser-safe PublicClientConfig.
+ */
+export function toPublicClientConfig(config: ClientConfig): PublicClientConfig {
+  const { sheetId, telegramChatId, highValueThreshold, ...publicConfig } = config;
+  void sheetId;
+  void telegramChatId;
+  void highValueThreshold;
+  return publicConfig;
+}
+
+/**
+ * Checks whether a product is effectively sold out:
+ * either explicitly marked soldOut: true, or all sizes are unavailable, or all colors are unavailable.
+ */
+export function isEffectivelySoldOut(
+  config: Pick<ClientConfig, "soldOut" | "sizes"> & {
+    colors: Array<{ available?: boolean }>;
+  }
+): boolean {
+  if (config.soldOut) return true;
+  if (config.sizes.length > 0 && config.sizes.every((s) => !s.available)) return true;
+  if (config.colors.length > 0 && config.colors.every((c) => c.available === false)) return true;
+  return false;
+}
 
 /**
  * Validates a collection of client configs and ensures no duplicate `slug` or `orderPrefix` collisions exist.

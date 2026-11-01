@@ -47,6 +47,12 @@ async function main() {
   let messenger = flags.messenger || "examplepage";
   let sheetId = flags.sheetId || "REPLACE_WITH_GOOGLE_SHEET_ID";
   let telegramChatId = flags.chatId || "-1000000000000";
+  let pixelId = flags.pixelId || undefined;
+  let status = flags.status === "paused" ? "paused" : "active";
+  let returnPolicyBn = flags.returnPolicyBn || "পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানের সামনে চেক করে নিন। ত্রুটি থাকলে তাৎক্ষণিক রিটার্ন সুবিধা।";
+  let returnPolicyEn = flags.returnPolicyEn || "Check your parcel in front of the delivery rider. Instant return if defective.";
+  let addressBn = flags.addressBn || "ঢাকা, বাংলাদেশ";
+  let addressEn = flags.addressEn || "Dhaka, Bangladesh";
 
   if (!isNonInteractive) {
     const rl = readline.createInterface({
@@ -76,6 +82,9 @@ async function main() {
     messenger =
       (await rl.question("Facebook Page username for m.me/<username>: ")).trim() ||
       messenger;
+    pixelId = (await rl.question("Meta Pixel ID (optional, press Enter to skip): ")).trim() || undefined;
+    const statusAnswer = (await rl.question("Initial store status (active/paused) [active]: ")).trim().toLowerCase();
+    status = statusAnswer === "paused" ? "paused" : "active";
     rl.close();
   }
 
@@ -149,16 +158,25 @@ async function main() {
       defaultZoneId: "outside-dhaka",
     },
     returnPolicyText: {
-      bn: "পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানের সামনে চেক করে নিন। ত্রুটি থাকলে তাৎক্ষণিক রিটার্ন সুবিধা।",
-      en: "Check your parcel in front of the delivery rider. Instant return if defective.",
+      bn: returnPolicyBn,
+      en: returnPolicyEn,
     },
     contact: {
       phone,
       messengerPageUsername: messenger,
+      businessAddress: {
+        bn: addressBn,
+        en: addressEn,
+      },
     },
     sheetId,
     telegramChatId,
+    ...(pixelId ? { pixelId } : {}),
     confirmationMode: "call",
+    status,
+    seo: {
+      index: true,
+    },
     showPoweredBy: true,
   };
 

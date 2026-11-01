@@ -52,7 +52,11 @@
       "/demo-brand/indigo-cuff.svg",
       "/demo-brand/indigo-weave.svg"
     ],
-    "sizeChartImage": "/demo-brand/size-chart.svg"
+    "sizeChartImage": "/demo-brand/size-chart-table.svg",
+    "sizeAdviceText": {
+      "bn": "আপনার ব্যবহৃত একটি আরামদায়ক পাঞ্জাবির বগলের নিচ থেকে বুকের মাপ নিয়ে সাইজ নির্বাচন করুন।",
+      "en": "Measure the chest under the armpits of your best-fitting Panjabi to find your exact match."
+    }
   },
   "colors": [
     {
@@ -157,10 +161,18 @@
   },
   "contact": {
     "phone": "01711002233",
-    "messengerPageUsername": "bunonatelier.bd"
+    "messengerPageUsername": "bunonatelier.bd",
+    "businessAddress": {
+      "bn": "বাড়ি ১২, রোড ৫, ধানমন্ডি, ঢাকা ১২০৫",
+      "en": "House 12, Road 5, Dhanmondi, Dhaka 1205"
+    }
   },
-  "sheetId": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-  "telegramChatId": "-1001987654321",
+  "status": "active",
+  "seo": {
+    "index": true
+  },
+  "sheetId": "1KbyKBJIh7fe28lupamxrMO1I4QQtdsxTdmEEASCsWXU",
+  "telegramChatId": "-5233056020",
   "pixelId": "109283746501928",
   "confirmationMode": "call",
   "highValueThreshold": 3500,

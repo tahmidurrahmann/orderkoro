@@ -1,26 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as z from "zod";
-import { getClientBySlug } from "@/lib/clients";
-import { DISTRICT_IDS } from "@/lib/districts";
-import { calculateOrderTotals, resolveDeliveryQuote, DhakaAreaChoice } from "@/lib/delivery";
+import { z } from "zod";
+import { getServerClientConfig } from "@/lib/server/clients";
+import { logger } from "@/lib/server/logger";
 import { validateBdPhone } from "@/lib/phone";
+import { verifyAndRecomputeOrderOnServer } from "@/lib/delivery";
 import {
+  acquireIdempotencyKey,
   checkIpRateLimit,
   checkPhoneRateLimit,
-  generateOrderNumber,
-  getDhakaDateTime,
-  getPhoneStats,
-  saveOrderBackup,
-  type OrderRecord,
-} from "@/lib/redis";
-import { appendOrderToGoogleSheet } from "@/lib/google-sheets";
+  computeCartDedupeHash,
+  finalizeIdempotencyKey,
+  getRedisDriver,
+  nextOrderNumber,
+  pushDeadLetterOrder,
+  releaseIdempotencyKey,
+  storeOrderMeta,
+} from "@/lib/server/redis";
+import { buildSheetRow, type OrderRecordForSheet } from "@/lib/server/sheet-row";
+import { appendOrderRowWithRetry } from "@/lib/server/sheets";
 import {
-  formatTelegramOrderMessage,
-  getStatusInlineButtons,
-  sendTelegramMessage,
-} from "@/lib/telegram";
+  escapeTelegramHtml,
+  getAdminChatId,
+  sendAdminTelegramAlert,
+  sendTelegramOrderMessage,
+  type TelegramOrderPayload,
+} from "@/lib/server/telegram";
 import { resolveLocalizedText } from "@/lib/i18n";
-import { toLatinDigits } from "@/lib/format";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const MAX_BODY_BYTES = 16 * 1024; // 16 KB
+
+const AttributionSchema = z
+  .object({
+    utm_source: z.string().optional(),
+    utm_medium: z.string().optional(),
+    utm_campaign: z.string().optional(),
+    utm_content: z.string().optional(),
+    utm_term: z.string().optional(),
+    fbclid: z.string().optional(),
+    _fbp: z.string().optional(),
+    _fbc: z.string().optional(),
+  })
+  .optional()
+  .default({});
 
 const OrderInputSchema = z.object({
   slug: z.string({ error: "Client slug is required" }).min(1),
@@ -30,31 +54,27 @@ const OrderInputSchema = z.object({
     .min(2, { error: "Name must be at least 2 characters" })
     .max(80, { error: "Name cannot exceed 80 characters" }),
   phone: z.string({ error: "Phone number is required" }).min(1),
-  district: z.string({ error: "District is required" }).min(1),
-  zoneId: z.string({ error: "Zone ID is required" }).min(1),
-  dhakaArea: z.enum(["city", "suburb"]).optional(),
   address: z
     .string({ error: "Address is required" })
     .trim()
     .min(10, { error: "Address must be at least 10 characters" })
     .max(300, { error: "Address cannot exceed 300 characters" }),
-  size: z.string({ error: "Size selection is required" }).min(1),
+  district: z.string({ error: "District is required" }).min(1),
+  zone: z.string({ error: "Zone is required" }).min(1),
   color: z.string({ error: "Color selection is required" }).min(1),
+  size: z.string({ error: "Size selection is required" }).min(1),
   quantity: z
     .number({ error: "Quantity is required" })
     .int()
     .min(1, { error: "Quantity must be at least 1" })
     .max(5, { error: "Quantity cannot exceed 5" }),
   note: z.string().max(200, { error: "Note cannot exceed 200 characters" }).optional().default(""),
-  utm_source: z.string().optional(),
-  utm_medium: z.string().optional(),
-  utm_campaign: z.string().optional(),
-  utm_content: z.string().optional(),
-  fbclid: z.string().optional(),
-  eventId: z.string().optional(),
-  fbp: z.string().optional(),
-  fbc: z.string().optional(),
-  website: z.string().optional(), // Honeypot field
+  honeypot: z.string().optional().default(""),
+  website: z.string().optional().default(""),
+  formStartedAt: z.number().optional().default(0),
+  idempotencyKey: z.string({ error: "Idempotency key is required" }).min(1),
+  lang: z.enum(["bn", "en"]).optional().default("bn"),
+  attribution: AttributionSchema,
 });
 
 function getClientIp(req: NextRequest): string {
@@ -69,407 +89,534 @@ function getClientIp(req: NextRequest): string {
   return "127.0.0.1";
 }
 
+function getDhakaIsoTime(): string {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Dhaka",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(now);
+  const find = (type: string) => parts.find((p) => p.type === type)?.value || "00";
+  return `${find("year")}-${find("month")}-${find("day")}T${find("hour")}:${find("minute")}:${find("second")}+06:00`;
+}
+
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+  const clientIp = getClientIp(req);
+
   try {
-    let body: unknown;
+    // 1. Origin verification against NEXT_PUBLIC_SITE_URL
+    const origin = req.headers.get("origin");
+    if (origin) {
+      try {
+        const originHost = new URL(origin).host;
+        let siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+        if (!siteUrl && process.env.MOCK_INTEGRATIONS === "1") {
+          siteUrl = "http://localhost:3000";
+        }
+        if (siteUrl) {
+          const expectedHost = new URL(siteUrl).host;
+          if (originHost !== expectedHost && !originHost.includes("localhost") && !originHost.includes("127.0.0.1")) {
+            logger.warn("Origin mismatch", { origin, expectedHost });
+            return NextResponse.json({ ok: false, error: "Invalid request origin" }, { status: 403 });
+          }
+        }
+      } catch {
+        // Invalid origin format
+      }
+    }
+
+    // 2. Request size check (max 16 KB)
+    const rawBody = await req.text();
+    if (Buffer.byteLength(rawBody, "utf8") > MAX_BODY_BYTES) {
+      return NextResponse.json(
+        { ok: false, error: "Payload exceeds 16 KB limit" },
+        { status: 413 }
+      );
+    }
+
+    let parsedJson: unknown;
     try {
-      body = await req.json();
+      parsedJson = JSON.parse(rawBody);
     } catch {
       return NextResponse.json(
-        { ok: false, error: "Invalid JSON in request body" },
+        { ok: false, error: "Invalid JSON format" },
         { status: 400 }
       );
     }
 
-    const parseResult = OrderInputSchema.safeParse(body);
-    if (!parseResult.success) {
-      const firstIssue = parseResult.error.issues[0];
+    // 3. Schema validation
+    const result = OrderInputSchema.safeParse(parsedJson);
+    if (!result.success) {
+      const issue = result.error.issues[0];
       return NextResponse.json(
         {
           ok: false,
-          error: firstIssue.message,
-          field: firstIssue.path.join("."),
+          error: issue.message,
+          field: issue.path.join("."),
+          fieldErrors: { [issue.path[0] || "form"]: issue.message },
         },
         { status: 400 }
       );
     }
 
-    const input = parseResult.data;
+    const payload = result.data;
+    const redis = getRedisDriver();
 
-    // 1. Honeypot check: If the hidden honeypot field is filled, silently return a realistic fake success
-    if (input.website && input.website.trim().length > 0) {
-      console.warn("[Order API] Honeypot triggered. Silently ignoring bot order submission.");
+    // 4. Bot Defense: Honeypot check and submission timing (< 2.5s)
+    const honeypotVal = payload.honeypot || payload.website;
+    const isBotHoneypot = Boolean(honeypotVal && honeypotVal.trim().length > 0);
+    const durationSinceStart = Date.now() - payload.formStartedAt;
+    const isBotSpeed = payload.formStartedAt > 0 && durationSinceStart < 2500;
+
+    if (isBotHoneypot || isBotSpeed) {
+      logger.info("Bot defense triggered. Returning fake success.", {
+        isBotHoneypot,
+        isBotSpeed,
+        durationSinceStart,
+      });
       return NextResponse.json({
         ok: true,
-        orderNumber: `BOT-${Math.floor(100000 + Math.random() * 900000)}`,
+        orderNumber: "BNN-0000",
+        eventId: "BNN-0000",
         summary: {
-          orderNumber: `BOT-${Math.floor(100000 + Math.random() * 900000)}`,
+          orderNumber: "BNN-0000",
           productTitle: "Product",
-          size: input.size,
-          color: input.color,
-          quantity: input.quantity,
-          subtotal: 0,
-          deliveryCharge: 0,
+          color: payload.color,
+          size: payload.size,
+          quantity: payload.quantity,
           total: 0,
-          currency: "BDT",
-          confirmationMode: "call",
         },
       });
     }
 
-    // 2. Resolve Client Config
-    const client = getClientBySlug(input.slug);
-    if (!client) {
+    // 5. Load client config on server
+    const config = getServerClientConfig(payload.slug);
+    if (!config) {
       return NextResponse.json(
-        { ok: false, error: `Store with slug "${input.slug}" not found` },
+        { ok: false, error: `Store configuration not found for slug: ${payload.slug}` },
         { status: 404 }
       );
     }
 
-    // Check if product is sold out
-    if (client.soldOut) {
+    // 5b. Seller Pause Control: Reject orders if store is paused
+    if (config.status === "paused") {
+      const isBn = payload.lang === "bn";
       return NextResponse.json(
         {
           ok: false,
-          error: "দুঃখিত, এই পণ্যটি স্টক আউট হয়ে গেছে। (Product is currently sold out)",
+          error: isBn
+            ? "এই স্টোরের অর্ডার গ্রহণ সাময়িকভাবে স্থগিত রয়েছে। অনুসন্ধানের জন্য মেসেঞ্জারে যোগাযোগ করুন।"
+            : "Orders for this store are currently paused. Please contact us on Messenger for inquiries.",
+          code: "STORE_PAUSED",
         },
-        { status: 400 }
+        { status: 403 }
       );
     }
 
-    // 3. Phone validation and normalization
-    const phoneCheck = validateBdPhone(input.phone);
-    if (!phoneCheck.valid) {
+    // 6. Phone validation & normalization
+    const phoneRes = validateBdPhone(payload.phone);
+    if (!phoneRes.valid) {
       return NextResponse.json(
         {
           ok: false,
+          error: payload.lang === "bn"
+            ? "সঠিক ১১ ডিজিটের বাংলাদেশী মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)"
+            : "Please enter a valid 11-digit Bangladeshi mobile number",
           field: "phone",
-          error: "সঠিক ১১ ডিজিটের বাংলাদেশী মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)",
-        },
-        { status: 400 }
-      );
-    }
-    const normalizedPhone = phoneCheck.normalized;
-
-    // 4. District validation against 64 districts
-    if (!DISTRICT_IDS.has(input.district)) {
-      return NextResponse.json(
-        {
-          ok: false,
-          field: "district",
-          error: `অবৈধ জেলা নির্বাচন ("${input.district}")। তালিকা থেকে সঠিক জেলা বেছে নিন।`,
+          fieldErrors: { phone: "Invalid mobile number" },
         },
         { status: 400 }
       );
     }
 
-    // 5. Size validation (must exist and available === true, tolerant to Bangla/Latin digits)
-    const targetSizeNormalized = toLatinDigits(input.size.trim().toLowerCase());
-    const matchingSize = client.sizes.find(
-      (s) =>
-        s.name.trim().toLowerCase() === input.size.trim().toLowerCase() ||
-        toLatinDigits(s.name.trim().toLowerCase()) === targetSizeNormalized
-    );
-    if (!matchingSize) {
-      return NextResponse.json(
-        {
-          ok: false,
-          field: "size",
-          error: `নির্বাচিত সাইজটি ("${input.size}") বিদ্যমান নেই।`,
-        },
-        { status: 400 }
-      );
-    }
-    if (!matchingSize.available) {
-      return NextResponse.json(
-        {
-          ok: false,
-          field: "size",
-          error: `দুঃখিত, "${input.size}" সাইজটি স্টক আউট হয়ে গেছে। অন্য সাইজ বেছে নিন।`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // 6. Color validation (must exist in client.colors)
-    const activeLang = client.language.default;
-    const targetColor = input.color.trim().toLowerCase();
-    const matchingColor = client.colors.find((c) => {
-      const bnName = typeof c.name === "string" ? c.name : c.name.bn;
-      const enName = typeof c.name === "string" ? c.name : c.name.en;
-      return (
-        bnName.toLowerCase() === targetColor ||
-        enName.toLowerCase() === targetColor ||
-        c.id?.toLowerCase() === targetColor ||
-        c.hex.toLowerCase() === targetColor ||
-        bnName.toLowerCase().includes(targetColor) ||
-        targetColor.includes(bnName.toLowerCase()) ||
-        enName.toLowerCase().includes(targetColor) ||
-        targetColor.includes(enName.toLowerCase())
-      );
+    // 7. Server-side verification and pricing recomputation
+    const verification = verifyAndRecomputeOrderOnServer(config, {
+      district: payload.district,
+      zone: payload.zone,
+      color: payload.color,
+      size: payload.size,
+      quantity: payload.quantity,
     });
 
-    if (!matchingColor) {
+    if (!verification.ok) {
       return NextResponse.json(
         {
           ok: false,
-          field: "color",
-          error: `নির্বাচিত রঙটি ("${input.color}") বিদ্যমান নেই।`,
+          error: verification.message,
+          fieldErrors: verification.fieldErrors,
         },
         { status: 400 }
       );
     }
 
-    // 7. Quantity check
-    const maxQty = client.maxQuantity ?? 5;
-    if (input.quantity < 1 || input.quantity > maxQty) {
-      return NextResponse.json(
-        {
-          ok: false,
-          field: "quantity",
-          error: `সর্বোচ্চ ${maxQty} টি পণ্য একসাথে অর্ডার করা যাবে।`,
-        },
-        { status: 400 }
-      );
+    const { unitPrice, quantity, deliveryFee, codTotal, colorName, sizeName } = verification.data;
+    const productTitle = resolveLocalizedText(config.product.title, payload.lang);
+
+    // 8. Idempotency Key Handling (checked before rate limits so retries never consume rate quota)
+    const idempotency = await acquireIdempotencyKey(
+      payload.idempotencyKey,
+      { status: "pending", orderNumber: "", eventId: "" },
+      redis
+    );
+
+    if (!idempotency.acquired) {
+      if (idempotency.existing?.orderNumber) {
+        logger.info("Idempotent retry detected", {
+          idempotencyKey: payload.idempotencyKey,
+          orderNumber: idempotency.existing.orderNumber,
+        });
+        return NextResponse.json({
+          ok: true,
+          orderNumber: idempotency.existing.orderNumber,
+          eventId: idempotency.existing.eventId || idempotency.existing.orderNumber,
+          summary: idempotency.existing.summary || {
+            orderNumber: idempotency.existing.orderNumber,
+            productTitle,
+            color: colorName,
+            size: sizeName,
+            quantity,
+            total: codTotal,
+          },
+        });
+      }
     }
 
-    // 8. IP Rate Limiting (5 orders per 10 mins)
-    const clientIp = getClientIp(req);
-    const ipCheck = await checkIpRateLimit(clientIp, 5, 600);
-    if (!ipCheck.allowed) {
-      console.warn(`[Order API] Rate limit exceeded for IP: ${clientIp}`);
+    // 9. Content-Based Cart Deduplication (phone + cart hash including delivery address, 10-minute TTL)
+    const cartHash = computeCartDedupeHash(
+      payload.slug,
+      phoneRes.normalized,
+      payload.color,
+      payload.size,
+      payload.quantity,
+      payload.address
+    );
+    const cartDedupeKey = `dedupe:cart:${payload.slug}:${phoneRes.normalized}:${cartHash}`;
+    const existingCartOrder = await redis.get<{
+      orderNumber: string;
+      summary: unknown;
+    }>(cartDedupeKey);
+
+    if (existingCartOrder?.orderNumber) {
+      logger.info("Content-based cart dedupe hit (same phone + cart within 10m)", {
+        cartDedupeKey,
+        orderNumber: existingCartOrder.orderNumber,
+      });
+      return NextResponse.json({
+        ok: true,
+        orderNumber: existingCartOrder.orderNumber,
+        eventId: existingCartOrder.orderNumber,
+        summary: existingCartOrder.summary,
+      });
+    }
+
+    // 10. Rate Limiting: IP (5 per 10m) & Phone (3 per 24h)
+    const ipLimit = await checkIpRateLimit(clientIp, redis);
+    if (!ipLimit.allowed) {
+      logger.warn("IP rate limit exceeded", { clientIp, count: ipLimit.count });
       return NextResponse.json(
         {
           ok: false,
-          error: "অতিরিক্ত অনুরোধ লক্ষ্য করা গেছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।",
+          error: payload.lang === "bn"
+            ? "অতিরিক্ত চেষ্টার কারণে সাময়িকভাবে ব্লক করা হয়েছে। কিছুক্ষণ পর চেষ্টা করুন।"
+            : "Too many orders from this IP. Please try again later.",
         },
         { status: 429 }
       );
     }
 
-    // 9. Phone Rate Limiting (Max 3 orders in 24 hours)
-    const phoneCheckResult = await checkPhoneRateLimit(normalizedPhone, 3, 86400);
-    if (!phoneCheckResult.allowed) {
-      console.warn(`[Order API] Phone 24h limit reached for: ${normalizedPhone}`);
+    const phoneLimit = await checkPhoneRateLimit(phoneRes.normalized, redis);
+    if (!phoneLimit.allowed) {
+      logger.warn("Phone rate limit exceeded", { phone: phoneRes.normalized, count: phoneLimit.count });
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "আপনার এই নম্বর দিয়ে ইতিমধ্যে একাধিক অর্ডার গ্রহণ করা হয়েছে। নতুন অর্ডারের জন্য সরাসরি আমাদের কল করুন বা মেসেঞ্জারে জানান।",
+          error: payload.lang === "bn"
+            ? "এই নম্বরে আজকের সর্বোচ্চ অর্ডারের সীমা অতিক্রম করেছে।"
+            : "Daily order limit exceeded for this mobile number.",
         },
         { status: 429 }
       );
     }
 
-    // 10. Recompute Server-Side Prices (NEVER trust client amounts)
-    const dhakaArea: DhakaAreaChoice = input.dhakaArea === "suburb" ? "suburb" : "city";
-    const totals = calculateOrderTotals(client, input.quantity, input.district, dhakaArea);
-    const deliveryQuote = resolveDeliveryQuote(client, input.district, dhakaArea, totals.subtotal);
+    // 10. Generate Atomic Order Number (PREFIX-0001)
+    const orderNumber = await nextOrderNumber(payload.slug, config.orderPrefix, redis);
+    const createdAtDhakaIso = getDhakaIsoTime();
 
-    if (!deliveryQuote) {
-      return NextResponse.json(
-        {
-          ok: false,
-          field: "district",
-          error: "ডেলিভারি চার্জ নির্ধারণে সমস্যা হয়েছে। অনুগ্রহ করে জেলা পুনঃনির্বাচন করুন।",
-        },
-        { status: 400 }
-      );
-    }
-
-    const unitPrice = client.product.price;
-    const subtotal = totals.subtotal;
-    const deliveryCharge = deliveryQuote.effectiveCharge;
-    const total = subtotal + deliveryCharge;
-
-    // 11. Generate Atomic Order Number (e.g. BNN-261101-0001)
-    const orderNumber = await generateOrderNumber(client.orderPrefix);
-    const { dhakaFormatted, iso } = getDhakaDateTime();
-
-    // 12. Evaluate Flags
-    const flags: string[] = [];
-    if (phoneCheckResult.isRepeat) {
-      flags.push(`পুনরাবৃত্তি ফোন (২৪ ঘণ্টায় ${phoneCheckResult.count} নং অর্ডার)`);
-    }
-
-    const highValueThreshold = client.highValueThreshold ?? 3000;
-    if (total >= highValueThreshold) {
-      flags.push(`উচ্চ মূল্যের অর্ডার (>৳${highValueThreshold})`);
-    }
-
-    const phoneStats = await getPhoneStats(normalizedPhone);
-    if (phoneStats.returned > 0) {
-      flags.push(`⚠️ পূর্ববর্তী রিটার্ন: ${phoneStats.returned} টি`);
-    }
-    if (phoneStats.delivered > 0) {
-      flags.push(`পূর্ববর্তী সফল ডেলিভারি: ${phoneStats.delivered} টি`);
-    }
-
-    const zoneLabelResolved = resolveLocalizedText(deliveryQuote.label, activeLang);
-    if (deliveryQuote.zoneId.toLowerCase().includes("outside")) {
-      flags.push("ঢাকার বাইরে (দূরবর্তী জোন)");
-    }
-
-    // Read cookies if not explicitly sent in body
-    const fbp = input.fbp || req.cookies.get("_fbp")?.value || "";
-    const fbc = input.fbc || req.cookies.get("_fbc")?.value || "";
-
-    const productTitleResolved = resolveLocalizedText(client.product.title, activeLang);
-    const colorResolved = resolveLocalizedText(matchingColor.name, activeLang);
-
-    // 13. Persistence Step 1: Save full order JSON in Redis (30-day expiry as backup)
-    const orderRecord: OrderRecord = {
+    const sheetRecord: OrderRecordForSheet = {
       orderNumber,
-      slug: client.slug,
-      orderPrefix: client.orderPrefix,
-      createdAtDhaka: dhakaFormatted,
-      createdAtIso: iso,
-      name: input.name,
-      phone: normalizedPhone,
-      district: input.district,
-      zoneId: deliveryQuote.zoneId,
-      zoneLabel: zoneLabelResolved,
-      address: input.address,
-      productTitle: productTitleResolved,
-      size: input.size,
-      color: colorResolved,
-      quantity: input.quantity,
-      unitPrice,
-      subtotal,
-      deliveryCharge,
-      total,
-      note: input.note || "",
+      createdAtDhakaIso,
       status: "new",
-      flags,
-      utm: {
-        source: input.utm_source,
-        medium: input.utm_medium,
-        campaign: input.utm_campaign,
-        content: input.utm_content,
-      },
-      fbclid: input.fbclid,
-      eventId: input.eventId,
-      fbp,
-      fbc,
-      sheetSaved: false,
-      telegramNotified: false,
+      name: payload.name,
+      phone: phoneRes.normalized,
+      address: payload.address,
+      district: payload.district,
+      zone: payload.zone,
+      productTitle,
+      color: colorName,
+      size: sizeName,
+      quantity,
+      unitPrice,
+      deliveryFee,
+      codTotal,
+      note: payload.note,
+      confirmationMode: config.confirmationMode || "call",
+      attribution: payload.attribution,
     };
 
-    let sheetSaved = false;
-    let telegramNotified = false;
+    const telegramOrderPayload: TelegramOrderPayload = {
+      orderNumber,
+      createdAtDhakaIso,
+      status: "new",
+      name: payload.name,
+      phone: phoneRes.normalized,
+      address: payload.address,
+      district: payload.district,
+      zone: payload.zone,
+      productTitle,
+      color: colorName,
+      size: sizeName,
+      quantity,
+      unitPrice,
+      deliveryFee,
+      codTotal,
+      note: payload.note,
+      confirmationMode: config.confirmationMode || "call",
+    };
 
-    try {
-      await saveOrderBackup(orderRecord);
-    } catch (redisErr) {
-      console.error("[Order API] Redis order backup failed:", redisErr);
-    }
+    // 11. Write to Sheets & Telegram in parallel via Promise.allSettled (8s timeout)
+    const [sheetResult, telegramResult] = await Promise.allSettled([
+      appendOrderRowWithRetry(config.sheetId, buildSheetRow(sheetRecord)),
+      sendTelegramOrderMessage(config.telegramChatId, telegramOrderPayload, phoneLimit.repeatPhoneFlag),
+    ]);
 
-    // 14. Persistence Step 2: Append row to client's Google Sheet
-    try {
-      await appendOrderToGoogleSheet({
-        sheetId: client.sheetId,
+    const isSheetSuccess = sheetResult.status === "fulfilled";
+    const isTelegramSuccess = telegramResult.status === "fulfilled";
+
+    const updatedRowRef = isSheetSuccess ? sheetResult.value.updatedRange : "";
+    const telegramMessageId = isTelegramSuccess ? telegramResult.value.messageId : undefined;
+
+    // Dual failure: Release idempotency key and return 502
+    if (!isSheetSuccess && !isTelegramSuccess) {
+      await releaseIdempotencyKey(payload.idempotencyKey, redis);
+      const sheetErr = sheetResult.reason?.message || "Sheets failed";
+      const tgErr = telegramResult.reason?.message || "Telegram failed";
+
+      logger.error("Dual destination failure", {
         orderNumber,
-        dhakaTime: dhakaFormatted,
-        name: input.name,
-        phone: normalizedPhone,
-        district: input.district,
-        zone: zoneLabelResolved,
-        address: input.address,
-        product: productTitleResolved,
-        size: input.size,
-        color: colorResolved,
-        qty: input.quantity,
-        subtotal,
-        delivery: deliveryCharge,
-        total,
-        note: input.note || "",
-        status: "new",
-        flags: flags.join("; "),
-        utmSource: input.utm_source,
-        utmMedium: input.utm_medium,
-        utmCampaign: input.utm_campaign,
-        utmContent: input.utm_content,
-        fbclid: input.fbclid,
-        eventId: input.eventId,
-        fbp,
-        fbc,
+        sheetError: sheetErr,
+        telegramError: tgErr,
       });
-      sheetSaved = true;
-      orderRecord.sheetSaved = true;
-    } catch (sheetErr) {
-      console.error(`[Order API] Google Sheet append failed for order ${orderNumber}:`, sheetErr);
-      sheetSaved = false;
+
+      const adminChatId = getAdminChatId();
+      if (adminChatId) {
+        let adminText =
+          `🚨 <b>CRITICAL: Both Primary Channels Failed</b>\n` +
+          `• <b>Slug:</b> <code>${escapeTelegramHtml(payload.slug)}</code>\n` +
+          `• <b>Order:</b> <code>${escapeTelegramHtml(orderNumber)}</code>\n` +
+          `• <b>Failed Channel(s):</b> sheets, telegram\n` +
+          `• <b>Sheets Error:</b> <code>${escapeTelegramHtml(sheetErr)}</code>\n` +
+          `• <b>Telegram Error:</b> <code>${escapeTelegramHtml(tgErr)}</code>\n` +
+          `• <b>Time:</b> ${escapeTelegramHtml(createdAtDhakaIso)}`;
+
+        if (adminText.length > 3500) {
+          adminText = adminText.slice(0, 3490) + "...[truncated]";
+        }
+
+        try {
+          const alertRes = await sendAdminTelegramAlert(adminChatId, adminText);
+          if (!alertRes.ok) {
+            logger.error("Failed to send critical dual-failure admin alert", {
+              error: alertRes.description,
+              orderNumber,
+            });
+          }
+        } catch (alertErr) {
+          logger.error("Error dispatching critical dual-failure admin alert", {
+            error: alertErr as Error,
+            orderNumber,
+          });
+        }
+      }
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error: payload.lang === "bn"
+            ? "অর্ডার প্রসেস করতে সাময়িক সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।"
+            : "Failed to process order. Please try again.",
+        },
+        { status: 502 }
+      );
     }
 
-    // 15. Persistence Step 3: Send Telegram notification with interactive buttons
-    try {
-      const brandName = resolveLocalizedText(client.brand.name, activeLang);
-      const telegramText = formatTelegramOrderMessage({
+    // At least one succeeded: Store order metadata and dead-letter queue any partial failure
+    await storeOrderMeta(
+      orderNumber,
+      {
+        slug: payload.slug,
+        rowRef: updatedRowRef,
+        status: "new",
+        telegramChatId: config.telegramChatId,
+        telegramMessageId,
+        phone: phoneRes.normalized,
+        sheetSynced: isSheetSuccess,
+      },
+      redis
+    );
+
+    const failedChannels: string[] = [];
+    if (!isSheetSuccess) failedChannels.push("sheets");
+    if (!isTelegramSuccess) failedChannels.push("telegram");
+
+    if (failedChannels.length > 0) {
+      const errSummary = failedChannels
+        .map((ch) => {
+          if (ch === "sheets") return `Sheets: ${(sheetResult as PromiseRejectedResult).reason?.message}`;
+          if (ch === "telegram") return `Telegram: ${(telegramResult as PromiseRejectedResult).reason?.message}`;
+          return `${ch} failure`;
+        })
+        .join("; ");
+
+      await pushDeadLetterOrder(
+        payload.slug,
+        {
+          type: "order_create",
+          slug: payload.slug,
+          orderNumber,
+          failedChannels,
+          errorSummary: String(errSummary || "Unknown partial channel failure"),
+          failedAtIso: createdAtDhakaIso,
+          orderRecord: sheetRecord,
+        },
+        redis
+      );
+
+      const adminChatId = getAdminChatId();
+      if (adminChatId) {
+        let adminText =
+          `⚠️ <b>ADMIN ALERT: Channel Failure</b>\n` +
+          `• <b>Slug:</b> <code>${escapeTelegramHtml(payload.slug)}</code>\n` +
+          `• <b>Order:</b> <code>${escapeTelegramHtml(orderNumber)}</code>\n` +
+          `• <b>Failed Channel(s):</b> ${escapeTelegramHtml(failedChannels.join(", "))}\n` +
+          `• <b>Error:</b> <code>${escapeTelegramHtml(String(errSummary || "Unknown"))}</code>\n` +
+          `• <b>Time:</b> ${escapeTelegramHtml(createdAtDhakaIso)}`;
+
+        if (adminText.length > 3500) {
+          adminText = adminText.slice(0, 3490) + "...[truncated]";
+        }
+
+        try {
+          const alertRes = await sendAdminTelegramAlert(adminChatId, adminText);
+          if (!alertRes.ok) {
+            logger.error("Failed to send channel failure admin alert", {
+              error: alertRes.description,
+              orderNumber,
+            });
+          }
+        } catch (alertErr) {
+          logger.error("Error dispatching channel failure admin alert", {
+            error: alertErr as Error,
+            orderNumber,
+          });
+        }
+      }
+
+      logger.warn("Order partially delivered; dead-letter queued", {
         orderNumber,
-        brandName,
-        customerName: input.name,
-        phone: normalizedPhone,
-        address: input.address,
-        district: input.district,
-        zoneLabel: zoneLabelResolved,
-        productTitle: productTitleResolved,
-        size: input.size,
-        color: colorResolved,
-        quantity: input.quantity,
-        subtotal,
-        deliveryCharge,
-        total,
-        note: input.note,
-        flags,
-        dhakaTime: dhakaFormatted,
-        sheetSaved,
-        status: "new",
+        failedChannels,
       });
-
-      const buttons = getStatusInlineButtons("new", orderNumber);
-      const tgRes = await sendTelegramMessage(client.telegramChatId, telegramText, {
-        inline_keyboard: buttons,
-      });
-
-      telegramNotified = tgRes.ok;
-      orderRecord.telegramNotified = tgRes.ok;
-    } catch (tgErr) {
-      console.error(`[Order API] Telegram notification failed for order ${orderNumber}:`, tgErr);
     }
 
-    // Update Redis backup with final dispatch states
-    try {
-      await saveOrderBackup(orderRecord);
-    } catch {
-      // Best effort update
-    }
+    const orderSummary = {
+      orderNumber,
+      productTitle,
+      color: colorName,
+      size: sizeName,
+      quantity,
+      unitPrice,
+      deliveryFee,
+      total: codTotal,
+      name: payload.name,
+      phone: phoneRes.normalized,
+      address: payload.address,
+      district: payload.district,
+      confirmationMode: config.confirmationMode || "call",
+      status: "new",
+      createdAtIso: createdAtDhakaIso,
+    };
 
-    // 16. Return Safe Summary for Front-End Session Storage
+    // Finalize idempotency key
+    await finalizeIdempotencyKey(
+      payload.idempotencyKey,
+      {
+        status: "completed",
+        orderNumber,
+        eventId: orderNumber,
+        summary: orderSummary,
+      },
+      redis
+    );
+
+    // Save content-based dedupe record (10-minute TTL = 600s)
+    await redis.set(
+      cartDedupeKey,
+      {
+        orderNumber,
+        summary: orderSummary,
+      },
+      { ex: 600 }
+    );
+
+    logger.info("Order created successfully", {
+      orderNumber,
+      slug: payload.slug,
+      durationMs: Date.now() - startTime,
+    });
+
     return NextResponse.json({
       ok: true,
       orderNumber,
-      summary: {
-        orderNumber,
-        productTitle: productTitleResolved,
-        size: input.size,
-        color: colorResolved,
-        quantity: input.quantity,
-        subtotal,
-        deliveryCharge,
-        total,
-        currency: "BDT",
-        confirmationMode: client.confirmationMode,
-        eventId: input.eventId,
-      },
+      eventId: orderNumber,
+      summary: orderSummary,
     });
-  } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("[Order API] Unexpected server error:", errorMsg);
+  } catch (error: unknown) {
+    const err = error as Error;
+    logger.error("Unhandled error in POST /api/order", { error: err });
+
+    const adminChatId = process.env.ADMIN_TELEGRAM_CHAT_ID;
+    if (adminChatId) {
+      let adminText =
+        `🚨 <b>CRITICAL: Unhandled Order Route Failure</b>\n` +
+        `• <b>Error:</b> <code>${escapeTelegramHtml(err?.message || "Unknown error")}</code>\n` +
+        `• <b>Failed Channel(s):</b> server/redis`;
+
+      if (adminText.length > 3500) {
+        adminText = adminText.slice(0, 3490) + "...[truncated]";
+      }
+
+      try {
+        const alertRes = await sendAdminTelegramAlert(adminChatId, adminText);
+        if (!alertRes.ok) {
+          logger.error("Failed to send unhandled error admin alert", {
+            error: alertRes.description,
+          });
+        }
+      } catch (alertErr) {
+        logger.error("Error dispatching unhandled error admin alert", {
+          error: alertErr as Error,
+        });
+      }
+    }
+
     return NextResponse.json(
-      {
-        ok: false,
-        error: "অর্ডার প্রক্রিয়াকরণে অপ্রত্যাশিত সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
-      },
+      { ok: false, error: "Internal server error. Please try again." },
       { status: 500 }
     );
   }

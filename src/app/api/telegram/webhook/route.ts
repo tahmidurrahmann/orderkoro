@@ -1,39 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getClientByOrderPrefix } from "@/lib/clients";
+import { getServerClientByOrderPrefix, getServerClientSecrets } from "@/lib/server/clients";
+import { logger } from "@/lib/server/logger";
 import {
-  getOrderBackup,
-  getOrderStatus,
-  incrementPhoneStat,
-  setOrderStatus,
-  type OrderRecord,
-} from "@/lib/redis";
-import { updateOrderStatusInGoogleSheet } from "@/lib/google-sheets";
+  acquireOrderLock,
+  getOrderMeta,
+  getRedisDriver,
+  releaseOrderLock,
+  storeOrderMeta,
+  updateOrderMetaStatus,
+} from "@/lib/server/redis";
+import { updateSheetOrderStatusWithRetry } from "@/lib/server/sheets";
 import {
-  answerTelegramCallbackQuery,
-  editTelegramMessageText,
-  formatTelegramOrderMessage,
-  getStatusInlineButtons,
-  sendTelegramMessage,
-} from "@/lib/telegram";
+  canTransitionStatus,
+  parseCallbackData,
+  type OrderStatus,
+} from "@/lib/server/status-machine";
+import {
+  answerTelegramCallback,
+  editTelegramOrderMessage,
+  escapeTelegramHtml,
+  getAdminChatId,
+  sendAdminTelegramAlert,
+} from "@/lib/server/telegram";
 
-type OrderStatus = OrderRecord["status"];
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const VALID_TRANSITIONS: Record<OrderStatus, Record<string, OrderStatus>> = {
-  new: {
-    confirm: "confirmed",
-    cancel: "cancelled",
-  },
-  confirmed: {
-    shipped: "shipped",
-    cancel: "cancelled",
-  },
-  shipped: {
-    delivered: "delivered",
-    returned: "returned",
-  },
-  delivered: {},
-  returned: {},
-  cancelled: {},
+interface TelegramWebhookUpdate {
+  message?: {
+    text?: string;
+    chat: {
+      id: number | string;
+    };
+  };
+  callback_query?: {
+    id: string;
+    data?: string;
+    message?: {
+      message_id: number;
+      chat: {
+        id: number | string;
+      };
+      text?: string;
+    };
+  };
+}
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  new: "New",
+  confirmed: "Confirmed",
+  no_answer: "No Answer",
+  cancelled: "Cancelled",
+  shipped: "Shipped",
+  delivered: "Delivered",
+  returned: "Returned",
 };
 
 export async function POST(req: NextRequest) {
@@ -43,11 +63,11 @@ export async function POST(req: NextRequest) {
     const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
 
     if (!expectedSecret || secretTokenHeader !== expectedSecret) {
-      console.warn("[Telegram Webhook] Unauthorized attempt: Invalid or missing secret token header.");
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+      logger.warn("Telegram webhook unauthorized attempt: invalid or missing secret token header");
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 403 });
     }
 
-    let update: any;
+    let update: TelegramWebhookUpdate;
     try {
       update = await req.json();
     } catch {
@@ -57,169 +77,259 @@ export async function POST(req: NextRequest) {
     // 2. Handle /start command from seller
     if (update.message?.text?.trim().startsWith("/start")) {
       const chatId = String(update.message.chat.id);
-      const welcomeText = [
-        `👋 <b>OrderPage Bot Connected!</b>`,
-        ``,
-        `Your Telegram Chat ID is:`,
-        `<code>${chatId}</code>`,
-        ``,
-        `📋 Copy this number into your client config under <code>"telegramChatId"</code> during seller onboarding.`,
-      ].join("\n");
-
-      await sendTelegramMessage(chatId, welcomeText);
-      return NextResponse.json({ ok: true, handled: "start_command" });
+      logger.info("Seller bot /start received", { chatId });
+      return NextResponse.json({ ok: true, handled: "start_command", chatId });
     }
 
     // 3. Handle Callback Query (Inline Keyboard Buttons)
     const callbackQuery = update.callback_query;
     if (!callbackQuery || !callbackQuery.data) {
-      // Ignored update type (e.g. general chat message)
       return NextResponse.json({ ok: true, ignored: true });
     }
 
     const callbackQueryId = String(callbackQuery.id);
-    const callbackData = String(callbackQuery.data); // e.g. "s:confirm:BNN-261101-0001"
+    const callbackData = String(callbackQuery.data);
     const chatId = String(callbackQuery.message?.chat?.id ?? "");
     const messageId = Number(callbackQuery.message?.message_id);
 
-    // Format check: "s:<action>:<orderNumber>"
-    const parts = callbackData.split(":");
-    if (parts.length !== 3 || parts[0] !== "s") {
-      await answerTelegramCallbackQuery(callbackQueryId, "Unknown button action");
+    const parsed = parseCallbackData(callbackData);
+    if (!parsed) {
+      logger.warn("Telegram callback query failed to parse", { callbackData });
+      await answerTelegramCallback(callbackQueryId, "Unknown action");
       return NextResponse.json({ ok: true, error: "Invalid callback format" });
     }
 
-    const [, action, orderNumber] = parts;
+    const { action, orderNumber } = parsed;
+    const redis = getRedisDriver();
 
-    // Resolve client prefix from orderNumber (e.g. "BNN" from "BNN-261101-0001")
-    const orderPrefix = orderNumber.split("-")[0]?.toUpperCase();
-    if (!orderPrefix) {
-      await answerTelegramCallbackQuery(callbackQueryId, "Invalid order prefix");
-      return NextResponse.json({ ok: true, error: "Missing order prefix" });
+    // Acquire atomic per-order lock with unique request token and 60s TTL
+    const lockToken = crypto.randomUUID();
+    let lockAcquired = false;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      lockAcquired = await acquireOrderLock(orderNumber, lockToken, 60, redis);
+      if (lockAcquired) break;
+      await new Promise((r) => setTimeout(r, 60));
     }
 
-    const client = getClientByOrderPrefix(orderPrefix);
-    if (!client) {
-      await answerTelegramCallbackQuery(callbackQueryId, "Store client not found");
-      return NextResponse.json({ ok: true, error: "Client not found" });
+    if (!lockAcquired) {
+      logger.warn("Could not acquire concurrency lock for order", { orderNumber });
+      await answerTelegramCallback(callbackQueryId, "Order is being updated, please wait a moment");
+      return NextResponse.json({ ok: false, error: "Order lock timeout" }, { status: 409 });
     }
 
-    // Verify Chat ID equals client's registered telegramChatId
-    if (chatId !== String(client.telegramChatId)) {
-      console.warn(
-        `[Telegram Webhook] Chat ID mismatch: received ${chatId}, expected ${client.telegramChatId}`
-      );
-      await answerTelegramCallbackQuery(callbackQueryId, "Unauthorized chat for this order");
-      return NextResponse.json({ ok: true, error: "Chat ID mismatch" });
-    }
+    try {
+      const meta = await getOrderMeta(orderNumber, redis);
 
-    // Retrieve order record and current status from Redis
-    const orderRecord = await getOrderBackup(orderNumber);
-    const currentStatus = ((await getOrderStatus(orderNumber)) ||
-      orderRecord?.status ||
-      "new") as OrderStatus;
+      // Resolve client slug and secrets
+      let slug = meta?.slug;
+      if (!slug) {
+        const orderPrefix = orderNumber.split("-")[0]?.toUpperCase();
+        const client = orderPrefix ? getServerClientByOrderPrefix(orderPrefix) : null;
+        if (client) {
+          slug = client.slug;
+        }
+      }
 
-    // Target status resolution
-    const allowedNextStatuses = VALID_TRANSITIONS[currentStatus] || {};
-    const targetStatus = allowedNextStatuses[action];
+      if (!slug) {
+        logger.warn("Order client slug could not be resolved", { orderNumber });
+        await answerTelegramCallback(callbackQueryId, "Order client not found");
+        return NextResponse.json({ ok: true, error: "Order client not found" });
+      }
 
-    // Idempotency: Check if order is already in the target status (e.g. double tap)
-    if (currentStatus === (action === "confirm" ? "confirmed" : action)) {
-      await answerTelegramCallbackQuery(
+      const secrets = getServerClientSecrets(slug);
+      if (!secrets) {
+        logger.error("Client config secrets missing for slug", { slug });
+        await answerTelegramCallback(callbackQueryId, "Client configuration error");
+        return NextResponse.json({ ok: true, error: "Client config not found" });
+      }
+
+      // 3b. Verify Chat ID equals seller's registered client telegramChatId
+      const clientChatId = String(meta?.telegramChatId || secrets.telegramChatId || "");
+      const adminChatId = getAdminChatId();
+      const normalizedChat = chatId.replace(/^-100/, "-");
+      const normalizedClient = clientChatId.replace(/^-100/, "-");
+
+      if (!clientChatId || normalizedChat !== normalizedClient) {
+        logger.warn("Chat ID mismatch in callback query", {
+          received: chatId,
+          expected: clientChatId,
+          orderNumber,
+        });
+        await answerTelegramCallback(
+          callbackQueryId,
+          "Unauthorized: This action can only be taken from the registered group",
+          false
+        );
+        return NextResponse.json(
+          { ok: true, error: "Unauthorized chat ID", changed: false },
+          { status: 200 }
+        );
+      }
+
+      const currentStatus = (meta?.status || "new") as OrderStatus;
+
+      // Duplicate press / already at target status
+      if (currentStatus === action) {
+        // If Google Sheet previously failed to sync, retry the Sheet write!
+        if (meta?.sheetSynced === false) {
+          logger.info("Duplicate press detected with unsynced Google Sheet. Retrying Sheet update.", {
+            orderNumber,
+            status: action,
+          });
+
+          let sheetSuccess = false;
+          let sheetErrMessage = "";
+          try {
+            await updateSheetOrderStatusWithRetry(secrets.sheetId, meta?.rowRef || "", orderNumber, action);
+            sheetSuccess = true;
+            meta.sheetSynced = true;
+            await storeOrderMeta(orderNumber, meta, redis);
+          } catch (retryErr) {
+            sheetErrMessage = (retryErr as Error).message;
+            logger.error("Retry Google Sheet update failed on duplicate press", {
+              orderNumber,
+              error: retryErr as Error,
+            });
+
+            await sendAdminTelegramAlert(
+              adminChatId,
+              `⚠️ <b>ADMIN ALERT: Sheet Re-Sync Failed</b>\n` +
+              `• <b>Order:</b> <code>${escapeTelegramHtml(orderNumber)}</code>\n` +
+              `• <b>Action:</b> ${action.toUpperCase()}\n` +
+              `• <b>Error:</b> <code>${escapeTelegramHtml(sheetErrMessage)}</code>`
+            );
+          }
+
+          if (sheetSuccess) {
+            await answerTelegramCallback(
+              callbackQueryId,
+              `Order is ${action.toUpperCase()}. Sheet re-synced successfully.`
+            );
+            return NextResponse.json({
+              ok: true,
+              idempotent: true,
+              status: currentStatus,
+              sheetResynced: true,
+            });
+          } else {
+            await answerTelegramCallback(
+              callbackQueryId,
+              `Order is ${action.toUpperCase()}, but Sheet sync failed. Admin notified.`
+            );
+            return NextResponse.json({
+              ok: true,
+              idempotent: true,
+              status: currentStatus,
+              sheetResynced: false,
+            });
+          }
+        }
+
+        await answerTelegramCallback(
+          callbackQueryId,
+          `Order is already marked as ${action.toUpperCase()}`
+        );
+        return NextResponse.json({ ok: true, idempotent: true, status: currentStatus });
+      }
+
+      // Validate transition
+      if (!canTransitionStatus(currentStatus, action)) {
+        logger.warn("Invalid status transition attempt", {
+          orderNumber,
+          from: currentStatus,
+          to: action,
+        });
+        await answerTelegramCallback(
+          callbackQueryId,
+          `Cannot change to ${action.toUpperCase()} from ${currentStatus.toUpperCase()}`
+        );
+        return NextResponse.json({
+          ok: true,
+          error: `Invalid status transition from ${currentStatus} to ${action}`,
+        });
+      }
+
+      // Update Google Sheet
+      let sheetUpdated = false;
+      let sheetError: Error | null = null;
+      try {
+        await updateSheetOrderStatusWithRetry(secrets.sheetId, meta?.rowRef || "", orderNumber, action);
+        sheetUpdated = true;
+      } catch (sheetErr) {
+        sheetError = sheetErr as Error;
+        logger.error("Failed to update Google Sheet status", {
+          orderNumber,
+          error: sheetError,
+        });
+      }
+
+      // Update Redis status immediately with sheetSynced indicator
+      await updateOrderMetaStatus(orderNumber, action, sheetUpdated, redis);
+
+      // If Google Sheet update failed, alert admin immediately
+      if (!sheetUpdated) {
+        await sendAdminTelegramAlert(
+          adminChatId,
+          `⚠️ <b>ADMIN ALERT: Webhook Sheet Update Failed</b>\n` +
+          `• <b>Order:</b> <code>${escapeTelegramHtml(orderNumber)}</code>\n` +
+          `• <b>Transition:</b> ${currentStatus.toUpperCase()} ➔ ${action.toUpperCase()}\n` +
+          `• <b>Error:</b> <code>${escapeTelegramHtml(sheetError?.message || "Unknown error")}</code>\n` +
+          `• <b>Status in Redis:</b> ${action.toUpperCase()} (sheetSynced: false)`
+        );
+      }
+
+      // Acknowledge callback query immediately to dismiss Telegram's button spinner
+      await answerTelegramCallback(
         callbackQueryId,
-        `Order is already marked as ${currentStatus.toUpperCase()}`
+        sheetUpdated
+          ? `Status updated to ${STATUS_LABELS[action] || action.toUpperCase()}`
+          : `Status updated to ${STATUS_LABELS[action] || action.toUpperCase()} (Sheet sync pending)`
       );
-      return NextResponse.json({ ok: true, idempotent: true, status: currentStatus });
-    }
 
-    // Check if the transition is invalid
-    if (!targetStatus) {
-      await answerTelegramCallbackQuery(
-        callbackQueryId,
-        `Cannot ${action} order when status is already ${currentStatus.toUpperCase()}`
-      );
+      // Edit Telegram Message
+      if (messageId && callbackQuery.message?.text) {
+        const originalText = callbackQuery.message.text;
+        const updatedText = originalText.replace(
+          /Status:\s*[A-Z_]+/i,
+          `Status: <b>${action.toUpperCase()}</b>`
+        );
+
+        try {
+          await editTelegramOrderMessage(
+            chatId,
+            messageId,
+            updatedText,
+            action,
+            orderNumber
+          );
+        } catch (editErr) {
+          logger.warn("Failed to edit Telegram order message", {
+            orderNumber,
+            error: editErr as Error,
+          });
+        }
+      }
+
+      logger.info("Order status transitioned successfully", {
+        orderNumber,
+        from: currentStatus,
+        to: action,
+        sheetUpdated,
+      });
+
       return NextResponse.json({
         ok: true,
-        error: `Invalid status transition from ${currentStatus} via ${action}`,
-      });
-    }
-
-    // 4. Perform Valid Transition
-    // Step A: Update Redis status
-    await setOrderStatus(orderNumber, targetStatus);
-
-    // Step B: Update customer phone delivery/return stats if terminal
-    const phone = orderRecord?.phone;
-    if (phone) {
-      if (targetStatus === "delivered") {
-        await incrementPhoneStat(phone, "delivered");
-      } else if (targetStatus === "returned") {
-        await incrementPhoneStat(phone, "returned");
-      }
-    }
-
-    // Step C: Update Google Sheet Status (Column P)
-    let sheetUpdated = false;
-    try {
-      sheetUpdated = await updateOrderStatusInGoogleSheet(
-        client.sheetId,
         orderNumber,
-        targetStatus
-      );
-    } catch (sheetErr) {
-      console.error(`[Telegram Webhook] Failed to update Google Sheet for ${orderNumber}:`, sheetErr);
-    }
-
-    // Step D: Edit Telegram Message with updated status and next inline buttons
-    if (messageId && orderRecord) {
-      const activeLang = client.language.default;
-      const brandName =
-        typeof client.brand.name === "string" ? client.brand.name : client.brand.name[activeLang];
-
-      const updatedText = formatTelegramOrderMessage({
-        orderNumber,
-        brandName,
-        customerName: orderRecord.name,
-        phone: orderRecord.phone,
-        address: orderRecord.address,
-        district: orderRecord.district,
-        zoneLabel: orderRecord.zoneLabel,
-        productTitle: orderRecord.productTitle,
-        size: orderRecord.size,
-        color: orderRecord.color,
-        quantity: orderRecord.quantity,
-        subtotal: orderRecord.subtotal,
-        deliveryCharge: orderRecord.deliveryCharge,
-        total: orderRecord.total,
-        note: orderRecord.note,
-        flags: orderRecord.flags,
-        dhakaTime: orderRecord.createdAtDhaka,
-        sheetSaved: orderRecord.sheetSaved || sheetUpdated,
-        status: targetStatus,
+        previousStatus: currentStatus,
+        newStatus: action,
+        sheetUpdated,
       });
-
-      const nextButtons = getStatusInlineButtons(targetStatus, orderNumber);
-      await editTelegramMessageText(chatId, messageId, updatedText, {
-        inline_keyboard: nextButtons,
-      });
+    } finally {
+      await releaseOrderLock(orderNumber, lockToken, redis);
     }
-
-    // Step E: Acknowledge Telegram callback query
-    await answerTelegramCallbackQuery(
-      callbackQueryId,
-      `Order status updated to: ${targetStatus.toUpperCase()}`
-    );
-
-    return NextResponse.json({
-      ok: true,
-      orderNumber,
-      previousStatus: currentStatus,
-      newStatus: targetStatus,
-      sheetUpdated,
-    });
   } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("[Telegram Webhook] Unexpected error:", errorMsg);
+    const error = err as Error;
+    logger.error("Unhandled error in Telegram webhook", { error });
     return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
-import type { ClientConfig } from "@/lib/config-schema";
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import type { PublicClientConfig } from "@/lib/config-schema";
 import { darkenHex } from "@/lib/contrast";
 import {
   formatNumber,
@@ -14,36 +14,56 @@ import {
 import { getClientCopy, resolveLocalizedText } from "@/lib/i18n";
 import { getSavedLocale, saveLocalePreference } from "@/lib/locale-preference";
 import {
+  hasFiredPurchaseForOrder,
+  markPurchaseFiredForOrder,
   readOrderSummaryFromSession,
   type SafeOrderSummary,
 } from "@/lib/order-session";
+import { trackPurchase } from "@/lib/tracking";
 
 interface ThankYouClientProps {
-  config: ClientConfig;
+  config: PublicClientConfig;
 }
 
+const emptySubscribe = () => () => {};
+
 export default function ThankYouClient({ config }: ThankYouClientProps) {
-  const [lang, setLang] = useState<SupportedLocale>(config.language.default);
-  const [orderSummary, setOrderSummary] = useState<SafeOrderSummary | null>(
-    null
+  const isHydrated = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
   );
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+
+  const orderSummary = useSyncExternalStore(
+    emptySubscribe,
+    () => readOrderSummaryFromSession(config.slug),
+    () => null as SafeOrderSummary | null
+  );
+
+  const initialLang =
+    orderSummary?.language ||
+    (isHydrated ? getSavedLocale(config.language.default) : config.language.default);
+
+  const [customLang, setCustomLang] = useState<SupportedLocale | null>(null);
+  const lang = customLang ?? initialLang;
+  const isLoaded = isHydrated;
   const [copiedOrderNo, setCopiedOrderNo] = useState<boolean>(false);
 
   useEffect(() => {
-    const saved = readOrderSummaryFromSession(config.slug);
-    if (saved) {
-      setOrderSummary(saved);
-      const pref = saved.language || getSavedLocale(config.language.default);
-      setLang(pref);
-    } else {
-      setLang(getSavedLocale(config.language.default));
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = lang;
     }
-    setIsLoaded(true);
-  }, [config.slug, config.language.default]);
+  }, [lang]);
+
+  useEffect(() => {
+    if (orderSummary?.orderNumber && !hasFiredPurchaseForOrder(orderSummary.orderNumber)) {
+      markPurchaseFiredForOrder(orderSummary.orderNumber);
+      trackPurchase(orderSummary.orderNumber, orderSummary.total);
+    }
+  }, [orderSummary]);
 
   function handleLanguageChange(newLang: SupportedLocale) {
-    setLang(newLang);
+    setCustomLang(newLang);
     saveLocalePreference(newLang);
   }
 
@@ -314,9 +334,9 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
                   <path d="M3 6h18M16 10a4 4 0 0 1-8 0" />
                 </svg>
               </div>
-              <h1 className="mt-4 text-xl font-bold text-[var(--text-primary)]">
+              <h2 className="mt-4 text-xl font-bold text-[var(--text-primary)]">
                 {copy.thanksGenericHeading}
-              </h1>
+              </h2>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">
                 {copy.thanksGenericBody}
               </p>
@@ -374,6 +394,21 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
 
         {/* Footer */}
         <footer className="border-t border-[var(--border-subtle)] px-4 py-4 text-center text-xs text-[var(--text-muted)] sm:px-5">
+          <div className="mb-2 flex items-center justify-center gap-4 text-xs">
+            <Link
+              href={`/${config.slug}/privacy`}
+              className="text-[var(--text-secondary)] hover:underline hover:text-[var(--text-primary)]"
+            >
+              {lang === "bn" ? "প্রাইভেসি পলিসি" : "Privacy Policy"}
+            </Link>
+            <span aria-hidden="true">•</span>
+            <Link
+              href={`/${config.slug}/terms`}
+              className="text-[var(--text-secondary)] hover:underline hover:text-[var(--text-primary)]"
+            >
+              {lang === "bn" ? "শর্তাবলী ও রিটার্ন পলিসি" : "Terms & Returns"}
+            </Link>
+          </div>
           <p className="font-semibold text-[var(--text-secondary)]">
             © {new Date().getFullYear()} {brandNameText}. {copy.footerRightsReserved}
           </p>

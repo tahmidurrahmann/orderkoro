@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 464" width="720" height="464" role="img" aria-label="Panjabi Size Chart in Inches">
+  <rect width="720" height="464" rx="16" fill="#FAF9F5"/>
+  <rect x="16" y="16" width="688" height="432" rx="12" fill="#FFFFFF" stroke="#E6E4DD" stroke-width="1.5"/>
+
+  <text x="44" y="62" font-family="'Hind Siliguri', 'Noto Sans Bengali', sans-serif" font-size="24" font-weight="700" fill="#141413">বুনন পাঞ্জাবি সাইজ চার্ট (ইঞ্চিতে মাপ)</text>
+  <text x="44" y="90" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="500" fill="#4B4A46">Regular Comfort Fit - All measurements in inches (±0.5 inch tolerance)</text>
+
+  <!-- Table Header -->
+  <rect x="44" y="116" width="632" height="52" rx="8" fill="#1E3A5F"/>
+  <text x="115" y="148" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Size / সাইজ</text>
+  <text x="310" y="148" text-anchor="middle" font-family="'Hind Siliguri', 'Plus Jakarta Sans', sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">বুক / Chest (in)</text>
+  <text x="490" y="148" text-anchor="middle" font-family="'Hind Siliguri', 'Plus Jakarta Sans', sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">লম্বা / Length (in)</text>
+  <text x="615" y="148" text-anchor="middle" font-family="'Hind Siliguri', 'Plus Jakarta Sans', sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">হাতা / Sleeve</text>
+
+  <!-- Rows -->
+  <g font-family="'Plus Jakarta Sans', 'Hind Siliguri', sans-serif" font-size="17" fill="#141413">
+    <!-- Row 1: S -->
+    <rect x="44" y="176" width="632" height="54" fill="#F8F7F4"/>
+    <text x="115" y="210" text-anchor="middle" font-weight="700">S (38)</text>
+    <text x="310" y="210" text-anchor="middle">৩৮" / 38"</text>
+    <text x="490" y="210" text-anchor="middle">৪০" / 40"</text>
+    <text x="615" y="210" text-anchor="middle">২৩.৫" / 23.5"</text>
+
+    <!-- Row 2: M -->
+    <rect x="44" y="230" width="632" height="54" fill="#FFFFFF"/>
+    <text x="115" y="264" text-anchor="middle" font-weight="700">M (40)</text>
+    <text x="310" y="264" text-anchor="middle">৪০" / 40"</text>
+    <text x="490" y="264" text-anchor="middle">৪১" / 41"</text>
+    <text x="615" y="264" text-anchor="middle">২৪" / 24.0"</text>
+
+    <!-- Row 3: L -->
+    <rect x="44" y="284" width="632" height="54" fill="#F8F7F4"/>
+    <text x="115" y="318" text-anchor="middle" font-weight="700">L (42)</text>
+    <text x="310" y="318" text-anchor="middle">৪২" / 42"</text>
+    <text x="490" y="318" text-anchor="middle">৪২" / 42"</text>
+    <text x="615" y="318" text-anchor="middle">২৪.৫" / 24.5"</text>
+
+    <!-- Row 4: XL -->
+    <rect x="44" y="338" width="632" height="54" fill="#FFFFFF"/>
+    <text x="115" y="372" text-anchor="middle" font-weight="700">XL (44)</text>
+    <text x="310" y="372" text-anchor="middle">৪৪" / 44"</text>
+    <text x="490" y="372" text-anchor="middle">৪৩.৫" / 43.5"</text>
+    <text x="615" y="372" text-anchor="middle">২৫" / 25.0"</text>
+
+    <!-- Row 5: XXL -->
+    <rect x="44" y="392" width="632" height="54" fill="#F8F7F4"/>
+    <text x="115" y="426" text-anchor="middle" font-weight="700" fill="#71706B">XXL (46)</text>
+    <text x="310" y="426" text-anchor="middle" fill="#71706B">৪৬" / 46"</text>
+    <text x="490" y="426" text-anchor="middle" fill="#71706B">৪৫" / 45"</text>
+    <text x="615" y="426" text-anchor="middle" fill="#71706B">২৫.৫" / 25.5"</text>
+  </g>
+</svg>

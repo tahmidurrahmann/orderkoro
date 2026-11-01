@@ -1,0 +1,58 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import LegalPageClient from "@/components/LegalPageClient";
+import { getAllClients, getPublicClientBySlug } from "@/lib/clients";
+import { resolveLocalizedText } from "@/lib/i18n";
+
+interface LegalPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+export function generateStaticParams() {
+  return getAllClients().map((client) => ({
+    slug: client.slug,
+  }));
+}
+
+export async function generateMetadata({
+  params,
+}: LegalPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const config = getPublicClientBySlug(slug);
+
+  if (!config) {
+    return {
+      metadataBase: new URL(siteUrl),
+      title: "পেজটি পাওয়া যায়নি | Page Not Found",
+    };
+  }
+
+  const lang = config.language.default;
+  const brandName = resolveLocalizedText(config.brand.name, lang);
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title: lang === "bn" ? `প্রাইভেসি পলিসি | ${brandName}` : `Privacy Policy | ${brandName}`,
+    description:
+      lang === "bn"
+        ? `${brandName} এর গ্রাহক তথ্য সংগ্রহ ও সুরক্ষা নীতি।`
+        : `Customer privacy and data protection policy for ${brandName}.`,
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
+
+export default async function PrivacyPage({ params }: LegalPageProps) {
+  const { slug } = await params;
+  const config = getPublicClientBySlug(slug);
+
+  if (!config) {
+    notFound();
+  }
+
+  return <LegalPageClient config={config} type="privacy" />;
+}

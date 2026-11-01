@@ -29,13 +29,19 @@ export function getOrderStorageKey(slug: string): string {
   return `orderpage_last_order_${slug}`;
 }
 
+let cachedRaw: string | null = null;
+let cachedSummary: SafeOrderSummary | null = null;
+
 export function saveOrderSummaryToSession(summary: SafeOrderSummary): void {
   try {
     if (typeof window !== "undefined" && window.sessionStorage) {
+      const raw = JSON.stringify(summary);
       window.sessionStorage.setItem(
         getOrderStorageKey(summary.slug),
-        JSON.stringify(summary)
+        raw
       );
+      cachedRaw = raw;
+      cachedSummary = summary;
     }
   } catch {
     // Ignore storage quota or private mode errors gracefully
@@ -49,7 +55,12 @@ export function readOrderSummaryFromSession(slug: string): SafeOrderSummary | nu
     }
     const raw = window.sessionStorage.getItem(getOrderStorageKey(slug));
     if (!raw) {
+      cachedRaw = null;
+      cachedSummary = null;
       return null;
+    }
+    if (raw === cachedRaw && cachedSummary && cachedSummary.slug === slug) {
+      return cachedSummary;
     }
     const parsed = JSON.parse(raw) as SafeOrderSummary;
     if (
@@ -58,42 +69,45 @@ export function readOrderSummaryFromSession(slug: string): SafeOrderSummary | nu
       parsed.slug !== slug ||
       typeof parsed.total !== "number"
     ) {
+      cachedRaw = null;
+      cachedSummary = null;
       return null;
     }
-    return parsed;
+    cachedRaw = raw;
+    cachedSummary = parsed;
+    return cachedSummary;
   } catch {
     return null;
   }
 }
 
-/**
- * Generates a realistic Stage 1 mock order number in Asia/Dhaka time:
- * <orderPrefix>-<YYMMDD>-<4-digit sequence>
- */
-export function generateMockOrderNumber(orderPrefix: string): string {
-  const now = new Date();
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Dhaka",
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
-
-  const yy = parts.find((p) => p.type === "year")?.value ?? "26";
-  const mm = parts.find((p) => p.type === "month")?.value ?? "10";
-  const dd = parts.find((p) => p.type === "day")?.value ?? "31";
-
-  let seq = 1;
+export function clearOrderSummaryFromSession(slug: string): void {
   try {
     if (typeof window !== "undefined" && window.sessionStorage) {
-      const seqKey = `orderpage_mock_seq_${orderPrefix}_${yy}${mm}${dd}`;
-      const prev = parseInt(window.sessionStorage.getItem(seqKey) || "0", 10);
-      seq = Number.isNaN(prev) ? 1 : prev + 1;
-      window.sessionStorage.setItem(seqKey, String(seq));
+      window.sessionStorage.removeItem(getOrderStorageKey(slug));
+      cachedRaw = null;
+      cachedSummary = null;
     }
   } catch {
-    seq = 1;
+    // Ignore storage quota or private mode errors gracefully
   }
+}
 
-  return `${orderPrefix}-${yy}${mm}${dd}-${String(seq).padStart(4, "0")}`;
+export function hasFiredPurchaseForOrder(orderNumber: string): boolean {
+  try {
+    if (typeof window === "undefined" || !window.sessionStorage) return false;
+    return window.sessionStorage.getItem(`purch_fired:${orderNumber}`) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markPurchaseFiredForOrder(orderNumber: string): void {
+  try {
+    if (typeof window !== "undefined" && window.sessionStorage) {
+      window.sessionStorage.setItem(`purch_fired:${orderNumber}`, "1");
+    }
+  } catch {
+    // Ignore storage quota or private mode errors gracefully
+  }
 }

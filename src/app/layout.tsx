@@ -9,7 +9,10 @@ const anekBangla = Anek_Bangla({
   variable: "--font-anek-bangla",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "OrderPage | Single-Product Cash on Delivery Storefront",
   description:
     "Fast, mobile-first Bangla & English Cash on Delivery order page for Bangladeshi Facebook sellers.",

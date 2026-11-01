@@ -7,17 +7,22 @@
     "node": ">=24.17.0"
   },
   "scripts": {
-    "prebuild": "node scripts/validate-clients.mjs",
+    "prebuild": "node scripts/validate-clients.mjs && node scripts/verify-no-secrets.mjs",
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build && node scripts/check-client-bundle.mjs",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:stage2": "npx tsx scripts/test-stage2.mjs && npx tsx scripts/test-api-routes.mjs",
-    "test:enhancements": "node scripts/test-enhancements.mjs",
-    "test": "npm run typecheck && npm run lint && npm run test:stage2 && npm run test:enhancements",
+    "test": "vitest run",
+    "test:vm": "node scripts/run-stage2-tests.mjs",
+    "check:secrets": "node scripts/check-client-bundle.mjs",
+    "init-sheet": "node scripts/init-sheet.mjs",
+    "test-telegram": "node scripts/test-telegram.mjs",
+    "replay-failed": "node scripts/replay-failed.mjs",
     "validate:clients": "node scripts/validate-clients.mjs",
-    "new-client": "node scripts/new-client.mjs"
+    "new-client": "node scripts/new-client.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "a11y": "node scripts/a11y-check.mjs"
   },
   "dependencies": {
     "@upstash/redis": "1.40.0",
@@ -25,6 +30,7 @@
     "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "server-only": "^0.0.1",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -35,6 +41,7 @@
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.3",
     "tailwindcss": "4.3.3",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "^5.0.5"
   }
 }

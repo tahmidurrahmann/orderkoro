@@ -79,7 +79,6 @@ console.log("   ✅ Phone rate limiter allowed 3 orders and blocked 4th correctl
 import {
   escapeHtml,
   getStatusInlineButtons,
-  formatTelegramOrderMessage,
 } from "../src/lib/telegram.ts";
 
 console.log("5. Testing Telegram HTML Escaping & Buttons...");

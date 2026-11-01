@@ -32,37 +32,40 @@ const i18nContent = fs.readFileSync("src/lib/i18n.ts", "utf-8");
 assert.ok(!dashRegex.test(i18nContent), "src/lib/i18n.ts must have 0 em/en dashes");
 console.log("   ✅ Zero em/en dashes found in demo-brand.json and i18n.ts.");
 
-// 3. Verify Lightbox Zoom & Gallery Thumbnails in ProductOrderClient.tsx
-console.log("\n3. Inspecting Lightbox Zoom & Gallery Thumbnails in ProductOrderClient.tsx...");
+// 3. Verify Lightbox Zoom & Gallery Thumbnails in ProductGallery.tsx & ProductOrderClient.tsx
+console.log("\n3. Inspecting Lightbox Zoom & Gallery Thumbnails in ProductGallery.tsx...");
 const clientComponentCode = fs.readFileSync("src/components/ProductOrderClient.tsx", "utf-8");
+const galleryComponentCode = fs.readFileSync("src/components/product/ProductGallery.tsx", "utf-8");
 
-assert.ok(clientComponentCode.includes("MAX_ZOOM = 2.0"), "Max zoom must be 2.0 (200%)");
-assert.ok(clientComponentCode.includes("MIN_ZOOM = 1.0"), "Lowest zoom must be 1.0 (100%)");
-assert.ok(clientComponentCode.includes("ZOOM_STEP = 0.25"), "Zoom step must be 0.25 (100% -> 125% -> 150% -> 175% -> 200%)");
-assert.ok(clientComponentCode.includes("handleWheel"), "Mouse wheel listener for scroll zoom must exist");
-assert.ok(clientComponentCode.includes("handleTouchStart") && clientComponentCode.includes("handleTouchMove"), "Mobile touch pinch listener must exist");
-assert.ok(clientComponentCode.includes("handleZoomIn") && clientComponentCode.includes("handleZoomOut"), "Plus and minus zoom handlers must exist");
-assert.ok(clientComponentCode.includes("lightbox-thumb"), "Lightbox must show bottom photo thumbnails across full width");
-assert.ok(clientComponentCode.includes("gallery-thumb"), "Mobile & desktop storefront gallery must show clickable photo thumbnails");
+assert.ok(galleryComponentCode.includes("MAX_ZOOM = 2.0"), "Max zoom must be 2.0 (200%)");
+assert.ok(galleryComponentCode.includes("MIN_ZOOM = 1.0"), "Lowest zoom must be 1.0 (100%)");
+assert.ok(galleryComponentCode.includes("ZOOM_STEP = 0.25"), "Zoom step must be 0.25 (100% -> 125% -> 150% -> 175% -> 200%)");
+assert.ok(galleryComponentCode.includes("handleWheel"), "Mouse wheel listener for scroll zoom must exist");
+assert.ok(galleryComponentCode.includes("handleTouchStart") && galleryComponentCode.includes("handleTouchMove"), "Mobile touch pinch listener must exist");
+assert.ok(galleryComponentCode.includes("handleZoomIn") && galleryComponentCode.includes("handleZoomOut"), "Plus and minus zoom handlers must exist");
+assert.ok(galleryComponentCode.includes("lightbox-thumb"), "Lightbox must show bottom photo thumbnails across full width");
+assert.ok(galleryComponentCode.includes("gallery-thumb"), "Mobile & desktop storefront gallery must show clickable photo thumbnails");
 assert.ok(clientComponentCode.includes("activeLogoUrl"), "Reactive logo selector based on active language must exist");
-assert.ok(clientComponentCode.includes("cursor-pointer"), "Explicit cursor-pointer utility classes must exist");
+assert.ok(galleryComponentCode.includes("cursor-pointer") && clientComponentCode.includes("cursor-pointer"), "Explicit cursor-pointer utility classes must exist");
 console.log("   ✅ 100% initial zoom, 25% step increments (100% -> 125% -> 150% -> 175% -> 200%), wheel zoom, touch pinch, and thumbnails verified.");
 
 // 4. Verify Bilingual Return Badge & Professional E-Commerce Micro-Badges
 console.log("\n4. Inspecting Bilingual Trust Badges & E-Commerce Micro-Badges...");
+const trustComponentCode = fs.readFileSync("src/components/product/TrustBlock.tsx", "utf-8");
 assert.ok(clientComponentCode.includes("copy.trustReturnBadge"), "Header return badge must be dynamic and switchable with language");
-assert.ok(clientComponentCode.includes("copy.trustPillar1Title"), "Pillar 1 must use localized title");
-assert.ok(clientComponentCode.includes("copy.trustPillar2Title"), "Pillar 2 must use localized title");
-assert.ok(clientComponentCode.includes("copy.trustPillar3Title"), "Pillar 3 must use localized title");
-assert.ok(!clientComponentCode.includes("📦"), "Generic box emoji must be replaced with professional SVG micro-badge");
-assert.ok(!clientComponentCode.includes("🧵"), "Generic thread emoji must be replaced with professional SVG micro-badge");
+assert.ok(trustComponentCode.includes("copy.trustPillar1Title"), "Pillar 1 must use localized title");
+assert.ok(trustComponentCode.includes("copy.trustPillar2Title"), "Pillar 2 must use localized title");
+assert.ok(trustComponentCode.includes("copy.trustPillar3Title"), "Pillar 3 must use localized title");
+assert.ok(!trustComponentCode.includes("📦"), "Generic box emoji must be replaced with professional SVG micro-badge");
+assert.ok(!trustComponentCode.includes("🧵"), "Generic thread emoji must be replaced with professional SVG micro-badge");
 console.log("   ✅ Professional e-commerce SVGs & bilingual trust pillars verified.");
 
 // 5. Verify District Combobox Redesign & Bilingual Display
 console.log("\n5. Inspecting District Selection & Bilingual Display...");
-assert.ok(clientComponentCode.includes("openDropdownFormId"), "District dropdown must track form ID ('m' | 'd') to eliminate duplicate ref collisions");
-assert.ok(clientComponentCode.includes("lang === \"bn\" ? d.bn : d.en"), "District options must display pure Bangla or pure English based on active language");
-assert.ok(clientComponentCode.includes("lang === \"bn\" ? selectedDistrictObj.bn : selectedDistrictObj.en"), "Selected district trigger must display pure Bangla or pure English");
+const orderFormComponentCode = fs.readFileSync("src/components/product/OrderForm.tsx", "utf-8");
+assert.ok(orderFormComponentCode.includes("openDropdownFormId"), "District dropdown must track form ID ('m' | 'd') to eliminate duplicate ref collisions");
+assert.ok(orderFormComponentCode.includes("lang === \"bn\" ? d.bn : d.en"), "District options must display pure Bangla or pure English based on active language");
+assert.ok(orderFormComponentCode.includes("lang === \"bn\" ? selectedDistrictObj.bn : selectedDistrictObj.en"), "Selected district trigger must display pure Bangla or pure English");
 console.log("   ✅ Fixed backdrop, no-ref collision, and pure bilingual district display verified.");
 
 // 6. Verify Dolbol Design Tokens & Global Pointer Cursor in globals.css

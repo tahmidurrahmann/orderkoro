@@ -1,7 +1,9 @@
 import demoBrandRaw from "../../clients/demo-brand.json";
 import {
   type ClientConfig,
+  type PublicClientConfig,
   ClientConfigSchema,
+  toPublicClientConfig,
   validateClientCollection,
 } from "./config-schema";
 
@@ -26,6 +28,10 @@ export function getAllClients(): ClientConfig[] {
   return VALIDATED_CLIENTS;
 }
 
+export function getAllPublicClients(): PublicClientConfig[] {
+  return VALIDATED_CLIENTS.map(toPublicClientConfig);
+}
+
 export function getClientBySlug(slug: string): ClientConfig | null {
   const existing = CLIENT_BY_SLUG.get(slug);
   if (!existing) {
@@ -33,6 +39,11 @@ export function getClientBySlug(slug: string): ClientConfig | null {
   }
   // Re-validate at request time as required by spec
   return ClientConfigSchema.parse(existing);
+}
+
+export function getPublicClientBySlug(slug: string): PublicClientConfig | null {
+  const full = getClientBySlug(slug);
+  return full ? toPublicClientConfig(full) : null;
 }
 
 export function getClientByOrderPrefix(prefix: string): ClientConfig | null {

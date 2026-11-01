@@ -15,6 +15,15 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, "..");
 const CLIENTS_DIR = path.join(ROOT_DIR, "clients");
 
+const envPath = path.join(ROOT_DIR, ".env");
+if (fs.existsSync(envPath) && typeof process.loadEnvFile === "function") {
+  try {
+    process.loadEnvFile(envPath);
+  } catch {
+    // Ignore .env loading errors in CI environments without .env
+  }
+}
+
 const HEX_REGEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 function normalizeHex(hex) {
@@ -298,12 +307,52 @@ export function validateClientsDirectory(dirPath = CLIENTS_DIR) {
     }
   }
 
+  // Prebuild validation: ADMIN_TELEGRAM_CHAT_ID must not be missing or collide with any client's telegramChatId
+  try {
+    validateAdminTelegramChatId(dirPath);
+  } catch (err) {
+    allErrors.push(err.message);
+  }
+
   return {
     ok: allErrors.length === 0,
     checkedCount: files.length,
     errors: allErrors,
     warnings: allWarnings,
   };
+}
+
+export function validateAdminTelegramChatId(clientsDir = CLIENTS_DIR) {
+  const adminChatId = (process.env.ADMIN_TELEGRAM_CHAT_ID || "").trim();
+  if (!adminChatId) {
+    throw new Error("Missing required environment variable: ADMIN_TELEGRAM_CHAT_ID");
+  }
+
+  if (!fs.existsSync(clientsDir)) return;
+  const files = fs.readdirSync(clientsDir).filter((f) => f.endsWith(".json"));
+  const normalizedAdmin = adminChatId.replace(/^-100/, "-");
+
+  for (const f of files) {
+    const slug = path.basename(f, ".json");
+    const filePath = path.join(clientsDir, f);
+    try {
+      const raw = fs.readFileSync(filePath, "utf-8");
+      const parsed = JSON.parse(raw);
+      const clientChat = String(parsed.telegramChatId || "").trim();
+      if (clientChat) {
+        const normalizedClient = clientChat.replace(/^-100/, "-");
+        if (normalizedAdmin === normalizedClient) {
+          throw new Error(
+            `ADMIN_TELEGRAM_CHAT_ID (${adminChatId}) must not equal client "${slug}" telegramChatId (${clientChat}). Admin alerts must never be sent to a seller group.`
+          );
+        }
+      }
+    } catch (e) {
+      if (e.message.includes("ADMIN_TELEGRAM_CHAT_ID")) {
+        throw e;
+      }
+    }
+  }
 }
 
 // Run when invoked directly from CLI
