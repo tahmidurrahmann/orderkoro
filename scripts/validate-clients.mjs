@@ -235,6 +235,20 @@ export function validateSingleClientConfig(cfg, fileName = "config.json") {
     errors.push(`confirmationMode: must be "call" or "tap"`);
   }
 
+  // Status & previewToken validation
+  if (cfg.status !== undefined && !["active", "paused", "draft"].includes(cfg.status)) {
+    errors.push(`status: must be "active", "paused", or "draft"`);
+  }
+  if (cfg.status === "draft") {
+    if (typeof cfg.previewToken !== "string" || cfg.previewToken.trim().length < 16) {
+      errors.push(`previewToken: draft status requires a previewToken with at least 16 characters`);
+    }
+  } else if (cfg.previewToken !== undefined) {
+    if (typeof cfg.previewToken !== "string" || cfg.previewToken.trim().length < 16) {
+      errors.push(`previewToken: must be a string with at least 16 characters if specified`);
+    }
+  }
+
   return { valid: errors.length === 0, errors, warnings };
 }
 

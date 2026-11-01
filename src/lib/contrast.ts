@@ -104,7 +104,7 @@ export function ensureAccessiblePrimaryColor(
   }
 
   console.warn(
-    `[OrderPage Config Warning] ${contextLabel}: primaryColor "${normalized}" has insufficient WCAG AA contrast with white text (${initialContrast.toFixed(
+    `[OrderKoro Config Warning] ${contextLabel}: primaryColor "${normalized}" has insufficient WCAG AA contrast with white text (${initialContrast.toFixed(
       2
     )}:1 < ${minContrast}:1). Auto-falling back to darker shade "${candidate}" (${currentContrast.toFixed(
       2

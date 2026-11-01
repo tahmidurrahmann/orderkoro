@@ -48,7 +48,8 @@ async function main() {
   let sheetId = flags.sheetId || "REPLACE_WITH_GOOGLE_SHEET_ID";
   let telegramChatId = flags.chatId || "-1000000000000";
   let pixelId = flags.pixelId || undefined;
-  let status = flags.status === "paused" ? "paused" : "active";
+  let status = flags.status === "paused" ? "paused" : flags.status === "draft" ? "draft" : "active";
+  let previewToken = flags.previewToken || (status === "draft" ? crypto.randomUUID().replace(/-/g, "") : undefined);
   let returnPolicyBn = flags.returnPolicyBn || "পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানের সামনে চেক করে নিন। ত্রুটি থাকলে তাৎক্ষণিক রিটার্ন সুবিধা।";
   let returnPolicyEn = flags.returnPolicyEn || "Check your parcel in front of the delivery rider. Instant return if defective.";
   let addressBn = flags.addressBn || "ঢাকা, বাংলাদেশ";
@@ -59,7 +60,7 @@ async function main() {
       input: process.stdin,
       output: process.stdout,
     });
-    console.log("=== OrderPage New Client Scaffolder ===");
+    console.log("=== OrderKoro New Client Scaffolder ===");
     slug = (await rl.question("Client slug (e.g. jamdani-house): ")).trim();
     orderPrefix = (
       await rl.question("Unique 2-4 letter orderPrefix (e.g. JMD): ")
@@ -174,6 +175,7 @@ async function main() {
     ...(pixelId ? { pixelId } : {}),
     confirmationMode: "call",
     status,
+    ...(previewToken ? { previewToken } : {}),
     seo: {
       index: true,
     },

@@ -16,6 +16,7 @@ export function getServerClientSecrets(slug: string): ServerClientSecrets | null
   return {
     sheetId: client.sheetId,
     telegramChatId: client.telegramChatId,
+    previewToken: client.previewToken,
   };
 }
 

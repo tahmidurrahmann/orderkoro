@@ -18,6 +18,8 @@ export interface TelegramOrderPayload {
   unitPrice: number;
   deliveryFee: number;
   codTotal: number;
+  paymentMethod?: string;
+  transactionId?: string;
   note?: string;
   confirmationMode: string;
 }
@@ -55,7 +57,19 @@ export function formatTelegramOrderHtml(
   lines.push(`📏 <b>Size:</b> ${escapeTelegramHtml(order.size)}`);
   lines.push(`🔢 <b>Qty:</b> ${order.quantity} × ৳${order.unitPrice}`);
   lines.push(`🚚 <b>Delivery:</b> ৳${order.deliveryFee}`);
-  lines.push(`💵 <b>COD Total:</b> <b>৳${order.codTotal}</b>`);
+  const methodLabel =
+    order.paymentMethod === "bkash"
+      ? "bKash (বিকাশ)"
+      : order.paymentMethod === "nagad"
+      ? "Nagad (নগদ)"
+      : order.paymentMethod === "rocket"
+      ? "Rocket (রকেট)"
+      : "Cash on Delivery";
+  lines.push(`💳 <b>Payment:</b> ${escapeTelegramHtml(methodLabel)}`);
+  if (order.transactionId) {
+    lines.push(`🧾 <b>TrxID:</b> <code>${escapeTelegramHtml(order.transactionId)}</code>`);
+  }
+  lines.push(`💵 <b>Total Payable:</b> <b>৳${order.codTotal}</b>`);
 
   if (order.note) {
     lines.push(`📝 <b>Note:</b> ${escapeTelegramHtml(order.note)}`);

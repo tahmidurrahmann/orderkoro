@@ -18,6 +18,7 @@ import { getSavedLocale, saveLocalePreference } from "@/lib/locale-preference";
 import { saveOrderSummaryToSession } from "@/lib/order-session";
 import { normalizeBdPhone, validateBdPhone } from "@/lib/phone";
 import { trackInitiateCheckout, trackViewContent } from "@/lib/tracking";
+import { getEnabledPaymentMethods, type PaymentMethodId } from "@/lib/payments";
 
 import ProductGallery from "./product/ProductGallery";
 import ProductSelectors from "./product/ProductSelectors";
@@ -91,6 +92,11 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
   const [customerAddress, setCustomerAddress] = useState<string>("");
   const [customerNote, setCustomerNote] = useState<string>("");
   const [honeypot, setHoneypot] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>(() => {
+    const list = getEnabledPaymentMethods(config);
+    return list[0]?.id || "cod";
+  });
+  const [transactionId, setTransactionId] = useState<string>("");
 
   const [openDropdownFormId, setOpenDropdownFormId] = useState<"m" | "d" | null>(null);
   const [districtSearchQuery, setDistrictSearchQuery] = useState<string>("");
@@ -138,7 +144,7 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
   const shareUrl = useSyncExternalStore(
     emptySubscribe,
     () => window.location.href,
-    () => `https://orderpage.example/${config.slug}`
+    () => `https://orderkoro.example/${config.slug}`
   );
   const canNativeShare = useSyncExternalStore(
     emptySubscribe,
@@ -385,6 +391,8 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
           color: activeColor.id || activeColorName,
           size: selectedSize,
           quantity: orderTotals.quantity,
+          paymentMethod,
+          transactionId: transactionId.trim() || undefined,
           note: customerNote.trim() || undefined,
           honeypot: honeypot || undefined,
           website: honeypot || undefined,
@@ -496,9 +504,9 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
       className="min-h-screen-safe flex flex-col bg-[var(--bg-canvas)] text-[var(--text-primary)]"
     >
       {/* 1. Header */}
-      <header className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-3 min-[360px]:px-4 sm:px-6 lg:px-8 py-2.5 backdrop-blur-md">
-        <div className="mx-auto flex min-h-12 max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-2.5 min-w-0">
+      <header suppressHydrationWarning className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-3 min-[360px]:px-4 sm:px-6 lg:px-8 py-2.5 backdrop-blur-md">
+        <div suppressHydrationWarning className="mx-auto flex min-h-12 max-w-6xl items-center justify-between">
+          <div suppressHydrationWarning className="flex items-center gap-2.5 min-w-0">
             {activeLogoUrl ? (
               <Image
                 src={activeLogoUrl}
@@ -511,6 +519,11 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
             ) : (
               <span className="truncate text-lg font-bold tracking-tight text-[var(--text-primary)]">
                 {brandNameText}
+              </span>
+            )}
+            {config.slug === "demo-brand" && (
+              <span className="shrink-0 rounded-md bg-amber-100 border border-amber-300 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-900 shadow-2xs">
+                Demo
               </span>
             )}
           </div>
@@ -690,6 +703,10 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
                     setCustomerNote={setCustomerNote}
                     honeypot={honeypot}
                     setHoneypot={setHoneypot}
+                    paymentMethod={paymentMethod}
+                    setPaymentMethod={setPaymentMethod}
+                    transactionId={transactionId}
+                    setTransactionId={setTransactionId}
                     errorSummaryRef={errorSummaryRef}
                     nameInputRef={nameInputRef}
                     phoneInputRef={phoneInputRef}
@@ -826,6 +843,10 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
                 setCustomerNote={setCustomerNote}
                 honeypot={honeypot}
                 setHoneypot={setHoneypot}
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                transactionId={transactionId}
+                setTransactionId={setTransactionId}
                 errorSummaryRef={errorSummaryRef}
                 nameInputRef={nameInputRef}
                 phoneInputRef={phoneInputRef}

@@ -13,7 +13,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "OrderPage | Single-Product Cash on Delivery Storefront",
+  title: "OrderKoro | Single-Product Cash on Delivery Storefront",
   description:
     "Fast, mobile-first Bangla & English Cash on Delivery order page for Bangladeshi Facebook sellers.",
   other: {
@@ -40,14 +40,6 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`notranslate ${anekBangla.variable}`}
     >
-      <head>
-        <meta name="google" content="notranslate" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{var l=localStorage.getItem("orderpage_selected_locale");if(l==="en"||l==="bn"){document.documentElement.lang=l;document.documentElement.setAttribute("data-lang",l);}}catch(e){}`,
-          }}
-        />
-      </head>
       <body
         translate="no"
         suppressHydrationWarning

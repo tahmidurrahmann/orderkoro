@@ -276,4 +276,102 @@ describe("Hardening Unit Tests (Non-E2E)", () => {
       expect(appendCallCount).toBe(1);
     });
   });
+
+  // -------------------------------------------------------------------
+  // 6. Draft Store Status and Preview Token Validation
+  // -------------------------------------------------------------------
+  describe("6. Draft status and previewToken validation", () => {
+    it("accepts valid draft config with previewToken >= 16 chars", async () => {
+      const { ClientConfigSchema } = await import("../src/lib/config-schema");
+      const demoRaw = (await import("../clients/demo-brand.json")).default;
+      const draftConfig = {
+        ...demoRaw,
+        slug: "draft-test-brand",
+        orderPrefix: "DFT",
+        status: "draft",
+        previewToken: "secret-preview-token-123456",
+      };
+
+      const parsed = ClientConfigSchema.parse(draftConfig);
+      expect(parsed.status).toBe("draft");
+      expect(parsed.previewToken).toBe("secret-preview-token-123456");
+    });
+
+    it("fails schema validation when status is draft but previewToken is missing", async () => {
+      const { ClientConfigSchema } = await import("../src/lib/config-schema");
+      const demoRaw = (await import("../clients/demo-brand.json")).default;
+      const draftConfig = {
+        ...demoRaw,
+        slug: "draft-test-brand-fail",
+        orderPrefix: "DFF",
+        status: "draft",
+      };
+
+      expect(() => ClientConfigSchema.parse(draftConfig)).toThrow(
+        /Draft clients must define a server-only previewToken with at least 16 characters/
+      );
+    });
+
+    it("fails schema validation when status is draft but previewToken is too short (< 16 chars)", async () => {
+      const { ClientConfigSchema } = await import("../src/lib/config-schema");
+      const demoRaw = (await import("../clients/demo-brand.json")).default;
+      const draftConfig = {
+        ...demoRaw,
+        slug: "draft-test-brand-short",
+        orderPrefix: "DFS",
+        status: "draft",
+        previewToken: "too-short",
+      };
+
+      expect(() => ClientConfigSchema.parse(draftConfig)).toThrow();
+    });
+
+    it("strips previewToken from PublicClientConfig", async () => {
+      const { ClientConfigSchema, toPublicClientConfig } = await import("../src/lib/config-schema");
+      const demoRaw = (await import("../clients/demo-brand.json")).default;
+      const draftConfig = {
+        ...demoRaw,
+        slug: "draft-strip-test",
+        orderPrefix: "STP",
+        status: "draft",
+        previewToken: "super-secret-preview-token-99999",
+      };
+
+      const parsed = ClientConfigSchema.parse(draftConfig);
+      const publicConfig = toPublicClientConfig(parsed);
+
+      expect(publicConfig).not.toHaveProperty("previewToken");
+      expect(publicConfig).not.toHaveProperty("sheetId");
+      expect(publicConfig).not.toHaveProperty("telegramChatId");
+    });
+  });
+
+  // -------------------------------------------------------------------
+  // 7. Slug Enumeration and generateStaticParams Protection
+  // -------------------------------------------------------------------
+  describe("7. Slug enumeration protection", () => {
+    it("ensures [slug]/page.tsx generateStaticParams only returns demo-brand", async () => {
+      const { generateStaticParams } = await import("../src/app/[slug]/page");
+      const params = generateStaticParams();
+      expect(params).toEqual([{ slug: "demo-brand" }]);
+    });
+
+    it("ensures [slug]/thanks/page.tsx generateStaticParams only returns demo-brand", async () => {
+      const { generateStaticParams } = await import("../src/app/[slug]/thanks/page");
+      const params = generateStaticParams();
+      expect(params).toEqual([{ slug: "demo-brand" }]);
+    });
+
+    it("ensures [slug]/privacy/page.tsx generateStaticParams only returns demo-brand", async () => {
+      const { generateStaticParams } = await import("../src/app/[slug]/privacy/page");
+      const params = generateStaticParams();
+      expect(params).toEqual([{ slug: "demo-brand" }]);
+    });
+
+    it("ensures [slug]/terms/page.tsx generateStaticParams only returns demo-brand", async () => {
+      const { generateStaticParams } = await import("../src/app/[slug]/terms/page");
+      const params = generateStaticParams();
+      expect(params).toEqual([{ slug: "demo-brand" }]);
+    });
+  });
 });

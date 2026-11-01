@@ -64,6 +64,19 @@ export interface CopyDictionary {
   fieldNotePlaceholder: string;
   fieldSizeError: string;
 
+  // Payment Methods
+  fieldPaymentMethodLabel: string;
+  paymentMethodCod: string;
+  paymentMethodBkash: string;
+  paymentMethodNagad: string;
+  paymentMethodRocket: string;
+  fieldTrxIdLabel: string;
+  fieldTrxIdPlaceholder: string;
+  fieldTrxIdHint: string;
+  copyNumberButtonText: string;
+  copiedNumberFeedback: string;
+  accountTypePersonal: string;
+
   // Order Summary Card
   summaryHeading: string;
   summaryProductRow: string;
@@ -186,6 +199,18 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     fieldNotePlaceholder: "ডেলিভারি সংক্রান্ত কোনো নির্দেশনা থাকলে লিখুন",
     fieldSizeError: "অনুগ্রহ করে একটি সাইজ নির্বাচন করুন",
 
+    fieldPaymentMethodLabel: "পেমেন্ট মাধ্যম নির্বাচন করুন",
+    paymentMethodCod: "ক্যাশ অন ডেলিভারি (Cash on Delivery)",
+    paymentMethodBkash: "বিকাশ (bKash)",
+    paymentMethodNagad: "নগদ (Nagad)",
+    paymentMethodRocket: "রকেট (Rocket)",
+    fieldTrxIdLabel: "ট্রানজেকশন আইডি (TrxID)",
+    fieldTrxIdPlaceholder: "যেমন: 8N7A6D5E",
+    fieldTrxIdHint: "পেমেন্ট সম্পন্ন করার পর প্রাপ্ত TrxID এখানে লিখুন",
+    copyNumberButtonText: "নম্বর কপি করুন",
+    copiedNumberFeedback: "কপি হয়েছে!",
+    accountTypePersonal: "পার্সোনাল",
+
     summaryHeading: "অর্ডার সামারি",
     summaryProductRow: "পণ্য",
     summaryVariantRow: "রঙ ও সাইজ",
@@ -226,7 +251,7 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     shareWhatsApp: "হোয়াটসঅ্যাপ",
     shareNative: "শেয়ার",
 
-    poweredByText: "Powered by OrderPage",
+    poweredByText: "Powered by OrderKoro",
     footerRightsReserved: "সর্বস্বত্ব সংরক্ষিত।",
 
     thanksHeading: "আপনার অর্ডারটি আমরা পেয়েছি",
@@ -300,6 +325,18 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     fieldNotePlaceholder: "Any special instructions for delivery",
     fieldSizeError: "Please select an available size",
 
+    fieldPaymentMethodLabel: "Select Payment Method",
+    paymentMethodCod: "Cash on Delivery",
+    paymentMethodBkash: "bKash",
+    paymentMethodNagad: "Nagad",
+    paymentMethodRocket: "Rocket",
+    fieldTrxIdLabel: "Transaction ID (TrxID)",
+    fieldTrxIdPlaceholder: "e.g. 8N7A6D5E",
+    fieldTrxIdHint: "Enter the TrxID from your payment confirmation SMS",
+    copyNumberButtonText: "Copy Number",
+    copiedNumberFeedback: "Copied!",
+    accountTypePersonal: "Personal",
+
     summaryHeading: "Order Summary",
     summaryProductRow: "Product",
     summaryVariantRow: "Color & Size",
@@ -340,7 +377,7 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     shareWhatsApp: "WhatsApp",
     shareNative: "Share",
 
-    poweredByText: "Powered by OrderPage",
+    poweredByText: "Powered by OrderKoro",
     footerRightsReserved: "All rights reserved.",
 
     thanksHeading: "Order Received",

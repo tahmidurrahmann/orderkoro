@@ -174,7 +174,56 @@ export const ClientConfigSchema = z
         .min(1, { error: "contact.messengerPageUsername is required" }),
       businessAddress: LocalizedStringSchema.optional().default(DEFAULT_BUSINESS_ADDRESS),
     }),
-    status: z.enum(["active", "paused"]).default("active"),
+    paymentNumbers: z
+      .object({
+        bkash: z.string().optional(),
+        nagad: z.string().optional(),
+        rocket: z.string().optional(),
+      })
+      .optional(),
+    payments: z
+      .object({
+        cod: z.union([z.boolean(), z.object({ enabled: z.boolean().default(true) })]).optional(),
+        bkash: z
+          .union([
+            z.boolean(),
+            z.string(),
+            z.object({
+              enabled: z.boolean().default(true),
+              number: z.string().optional(),
+              type: z.string().default("personal"),
+            }),
+          ])
+          .optional(),
+        nagad: z
+          .union([
+            z.boolean(),
+            z.string(),
+            z.object({
+              enabled: z.boolean().default(true),
+              number: z.string().optional(),
+              type: z.string().default("personal"),
+            }),
+          ])
+          .optional(),
+        rocket: z
+          .union([
+            z.boolean(),
+            z.string(),
+            z.object({
+              enabled: z.boolean().default(true),
+              number: z.string().optional(),
+              type: z.string().default("personal"),
+            }),
+          ])
+          .optional(),
+      })
+      .optional(),
+    status: z.enum(["active", "paused", "draft"]).default("active"),
+    previewToken: z
+      .string()
+      .min(16, { error: "previewToken must be at least 16 characters" })
+      .optional(),
     seo: z
       .object({
         index: z.boolean().default(true),
@@ -197,6 +246,18 @@ export const ClientConfigSchema = z
       })
       .optional(),
   })
+  .refine(
+    (cfg) => {
+      if (cfg.status === "draft") {
+        return Boolean(cfg.previewToken && cfg.previewToken.trim().length >= 16);
+      }
+      return true;
+    },
+    {
+      message: "Draft clients must define a server-only previewToken with at least 16 characters",
+      path: ["previewToken"],
+    }
+  )
   .transform((cfg) => {
     const contrastCheck = ensureAccessiblePrimaryColor(
       cfg.brand.primaryColor,
@@ -222,26 +283,31 @@ export type ClientConfig = z.output<typeof ClientConfigSchema>;
 
 /**
  * Public client configuration safe to serialize and pass to browser / Client Components.
- * Secret integration credentials (sheetId, telegramChatId) are strictly excluded.
+ * Secret integration credentials (sheetId, telegramChatId, previewToken) are strictly excluded.
  * Meta Pixel ID (pixelId) is preserved as it is executed on the client.
  */
-export type PublicClientConfig = Omit<ClientConfig, "sheetId" | "telegramChatId" | "highValueThreshold">;
+export type PublicClientConfig = Omit<
+  ClientConfig,
+  "sheetId" | "telegramChatId" | "highValueThreshold" | "previewToken"
+>;
 
 export type ServerClientSecrets = {
   sheetId: string;
   telegramChatId: string;
   highValueThreshold?: number;
+  previewToken?: string;
 };
 
 /**
- * Strips server-only secrets (sheetId, telegramChatId, highValueThreshold) from a ClientConfig,
+ * Strips server-only secrets (sheetId, telegramChatId, highValueThreshold, previewToken) from a ClientConfig,
  * producing a browser-safe PublicClientConfig.
  */
 export function toPublicClientConfig(config: ClientConfig): PublicClientConfig {
-  const { sheetId, telegramChatId, highValueThreshold, ...publicConfig } = config;
+  const { sheetId, telegramChatId, highValueThreshold, previewToken, ...publicConfig } = config;
   void sheetId;
   void telegramChatId;
   void highValueThreshold;
+  void previewToken;
   return publicConfig;
 }
 

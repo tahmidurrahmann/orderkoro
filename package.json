@@ -1,5 +1,5 @@
 {
-  "name": "orderpage",
+  "name": "orderkoro",
   "version": "0.1.0",
   "private": true,
   "description": "Config-driven single-product COD order page template for Bangladeshi Facebook sellers",
@@ -22,7 +22,8 @@
     "validate:clients": "node scripts/validate-clients.mjs",
     "new-client": "node scripts/new-client.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "a11y": "node scripts/a11y-check.mjs"
+    "a11y": "node scripts/a11y-check.mjs",
+    "clear-rate-limits": "node scripts/clear-rate-limits.mjs"
   },
   "dependencies": {
     "@upstash/redis": "1.40.0",

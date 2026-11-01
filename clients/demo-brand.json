@@ -167,6 +167,26 @@
       "en": "House 12, Road 5, Dhanmondi, Dhaka 1205"
     }
   },
+  "payments": {
+    "cod": {
+      "enabled": true
+    },
+    "bkash": {
+      "enabled": true,
+      "number": "01711002233",
+      "type": "personal"
+    },
+    "nagad": {
+      "enabled": true,
+      "number": "01711002233",
+      "type": "personal"
+    },
+    "rocket": {
+      "enabled": true,
+      "number": "01711002233",
+      "type": "personal"
+    }
+  },
   "status": "active",
   "seo": {
     "index": true

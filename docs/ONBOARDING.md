@@ -1,4 +1,4 @@
-# OrderPage: New Seller Onboarding Checklist (`docs/ONBOARDING.md`)
+# OrderKoro: New Seller Onboarding Checklist (`docs/ONBOARDING.md`)
 
 Collect the following details from a Bangladeshi Facebook seller to create their `clients/<slug>.json` file:
 

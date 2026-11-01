@@ -2,33 +2,50 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import MetaPixel from "@/components/MetaPixel";
 import ProductOrderClient from "@/components/ProductOrderClient";
-import { getAllClients, getPublicClientBySlug } from "@/lib/clients";
+import { getPublicClientBySlug } from "@/lib/clients";
+import { getServerClientSecrets } from "@/lib/server-clients";
 import { formatPrice } from "@/lib/format";
 import { resolveLocalizedText } from "@/lib/i18n";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
+export const dynamicParams = true;
+
 export function generateStaticParams() {
-  return getAllClients().map((client) => ({
-    slug: client.slug,
-  }));
+  return [{ slug: "demo-brand" }];
 }
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const { preview } = await searchParams;
   const config = getPublicClientBySlug(slug);
 
   if (!config) {
     return {
       metadataBase: new URL(siteUrl),
       title: "পেজটি পাওয়া যায়নি | Page Not Found",
+      robots: { index: false, follow: false },
     };
+  }
+
+  // Draft stores require a valid server-only previewToken
+  if (config.status === "draft") {
+    const secrets = getServerClientSecrets(slug);
+    if (!secrets?.previewToken || !preview || preview !== secrets.previewToken) {
+      return {
+        metadataBase: new URL(siteUrl),
+        title: "পেজটি পাওয়া যায়নি | Page Not Found",
+        robots: { index: false, follow: false },
+      };
+    }
   }
 
   const lang = config.language.default;
@@ -37,7 +54,8 @@ export async function generateMetadata({
   const description = resolveLocalizedText(config.product.shortDescription, lang);
   const formattedPrice = formatPrice(config.product.price, lang);
   const ogImage = config.ogImage || config.product.images[0];
-  const shouldIndex = config.status !== "paused" && config.seo?.index !== false;
+  // Draft pages are strictly noindex
+  const shouldIndex = config.status === "active" && config.seo?.index !== false;
 
   return {
     metadataBase: new URL(siteUrl),
@@ -61,12 +79,21 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProductPage({ params }: ProductPageProps) {
+export default async function ProductPage({ params, searchParams }: ProductPageProps) {
   const { slug } = await params;
+  const { preview } = await searchParams;
   const config = getPublicClientBySlug(slug);
 
   if (!config) {
     notFound();
+  }
+
+  // Draft stores return 404 unless ?preview=<token> matches server-only previewToken
+  if (config.status === "draft") {
+    const secrets = getServerClientSecrets(slug);
+    if (!secrets?.previewToken || !preview || preview !== secrets.previewToken) {
+      notFound();
+    }
   }
 
   return (

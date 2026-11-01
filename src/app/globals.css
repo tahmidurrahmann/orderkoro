@@ -45,7 +45,57 @@
   --color-brand-hover: var(--brand-primary-hover);
   --color-brand-soft: var(--brand-primary-soft);
   --color-accent: var(--brand-accent);
+  --color-bkash: #d12053;
+  --color-bkash-hover: #b01742;
+  --color-nagad: #f7941d;
+  --color-nagad-hover: #d87c12;
+  --color-rocket: #8c3494;
+  --color-rocket-hover: #722778;
   --font-sans: "Anek Bangla", var(--font-anek-bangla), system-ui, -apple-system, sans-serif;
+}
+
+/* Explicit MFS Brand Button Styles */
+.mfs-btn-bkash {
+  background-color: #d12053 !important;
+  color: #ffffff !important;
+}
+.mfs-btn-bkash:hover {
+  background-color: #b01742 !important;
+}
+
+.mfs-btn-nagad {
+  background-color: #f7941d !important;
+  color: #ffffff !important;
+}
+.mfs-btn-nagad:hover {
+  background-color: #d87c12 !important;
+}
+
+.mfs-btn-rocket {
+  background-color: #8c3494 !important;
+  color: #ffffff !important;
+}
+.mfs-btn-rocket:hover {
+  background-color: #722778 !important;
+}
+
+/* Explicit Contact Action Buttons (Call & Messenger) */
+.contact-btn-call {
+  background: linear-gradient(135deg, #059669 0%, #0d9488 100%) !important;
+  background-color: #059669 !important;
+  color: #ffffff !important;
+}
+.contact-btn-call:hover {
+  background: linear-gradient(135deg, #047857 0%, #0f766e 100%) !important;
+}
+
+.contact-btn-messenger {
+  background: linear-gradient(135deg, #0084ff 0%, #0066ff 100%) !important;
+  background-color: #0084ff !important;
+  color: #ffffff !important;
+}
+.contact-btn-messenger:hover {
+  background: linear-gradient(135deg, #0070e6 0%, #0052cc 100%) !important;
 }
 
 html {

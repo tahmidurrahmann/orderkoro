@@ -1,4 +1,4 @@
-# OrderPage V1: Deployment & Operations Guide (`docs/DEPLOY.md`)
+# OrderKoro V1: Deployment & Operations Guide (`docs/DEPLOY.md`)
 
 This guide outlines deployment on Vercel, region selection, environment configuration, custom domains, and pre-launch checklists.
 

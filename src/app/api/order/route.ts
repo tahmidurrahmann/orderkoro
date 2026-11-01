@@ -68,6 +68,8 @@ const OrderInputSchema = z.object({
     .int()
     .min(1, { error: "Quantity must be at least 1" })
     .max(5, { error: "Quantity cannot exceed 5" }),
+  paymentMethod: z.enum(["cod", "bkash", "nagad", "rocket"]).optional().default("cod"),
+  transactionId: z.string().max(60, { error: "Transaction ID cannot exceed 60 characters" }).optional(),
   note: z.string().max(200, { error: "Note cannot exceed 200 characters" }).optional().default(""),
   honeypot: z.string().optional().default(""),
   website: z.string().optional().default(""),
@@ -220,6 +222,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 5c. Draft Store Control: Reject orders if store is in draft status
+    if (config.status === "draft") {
+      const isBn = payload.lang === "bn";
+      return NextResponse.json(
+        {
+          ok: false,
+          error: isBn
+            ? "এই স্টোরটি এখনও ড্রাফট অবস্থায় রয়েছে। কোনো অর্ডার গ্রহণ করা সম্ভব নয়।"
+            : "This store is currently in draft mode. Orders are not accepted.",
+          code: "STORE_DRAFT",
+        },
+        { status: 403 }
+      );
+    }
+
     // 6. Phone validation & normalization
     const phoneRes = validateBdPhone(payload.phone);
     if (!phoneRes.valid) {
@@ -365,7 +382,16 @@ export async function POST(req: NextRequest) {
       unitPrice,
       deliveryFee,
       codTotal,
-      note: payload.note,
+      note: (() => {
+        let n = payload.note ? payload.note.trim() : "";
+        if (payload.paymentMethod && payload.paymentMethod !== "cod") {
+          n = `${n ? n + " " : ""}[Payment: ${payload.paymentMethod.toUpperCase()}]`;
+        }
+        if (payload.transactionId) {
+          n = `${n ? n + " " : ""}[TrxID: ${payload.transactionId}]`;
+        }
+        return n;
+      })(),
       confirmationMode: config.confirmationMode || "call",
       attribution: payload.attribution,
     };
@@ -386,6 +412,8 @@ export async function POST(req: NextRequest) {
       unitPrice,
       deliveryFee,
       codTotal,
+      paymentMethod: payload.paymentMethod,
+      transactionId: payload.transactionId,
       note: payload.note,
       confirmationMode: config.confirmationMode || "call",
     };

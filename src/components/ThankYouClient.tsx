@@ -124,26 +124,33 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
     >
       <div className="mx-auto flex min-h-screen-safe w-full max-w-xl flex-col justify-between bg-[var(--bg-surface)] shadow-[var(--shadow-card)] sm:min-h-0 sm:rounded-2xl sm:border sm:border-[var(--border-subtle)] overflow-hidden">
         {/* Header */}
-        <header className="flex min-h-12 items-center justify-between border-b border-[var(--border-subtle)] px-3 min-[360px]:px-4 py-2.5 sm:px-6">
-          <Link
-            href={`/${config.slug}`}
-            className="flex items-center gap-2 cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--brand-primary)]"
-          >
-            {activeLogoUrl ? (
-              <Image
-                src={activeLogoUrl}
-                alt={brandNameText}
-                width={150}
-                height={32}
-                priority
-                className="h-7 min-[360px]:h-8 w-auto max-w-[125px] min-[360px]:max-w-[160px] object-contain"
-              />
-            ) : (
-              <span className="text-lg font-bold text-[var(--text-primary)]">
-                {brandNameText}
+        <header suppressHydrationWarning className="flex min-h-12 items-center justify-between border-b border-[var(--border-subtle)] px-3 min-[360px]:px-4 py-2.5 sm:px-6">
+          <div suppressHydrationWarning className="flex items-center gap-2">
+            <Link
+              href={`/${config.slug}`}
+              className="flex items-center gap-2 cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--brand-primary)]"
+            >
+              {activeLogoUrl ? (
+                <Image
+                  src={activeLogoUrl}
+                  alt={brandNameText}
+                  width={150}
+                  height={32}
+                  priority
+                  className="h-7 min-[360px]:h-8 w-auto max-w-[125px] min-[360px]:max-w-[160px] object-contain"
+                />
+              ) : (
+                <span className="text-lg font-bold text-[var(--text-primary)]">
+                  {brandNameText}
+                </span>
+              )}
+            </Link>
+            {config.slug === "demo-brand" && (
+              <span className="shrink-0 rounded-md bg-amber-100 border border-amber-300 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-900 shadow-2xs">
+                Demo
               </span>
             )}
-          </Link>
+          </div>
 
           {config.language.allowSwitch && (
             <div

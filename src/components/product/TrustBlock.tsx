@@ -90,20 +90,58 @@ export default function TrustBlock({
       </div>
 
       {/* Helpline Buttons */}
-      <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 space-y-3">
-        <p className="text-sm font-bold text-[var(--text-primary)]">
-          {copy.trustContactHeading}
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+      <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 space-y-3.5 shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+          </span>
+          <div>
+            <p className="text-sm font-bold text-[var(--text-primary)] leading-tight">
+              {copy.trustContactHeading}
+            </p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+              {lang === "bn" ? "সরাসরি ফোন বা মেসেঞ্জারে দ্রুত উত্তর পান" : "Instant reply via direct phone call or Messenger"}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {phone && (
             <a
               href={`tel:${phone}`}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 transition"
+              style={{
+                background: "linear-gradient(135deg, #059669 0%, #0d9488 100%)",
+                backgroundColor: "#059669",
+                color: "#ffffff",
+              }}
+              className="contact-btn-call group relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 text-white shadow-md hover:shadow-lg shadow-emerald-900/15 transition-all duration-200 active:scale-[0.98] border border-emerald-400/30"
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              <span>{copy.trustCallButton}: {phone}</span>
+              <div
+                style={{ backgroundColor: "rgba(255, 255, 255, 0.22)" }}
+                className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl text-white backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform"
+              >
+                <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <span style={{ color: "rgba(255, 255, 255, 0.85)" }} className="block text-[11px] font-semibold uppercase tracking-wider">
+                  {copy.trustCallButton}
+                </span>
+                <span style={{ color: "#ffffff" }} className="block text-xs min-[360px]:text-sm sm:text-base font-extrabold tracking-wide text-white font-mono leading-tight">
+                  {phone}
+                </span>
+              </div>
+              <div
+                style={{ backgroundColor: "rgba(255, 255, 255, 0.18)" }}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white group-hover:translate-x-0.5 transition-transform"
+              >
+                <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
             </a>
           )}
           {messengerPageUsername && (
@@ -111,12 +149,37 @@ export default function TrustBlock({
               href={`https://m.me/${messengerPageUsername}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#0084FF] px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-600 transition"
+              style={{
+                background: "linear-gradient(135deg, #0084FF 0%, #0066FF 100%)",
+                backgroundColor: "#0084FF",
+                color: "#ffffff",
+              }}
+              className="contact-btn-messenger group relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 text-white shadow-md hover:shadow-lg shadow-blue-900/15 transition-all duration-200 active:scale-[0.98] border border-blue-300/30"
             >
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.03 2 11c0 2.87 1.49 5.43 3.82 7.04v3.52c0 .41.44.66.79.46l3.19-1.78c.71.2 1.45.31 2.2.31 5.52 0 10-4.03 10-9s-4.48-9-10-9zm1.09 12.14-2.61-2.79-5.1 2.79 5.61-5.96 2.67 2.79 5.04-2.79-5.61 5.96z" />
-              </svg>
-              <span>{copy.trustMessengerButton}</span>
+              <div
+                style={{ backgroundColor: "rgba(255, 255, 255, 0.22)" }}
+                className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl text-white backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform"
+              >
+                <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.03 2 11c0 2.87 1.49 5.43 3.82 7.04v3.52c0 .41.44.66.79.46l3.19-1.78c.71.2 1.45.31 2.2.31 5.52 0 10-4.03 10-9s-4.48-9-10-9zm1.09 12.14-2.61-2.79-5.1 2.79 5.61-5.96 2.67 2.79 5.04-2.79-5.61 5.96z" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <span style={{ color: "rgba(255, 255, 255, 0.85)" }} className="block text-[11px] font-semibold uppercase tracking-wider">
+                  {lang === "bn" ? "ফেসবুক মেসেঞ্জার" : "Facebook Messenger"}
+                </span>
+                <span style={{ color: "#ffffff" }} className="block text-xs min-[360px]:text-sm sm:text-base font-extrabold tracking-tight text-white leading-tight">
+                  {copy.trustMessengerButton}
+                </span>
+              </div>
+              <div
+                style={{ backgroundColor: "rgba(255, 255, 255, 0.18)" }}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white group-hover:translate-x-0.5 transition-transform"
+              >
+                <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
             </a>
           )}
         </div>

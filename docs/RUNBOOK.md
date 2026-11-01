@@ -1,4 +1,4 @@
-# OrderPage V1: Operations Runbook (`docs/RUNBOOK.md`)
+# OrderKoro V1: Operations Runbook (`docs/RUNBOOK.md`)
 
 This runbook describes standard operating procedures for incident response, order delivery troubleshooting, credential rotation, and seller pause management.
 
@@ -121,14 +121,14 @@ To monitor store availability 24/7 without creating artificial orders:
 
 ### Monitor 1: Storefront Page
 - **Monitor Type:** `HTTP(s)`
-- **Friendly Name:** `OrderPage - Product Storefront`
+- **Friendly Name:** `OrderKoro - Product Storefront`
 - **URL:** `https://<your-domain>/demo-brand`
 - **Monitoring Interval:** 5 minutes
 - **Keyword Monitoring:** `বুনন` (verifies SSR HTML rendering)
 
 ### Monitor 2: API Health Check
 - **Monitor Type:** `HTTP(s)`
-- **Friendly Name:** `OrderPage - API Health Endpoint`
+- **Friendly Name:** `OrderKoro - API Health Endpoint`
 - **URL:** `https://<your-domain>/api/health`
 - **Monitoring Interval:** 1 minute
 - **Expected Status:** HTTP 200 (returns `{"ok": true, "version": "1.0.0"}`)

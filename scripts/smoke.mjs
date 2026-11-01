@@ -6,7 +6,7 @@
 
 import { spawn } from "node:child_process";
 
-console.log("🚀 Running OrderPage Stage 3 End-to-End Smoke Test (MOCK_INTEGRATIONS=1)...\n");
+console.log("🚀 Running OrderKoro Stage 3 End-to-End Smoke Test (MOCK_INTEGRATIONS=1)...\n");
 
 const child = spawn("npx", ["vitest", "run", "tests/smoke.test.ts"], {
   stdio: "inherit",

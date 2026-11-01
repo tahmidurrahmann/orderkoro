@@ -130,5 +130,6 @@ export function getServerClientSecrets(slug: string): ServerClientSecrets | null
     sheetId: cfg.sheetId,
     telegramChatId: cfg.telegramChatId,
     highValueThreshold: cfg.highValueThreshold,
+    previewToken: cfg.previewToken,
   };
 }

@@ -1,6 +1,6 @@
-# OrderPage: Design System & Architectural Decisions (`DESIGN.md`)
+# OrderKoro: Design System & Architectural Decisions (`DESIGN.md`)
 
-OrderPage is designed for **360px-first mobile viewports** inside the Facebook Android in-app browser, scaling cleanly up to a centered **480px product column** on tablet and desktop screens against a quiet warm-neutral backdrop.
+OrderKoro is designed for **360px-first mobile viewports** inside the Facebook Android in-app browser, scaling cleanly up to a centered **480px product column** on tablet and desktop screens against a quiet warm-neutral backdrop.
 
 ---
 
@@ -27,7 +27,7 @@ All visual tokens live in `src/app/globals.css` so you can adjust the look globa
 | `--status-error-text` | `#B91C1C` | Form validation error messages and required asterisks (6.4:1 contrast) |
 
 ### Typography & Bangla Line-Height Scale (Anek Bangla: dolbol standard)
-Bangla script has tall ascenders (*i-kar*, *oi-kar*, *chandra-bindu*) and deep conjunct descenders (*u-kar*, *r-fola*). Standard Latin line-heights (`1.2 to 1.4`) clip or crowd Bangla baselines on Android WebView. OrderPage uses **`Anek Bangla`** (the exact same font as `dolbol`), loaded via `next/font/google` (`display: "swap"`, weights `300` to `800`), applying crisp modern proportions and comfortable line-height:
+Bangla script has tall ascenders (*i-kar*, *oi-kar*, *chandra-bindu*) and deep conjunct descenders (*u-kar*, *r-fola*). Standard Latin line-heights (`1.2 to 1.4`) clip or crowd Bangla baselines on Android WebView. OrderKoro uses **`Anek Bangla`** (the exact same font as `dolbol`), loaded via `next/font/google` (`display: "swap"`, weights `300` to `800`), applying crisp modern proportions and comfortable line-height:
 
 | Scale Token | Font Size | Line Height (`bn` / `en`) | Weight | Usage |
 | :--- | :--- | :--- | :--- | :--- |
