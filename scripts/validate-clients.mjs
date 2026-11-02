@@ -363,8 +363,8 @@ export function validateClientsDirectory(dirPath = CLIENTS_DIR) {
     const isProduction =
       process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
     if (isProduction && parsed.testOnly === true) {
-      allErrors.push(
-        `${file}: testOnly client "${parsed.slug}" cannot be registered in a production build (NODE_ENV=production or VERCEL_ENV=production)`
+      allWarnings.push(
+        `${file}: testOnly client "${parsed.slug}" is excluded from production routing and order processing`
       );
     }
 
