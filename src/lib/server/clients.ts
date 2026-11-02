@@ -66,6 +66,13 @@ export function getServerClientConfig(slug: string): ClientConfig | null {
     const raw = fs.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw);
     const validated = ClientConfigSchema.parse(parsed);
+
+    const isProduction =
+      process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+    if (isProduction && validated.testOnly) {
+      return null;
+    }
+
     clientConfigCache.set(slug, validated);
     return validated;
   } catch (err) {

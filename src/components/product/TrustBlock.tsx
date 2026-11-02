@@ -1,13 +1,17 @@
 "use client";
 
 import React from "react";
+import type { PublicClientConfig, QualityBadgeConfig, ReturnPolicyConfig } from "@/lib/config-schema";
 import type { SupportedLocale } from "@/lib/format";
-import { type CopyDictionary, resolveLocalizedText, type LocalizedText } from "@/lib/i18n";
+import type { CopyDictionary } from "@/lib/i18n";
+import { getProductPolicyParagraph, getTrustBadges } from "@/lib/policy-text";
 
 export interface TrustBlockProps {
   phone?: string;
   messengerPageUsername?: string;
-  returnPolicyText: LocalizedText;
+  returnPolicy: ReturnPolicyConfig;
+  payments?: PublicClientConfig["payments"];
+  qualityBadge?: QualityBadgeConfig;
   copy: CopyDictionary;
   lang: SupportedLocale;
 }
@@ -15,70 +19,120 @@ export interface TrustBlockProps {
 export default function TrustBlock({
   phone,
   messengerPageUsername,
-  returnPolicyText,
+  returnPolicy,
+  payments,
+  qualityBadge,
   copy,
   lang,
 }: TrustBlockProps) {
+  const envContactUrl = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_CONTACT_URL?.trim() : undefined;
+  const rawMessenger = envContactUrl || (messengerPageUsername && !messengerPageUsername.startsWith("TODO") ? messengerPageUsername.trim() : "");
+  const messengerHref = rawMessenger
+    ? (rawMessenger.startsWith("http://") || rawMessenger.startsWith("https://") ? rawMessenger : `https://m.me/${rawMessenger}`)
+    : "";
+
+  const badges = getTrustBadges({ returnPolicy, payments, qualityBadge }, lang);
+  const policyParagraph = getProductPolicyParagraph(returnPolicy, lang);
+
+  const gridColsClass =
+    badges.length === 4
+      ? "sm:grid-cols-2 lg:grid-cols-4"
+      : badges.length === 2
+      ? "sm:grid-cols-2"
+      : "sm:grid-cols-3";
+
   return (
     <div className="space-y-4">
-      {/* 3 Trust Pillars */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Pillar 1: Cash on Delivery */}
-        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 text-center space-y-2 hover:border-[var(--brand-primary)]/40 transition">
-          <div className="mx-auto flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-xs">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="5" width="20" height="14" rx="2" />
-              <line x1="2" y1="10" x2="22" y2="10" />
-              <circle cx="12" cy="15" r="2" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-bold text-xs sm:text-sm text-[var(--text-primary)] leading-snug">
-              {copy.trustPillar1Title}
-            </p>
-            <p className="text-[11px] sm:text-xs text-[var(--text-muted)] mt-0.5 leading-snug">
-              {copy.trustPillar1Body}
-            </p>
-          </div>
-        </div>
+      {/* Derived Trust Badges */}
+      <div className={`grid grid-cols-1 ${gridColsClass} gap-3`}>
+        {badges.map((badge) => {
+          let iconColor = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
+          if (badge.iconType === "return") {
+            iconColor = "bg-blue-50 text-blue-700 border-blue-200/60";
+          } else if (badge.iconType === "exchange") {
+            iconColor = "bg-purple-50 text-purple-700 border-purple-200/60";
+          } else if (badge.iconType === "quality") {
+            iconColor = "bg-amber-50 text-amber-700 border-amber-200/60";
+          }
 
-        {/* Pillar 2: 7-Day Easy Return */}
-        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 text-center space-y-2 hover:border-[var(--brand-primary)]/40 transition">
-          <div className="mx-auto flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-200/60 shadow-xs">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-              <path d="M21 3v5h-5" />
-              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-              <path d="M3 21v-5h5" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-bold text-xs sm:text-sm text-[var(--text-primary)] leading-snug">
-              {copy.trustPillar2Title}
-            </p>
-            <p className="text-[11px] sm:text-xs text-[var(--text-muted)] mt-0.5 leading-snug">
-              {copy.trustPillar2Body}
-            </p>
-          </div>
-        </div>
-
-        {/* Pillar 3: 100% Quality Guaranteed */}
-        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 text-center space-y-2 hover:border-[var(--brand-primary)]/40 transition">
-          <div className="mx-auto flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-700 border border-amber-200/60 shadow-xs">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="6" />
-              <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-bold text-xs sm:text-sm text-[var(--text-primary)] leading-snug">
-              {copy.trustPillar3Title}
-            </p>
-            <p className="text-[11px] sm:text-xs text-[var(--text-muted)] mt-0.5 leading-snug">
-              {copy.trustPillar3Body}
-            </p>
-          </div>
-        </div>
+          return (
+            <div
+              key={badge.id}
+              className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 text-center space-y-2 hover:border-[var(--brand-primary)]/40 transition"
+            >
+              <div
+                className={`mx-auto flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl border shadow-xs ${iconColor}`}
+              >
+                {badge.iconType === "payment" && (
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                    <circle cx="12" cy="15" r="2" />
+                  </svg>
+                )}
+                {badge.iconType === "return" && (
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                    <path d="M21 3v5h-5" />
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                    <path d="M3 21v-5h5" />
+                  </svg>
+                )}
+                {badge.iconType === "exchange" && (
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M7 16V4m0 0L3 8m4-4l4 4m6 4v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                )}
+                {badge.iconType === "quality" && (
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="8" r="6" />
+                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <p className="font-bold text-xs sm:text-sm text-[var(--text-primary)] leading-snug">
+                  {badge.title}
+                </p>
+                <p className="text-[11px] sm:text-xs text-[var(--text-muted)] mt-0.5 leading-snug">
+                  {badge.subtitle}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Return policy note */}
@@ -86,7 +140,7 @@ export default function TrustBlock({
         <p className="font-bold text-[var(--text-primary)] mb-1">
           {copy.trustPolicyHeading}
         </p>
-        <p>{resolveLocalizedText(returnPolicyText, lang)}</p>
+        <p>{policyParagraph}</p>
       </div>
 
       {/* Helpline Buttons */}
@@ -144,9 +198,9 @@ export default function TrustBlock({
               </div>
             </a>
           )}
-          {messengerPageUsername && (
+          {messengerHref && (
             <a
-              href={`https://m.me/${messengerPageUsername}`}
+              href={messengerHref}
               target="_blank"
               rel="noopener noreferrer"
               style={{

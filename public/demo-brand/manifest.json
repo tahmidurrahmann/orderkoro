@@ -1,0 +1,242 @@
+{
+  "/demo-brand/indigo-collar.webp": {
+    "src": "/demo-brand/indigo-collar.34bffe71.960w.webp",
+    "srcSet": "/demo-brand/indigo-collar.34bffe71.360w.webp 360w, /demo-brand/indigo-collar.34bffe71.640w.webp 640w, /demo-brand/indigo-collar.34bffe71.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAABwBACdASoUABkAPy2AtFOuqKUisAwB0CWJZACw7CHe1PK+Uk9bFCqHw2NAAAD+B4PTu8SP0zxGVjdKLU26vYg9R3nsxi+NLlRPG8rXh9t0k5Y4p09fttWUrWyNSJyboheCotniHh3eDgAA"
+  },
+  "/demo-brand/indigo-collar.34bffe71.webp": {
+    "src": "/demo-brand/indigo-collar.34bffe71.960w.webp",
+    "srcSet": "/demo-brand/indigo-collar.34bffe71.360w.webp 360w, /demo-brand/indigo-collar.34bffe71.640w.webp 640w, /demo-brand/indigo-collar.34bffe71.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAABwBACdASoUABkAPy2AtFOuqKUisAwB0CWJZACw7CHe1PK+Uk9bFCqHw2NAAAD+B4PTu8SP0zxGVjdKLU26vYg9R3nsxi+NLlRPG8rXh9t0k5Y4p09fttWUrWyNSJyboheCotniHh3eDgAA"
+  },
+  "indigo-collar": {
+    "src": "/demo-brand/indigo-collar.34bffe71.960w.webp",
+    "srcSet": "/demo-brand/indigo-collar.34bffe71.360w.webp 360w, /demo-brand/indigo-collar.34bffe71.640w.webp 640w, /demo-brand/indigo-collar.34bffe71.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAABwBACdASoUABkAPy2AtFOuqKUisAwB0CWJZACw7CHe1PK+Uk9bFCqHw2NAAAD+B4PTu8SP0zxGVjdKLU26vYg9R3nsxi+NLlRPG8rXh9t0k5Y4p09fttWUrWyNSJyboheCotniHh3eDgAA"
+  },
+  "/demo-brand/indigo-cuff.webp": {
+    "src": "/demo-brand/indigo-cuff.d1fbbb51.960w.webp",
+    "srcSet": "/demo-brand/indigo-cuff.d1fbbb51.360w.webp 360w, /demo-brand/indigo-cuff.d1fbbb51.640w.webp 640w, /demo-brand/indigo-cuff.d1fbbb51.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAACwBACdASoUABkAPzmGvFOvKSaisBgMAeAnCWQAnQARSjmF3HjtTqeZW89oMHQAAP5rTUp2ZGnMHUiLxzUZ/Etfjm4+aUuUylaSzSt0RLQjh6cvI5TW8teaUsHBSR3Futz1bWsZ8Qh4L/cfMHSXZCgAAAA="
+  },
+  "/demo-brand/indigo-cuff.d1fbbb51.webp": {
+    "src": "/demo-brand/indigo-cuff.d1fbbb51.960w.webp",
+    "srcSet": "/demo-brand/indigo-cuff.d1fbbb51.360w.webp 360w, /demo-brand/indigo-cuff.d1fbbb51.640w.webp 640w, /demo-brand/indigo-cuff.d1fbbb51.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAACwBACdASoUABkAPzmGvFOvKSaisBgMAeAnCWQAnQARSjmF3HjtTqeZW89oMHQAAP5rTUp2ZGnMHUiLxzUZ/Etfjm4+aUuUylaSzSt0RLQjh6cvI5TW8teaUsHBSR3Futz1bWsZ8Qh4L/cfMHSXZCgAAAA="
+  },
+  "indigo-cuff": {
+    "src": "/demo-brand/indigo-cuff.d1fbbb51.960w.webp",
+    "srcSet": "/demo-brand/indigo-cuff.d1fbbb51.360w.webp 360w, /demo-brand/indigo-cuff.d1fbbb51.640w.webp 640w, /demo-brand/indigo-cuff.d1fbbb51.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAACwBACdASoUABkAPzmGvFOvKSaisBgMAeAnCWQAnQARSjmF3HjtTqeZW89oMHQAAP5rTUp2ZGnMHUiLxzUZ/Etfjm4+aUuUylaSzSt0RLQjh6cvI5TW8teaUsHBSR3Futz1bWsZ8Qh4L/cfMHSXZCgAAAA="
+  },
+  "/demo-brand/indigo-front.webp": {
+    "src": "/demo-brand/indigo-front.24bd011d.960w.webp",
+    "srcSet": "/demo-brand/indigo-front.24bd011d.360w.webp 360w, /demo-brand/indigo-front.24bd011d.640w.webp 640w, /demo-brand/indigo-front.24bd011d.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAADQBACdASoUABkAPzWIu1OvKaaisBgMAeAmiUAWhoIgBYQ74tb84SawEY/UocDMAAD+3rMbVg+OlMn9UfWNyprkm0JjDGNQmMaWU0+ENRREXS9YKoo/OqSPwtbILl+Uy3x1veDbvg0idzo7eZQAAA=="
+  },
+  "/demo-brand/indigo-front.24bd011d.webp": {
+    "src": "/demo-brand/indigo-front.24bd011d.960w.webp",
+    "srcSet": "/demo-brand/indigo-front.24bd011d.360w.webp 360w, /demo-brand/indigo-front.24bd011d.640w.webp 640w, /demo-brand/indigo-front.24bd011d.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAADQBACdASoUABkAPzWIu1OvKaaisBgMAeAmiUAWhoIgBYQ74tb84SawEY/UocDMAAD+3rMbVg+OlMn9UfWNyprkm0JjDGNQmMaWU0+ENRREXS9YKoo/OqSPwtbILl+Uy3x1veDbvg0idzo7eZQAAA=="
+  },
+  "indigo-front": {
+    "src": "/demo-brand/indigo-front.24bd011d.960w.webp",
+    "srcSet": "/demo-brand/indigo-front.24bd011d.360w.webp 360w, /demo-brand/indigo-front.24bd011d.640w.webp 640w, /demo-brand/indigo-front.24bd011d.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAADQBACdASoUABkAPzWIu1OvKaaisBgMAeAmiUAWhoIgBYQ74tb84SawEY/UocDMAAD+3rMbVg+OlMn9UfWNyprkm0JjDGNQmMaWU0+ENRREXS9YKoo/OqSPwtbILl+Uy3x1veDbvg0idzo7eZQAAA=="
+  },
+  "/demo-brand/indigo-weave.webp": {
+    "src": "/demo-brand/indigo-weave.6ad46a8b.960w.webp",
+    "srcSet": "/demo-brand/indigo-weave.6ad46a8b.360w.webp 360w, /demo-brand/indigo-weave.6ad46a8b.640w.webp 640w, /demo-brand/indigo-weave.6ad46a8b.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAABwBACdASoUABkAPzmGvlavKCajsBgIAeAnCWQAnQAQ76ZKHxaJXeT5mC2oAAD89yd8lAlBNHKDPDX60j3jqwnZe8HHGgecUTmaShQCro9urhJWKElh4dvvWm5iN6oL9FVPwOtVXs5aQAAA"
+  },
+  "/demo-brand/indigo-weave.6ad46a8b.webp": {
+    "src": "/demo-brand/indigo-weave.6ad46a8b.960w.webp",
+    "srcSet": "/demo-brand/indigo-weave.6ad46a8b.360w.webp 360w, /demo-brand/indigo-weave.6ad46a8b.640w.webp 640w, /demo-brand/indigo-weave.6ad46a8b.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAABwBACdASoUABkAPzmGvlavKCajsBgIAeAnCWQAnQAQ76ZKHxaJXeT5mC2oAAD89yd8lAlBNHKDPDX60j3jqwnZe8HHGgecUTmaShQCro9urhJWKElh4dvvWm5iN6oL9FVPwOtVXs5aQAAA"
+  },
+  "indigo-weave": {
+    "src": "/demo-brand/indigo-weave.6ad46a8b.960w.webp",
+    "srcSet": "/demo-brand/indigo-weave.6ad46a8b.360w.webp 360w, /demo-brand/indigo-weave.6ad46a8b.640w.webp 640w, /demo-brand/indigo-weave.6ad46a8b.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAABwBACdASoUABkAPzmGvlavKCajsBgIAeAnCWQAnQAQ76ZKHxaJXeT5mC2oAAD89yd8lAlBNHKDPDX60j3jqwnZe8HHGgecUTmaShQCro9urhJWKElh4dvvWm5iN6oL9FVPwOtVXs5aQAAA"
+  },
+  "/demo-brand/olive-collar.webp": {
+    "src": "/demo-brand/olive-collar.091d99f3.960w.webp",
+    "srcSet": "/demo-brand/olive-collar.091d99f3.360w.webp 360w, /demo-brand/olive-collar.091d99f3.640w.webp 640w, /demo-brand/olive-collar.091d99f3.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABwBACdASoUABkAPzmCtVUvKCSjMBgMAeAnCWUAxNgRSjC81S3Iivc86gjAAAD+a01KdmavnEJ1CqTMn3CRX0ACumz7OKTZaM+78cYLK1M5TilAFcJhO8Sm1fgtdeauDrwAAA=="
+  },
+  "/demo-brand/olive-collar.091d99f3.webp": {
+    "src": "/demo-brand/olive-collar.091d99f3.960w.webp",
+    "srcSet": "/demo-brand/olive-collar.091d99f3.360w.webp 360w, /demo-brand/olive-collar.091d99f3.640w.webp 640w, /demo-brand/olive-collar.091d99f3.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABwBACdASoUABkAPzmCtVUvKCSjMBgMAeAnCWUAxNgRSjC81S3Iivc86gjAAAD+a01KdmavnEJ1CqTMn3CRX0ACumz7OKTZaM+78cYLK1M5TilAFcJhO8Sm1fgtdeauDrwAAA=="
+  },
+  "olive-collar": {
+    "src": "/demo-brand/olive-collar.091d99f3.960w.webp",
+    "srcSet": "/demo-brand/olive-collar.091d99f3.360w.webp 360w, /demo-brand/olive-collar.091d99f3.640w.webp 640w, /demo-brand/olive-collar.091d99f3.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABwBACdASoUABkAPzmCtVUvKCSjMBgMAeAnCWUAxNgRSjC81S3Iivc86gjAAAD+a01KdmavnEJ1CqTMn3CRX0ACumz7OKTZaM+78cYLK1M5TilAFcJhO8Sm1fgtdeauDrwAAA=="
+  },
+  "/demo-brand/olive-front.webp": {
+    "src": "/demo-brand/olive-front.0f890b0b.960w.webp",
+    "srcSet": "/demo-brand/olive-front.0f890b0b.360w.webp 360w, /demo-brand/olive-front.0f890b0b.640w.webp 640w, /demo-brand/olive-front.0f890b0b.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADwBACdASoUABkAPzmCvFOvKKaisBgMAeAnCWcAzFgRACwQFx17mS3uSglj6emfgUAA/t6zG1YPjpKVC8MWxjtNXXxO4JwotiLiRlp4QauyGA+gdvcSab2DLL+AdRMdQVUxpE+Z1jAAAA=="
+  },
+  "/demo-brand/olive-front.0f890b0b.webp": {
+    "src": "/demo-brand/olive-front.0f890b0b.960w.webp",
+    "srcSet": "/demo-brand/olive-front.0f890b0b.360w.webp 360w, /demo-brand/olive-front.0f890b0b.640w.webp 640w, /demo-brand/olive-front.0f890b0b.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADwBACdASoUABkAPzmCvFOvKKaisBgMAeAnCWcAzFgRACwQFx17mS3uSglj6emfgUAA/t6zG1YPjpKVC8MWxjtNXXxO4JwotiLiRlp4QauyGA+gdvcSab2DLL+AdRMdQVUxpE+Z1jAAAA=="
+  },
+  "olive-front": {
+    "src": "/demo-brand/olive-front.0f890b0b.960w.webp",
+    "srcSet": "/demo-brand/olive-front.0f890b0b.360w.webp 360w, /demo-brand/olive-front.0f890b0b.640w.webp 640w, /demo-brand/olive-front.0f890b0b.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADwBACdASoUABkAPzmCvFOvKKaisBgMAeAnCWcAzFgRACwQFx17mS3uSglj6emfgUAA/t6zG1YPjpKVC8MWxjtNXXxO4JwotiLiRlp4QauyGA+gdvcSab2DLL+AdRMdQVUxpE+Z1jAAAA=="
+  },
+  "/demo-brand/olive-weave.webp": {
+    "src": "/demo-brand/olive-weave.62847638.960w.webp",
+    "srcSet": "/demo-brand/olive-weave.62847638.360w.webp 360w, /demo-brand/olive-weave.62847638.640w.webp 640w, /demo-brand/olive-weave.62847638.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAAAwBACdASoUABkAPzmQvVgvKaYjqAqp4CcJZQDGQBEcqvZrB5XPNdUZgAAA/gCKpbwuNuC+kU5e/E7BvE3m56BIKithsHJBo78oPLWetNoGiqufWCxIUSPBAAAAAA=="
+  },
+  "/demo-brand/olive-weave.62847638.webp": {
+    "src": "/demo-brand/olive-weave.62847638.960w.webp",
+    "srcSet": "/demo-brand/olive-weave.62847638.360w.webp 360w, /demo-brand/olive-weave.62847638.640w.webp 640w, /demo-brand/olive-weave.62847638.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAAAwBACdASoUABkAPzmQvVgvKaYjqAqp4CcJZQDGQBEcqvZrB5XPNdUZgAAA/gCKpbwuNuC+kU5e/E7BvE3m56BIKithsHJBo78oPLWetNoGiqufWCxIUSPBAAAAAA=="
+  },
+  "olive-weave": {
+    "src": "/demo-brand/olive-weave.62847638.960w.webp",
+    "srcSet": "/demo-brand/olive-weave.62847638.360w.webp 360w, /demo-brand/olive-weave.62847638.640w.webp 640w, /demo-brand/olive-weave.62847638.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAAAwBACdASoUABkAPzmQvVgvKaYjqAqp4CcJZQDGQBEcqvZrB5XPNdUZgAAA/gCKpbwuNuC+kU5e/E7BvE3m56BIKithsHJBo78oPLWetNoGiqufWCxIUSPBAAAAAA=="
+  },
+  "/demo-brand/terracotta-collar.webp": {
+    "src": "/demo-brand/terracotta-collar.31ab03f5.960w.webp",
+    "srcSet": "/demo-brand/terracotta-collar.31ab03f5.360w.webp 360w, /demo-brand/terracotta-collar.31ab03f5.640w.webp 640w, /demo-brand/terracotta-collar.31ab03f5.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAACQBACdASoUABkAPzmQwVevKaejqAqp4CcJZgCdMoABq8cZH/KWcEdsJZqaOAAA/mtNSnY5aSoYpe8DDsZBBN4vPL+C5bzxXSbtwG25va7Va4qZMABFQ9h+EV/kD2E21HQlEuxjJGaciFAf2d0+tMQoAAA="
+  },
+  "/demo-brand/terracotta-collar.31ab03f5.webp": {
+    "src": "/demo-brand/terracotta-collar.31ab03f5.960w.webp",
+    "srcSet": "/demo-brand/terracotta-collar.31ab03f5.360w.webp 360w, /demo-brand/terracotta-collar.31ab03f5.640w.webp 640w, /demo-brand/terracotta-collar.31ab03f5.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAACQBACdASoUABkAPzmQwVevKaejqAqp4CcJZgCdMoABq8cZH/KWcEdsJZqaOAAA/mtNSnY5aSoYpe8DDsZBBN4vPL+C5bzxXSbtwG25va7Va4qZMABFQ9h+EV/kD2E21HQlEuxjJGaciFAf2d0+tMQoAAA="
+  },
+  "terracotta-collar": {
+    "src": "/demo-brand/terracotta-collar.31ab03f5.960w.webp",
+    "srcSet": "/demo-brand/terracotta-collar.31ab03f5.360w.webp 360w, /demo-brand/terracotta-collar.31ab03f5.640w.webp 640w, /demo-brand/terracotta-collar.31ab03f5.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAACQBACdASoUABkAPzmQwVevKaejqAqp4CcJZgCdMoABq8cZH/KWcEdsJZqaOAAA/mtNSnY5aSoYpe8DDsZBBN4vPL+C5bzxXSbtwG25va7Va4qZMABFQ9h+EV/kD2E21HQlEuxjJGaciFAf2d0+tMQoAAA="
+  },
+  "/demo-brand/terracotta-front.webp": {
+    "src": "/demo-brand/terracotta-front.01c94f14.960w.webp",
+    "srcSet": "/demo-brand/terracotta-front.01c94f14.360w.webp 360w, /demo-brand/terracotta-front.01c94f14.640w.webp 640w, /demo-brand/terracotta-front.01c94f14.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAADwBACdASoUABkAPzl+ulSvJ6WjMBgMAeAnCWIAqPQRACwh3xhUyL81pEVAyiVEnwAA/t6zG1YPjpKVC8J3NU3FtsKjcKLYi4kZan81vlxFu2I562NQlszs19EWlBjlHHwfOEpFxM2OZ28YiuAAAA=="
+  },
+  "/demo-brand/terracotta-front.01c94f14.webp": {
+    "src": "/demo-brand/terracotta-front.01c94f14.960w.webp",
+    "srcSet": "/demo-brand/terracotta-front.01c94f14.360w.webp 360w, /demo-brand/terracotta-front.01c94f14.640w.webp 640w, /demo-brand/terracotta-front.01c94f14.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAADwBACdASoUABkAPzl+ulSvJ6WjMBgMAeAnCWIAqPQRACwh3xhUyL81pEVAyiVEnwAA/t6zG1YPjpKVC8J3NU3FtsKjcKLYi4kZan81vlxFu2I562NQlszs19EWlBjlHHwfOEpFxM2OZ28YiuAAAA=="
+  },
+  "terracotta-front": {
+    "src": "/demo-brand/terracotta-front.01c94f14.960w.webp",
+    "srcSet": "/demo-brand/terracotta-front.01c94f14.360w.webp 360w, /demo-brand/terracotta-front.01c94f14.640w.webp 640w, /demo-brand/terracotta-front.01c94f14.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAADwBACdASoUABkAPzl+ulSvJ6WjMBgMAeAnCWIAqPQRACwh3xhUyL81pEVAyiVEnwAA/t6zG1YPjpKVC8J3NU3FtsKjcKLYi4kZan81vlxFu2I562NQlszs19EWlBjlHHwfOEpFxM2OZ28YiuAAAA=="
+  },
+  "/demo-brand/terracotta-weave.webp": {
+    "src": "/demo-brand/terracotta-weave.d3689a32.960w.webp",
+    "srcSet": "/demo-brand/terracotta-weave.d3689a32.360w.webp 360w, /demo-brand/terracotta-weave.d3689a32.640w.webp 640w, /demo-brand/terracotta-weave.d3689a32.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACQBACdASoUABkAPzmSu1ivKiWjqAqp4CcJZACdM2QBs0ilDodwJ4uthS4K4AAA/gCKoset7g60LoD/uRQFJeBnbntNI21qodc3sCVfmOwZwJjQP94nUM8EUECuHF1wHZHF0TnWuzbkX32TgAA="
+  },
+  "/demo-brand/terracotta-weave.d3689a32.webp": {
+    "src": "/demo-brand/terracotta-weave.d3689a32.960w.webp",
+    "srcSet": "/demo-brand/terracotta-weave.d3689a32.360w.webp 360w, /demo-brand/terracotta-weave.d3689a32.640w.webp 640w, /demo-brand/terracotta-weave.d3689a32.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACQBACdASoUABkAPzmSu1ivKiWjqAqp4CcJZACdM2QBs0ilDodwJ4uthS4K4AAA/gCKoset7g60LoD/uRQFJeBnbntNI21qodc3sCVfmOwZwJjQP94nUM8EUECuHF1wHZHF0TnWuzbkX32TgAA="
+  },
+  "terracotta-weave": {
+    "src": "/demo-brand/terracotta-weave.d3689a32.960w.webp",
+    "srcSet": "/demo-brand/terracotta-weave.d3689a32.360w.webp 360w, /demo-brand/terracotta-weave.d3689a32.640w.webp 640w, /demo-brand/terracotta-weave.d3689a32.960w.webp 960w",
+    "width": 800,
+    "height": 1000,
+    "aspectRatio": 0.8,
+    "blurDataURL": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACQBACdASoUABkAPzmSu1ivKiWjqAqp4CcJZACdM2QBs0ilDodwJ4uthS4K4AAA/gCKoset7g60LoD/uRQFJeBnbntNI21qodc3sCVfmOwZwJjQP94nUM8EUECuHF1wHZHF0TnWuzbkX32TgAA="
+  }
+}

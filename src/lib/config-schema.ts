@@ -2,6 +2,7 @@ import * as z from "zod";
 import { ensureAccessiblePrimaryColor, isValidHexColor, normalizeHex } from "./contrast";
 import { DISTRICT_IDS } from "./districts";
 import type { CopyDictionary } from "./i18n";
+import { validateBdPhone } from "./phone";
 
 /**
  * Localized text field: accepts either a plain string or { bn, en } object
@@ -23,10 +24,37 @@ export const HexColorSchema = z
   })
   .transform((val) => normalizeHex(val));
 
-export const DEFAULT_RETURN_POLICY_TEXT = {
-  bn: "পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানের সামনে চেক করে নিন। সাইজ বা পণ্যে কোনো ত্রুটি থাকলে তাৎক্ষণিক রিটার্ন অথবা ৩ দিনের মধ্যে সহজ এক্সচেঞ্জ সুবিধা রয়েছে।",
-  en: "Inspect your product in front of the rider upon delivery. Instant return for any defect, or easy exchange within 3 days of delivery.",
-};
+export const ReturnPolicySchema = z.object({
+  return: z
+    .object({
+      enabled: z.boolean(),
+      days: z.number().int().min(0).max(30).optional(),
+    })
+    .refine((r) => !r.enabled || r.days !== undefined, {
+      message: "return.days (0-30) is required when return is enabled (0 means at delivery only)",
+      path: ["days"],
+    }),
+  exchange: z
+    .object({
+      enabled: z.boolean(),
+      days: z.number().int().min(1).max(30).optional(),
+    })
+    .refine((e) => !e.enabled || (e.days !== undefined && e.days >= 1 && e.days <= 30), {
+      message: "exchange.days (1-30) is required when exchange is enabled",
+      path: ["days"],
+    }),
+  conditions: LocalizedStringSchema.optional(),
+  returnShippingPaidBy: z.enum(["customer", "seller", "shared"]).optional().default("customer"),
+});
+
+export type ReturnPolicyConfig = z.infer<typeof ReturnPolicySchema>;
+
+export const QualityBadgeSchema = z.object({
+  title: LocalizedStringSchema,
+  subtitle: LocalizedStringSchema,
+});
+
+export type QualityBadgeConfig = z.infer<typeof QualityBadgeSchema>;
 
 export const DEFAULT_BUSINESS_ADDRESS = {
   bn: "ঢাকা, বাংলাদেশ",
@@ -61,6 +89,52 @@ export const DeliveryZoneSchema = z
   .refine((zItem) => zItem.daysMax >= zItem.daysMin, {
     error: "Delivery zone daysMax must be greater than or equal to daysMin",
     path: ["daysMax"],
+  });
+
+export const MobilePaymentAccountTypeSchema = z
+  .enum(["personal", "agent", "merchant"])
+  .default("personal");
+
+export const CodPaymentMethodSchema = z.object({
+  enabled: z.boolean().default(true),
+});
+
+export const MobilePaymentMethodSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    number: z.string().optional(),
+    type: MobilePaymentAccountTypeSchema,
+  })
+  .superRefine((val, ctx) => {
+    if (val.enabled) {
+      if (!val.number || !val.number.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["number"],
+          message: "Payment number is required when mobile payment method is enabled",
+        });
+        return;
+      }
+      const phoneCheck = validateBdPhone(val.number);
+      if (!phoneCheck.valid) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["number"],
+          message: "Payment number must be a valid Bangladesh mobile number (01[3-9]XXXXXXXX)",
+        });
+      }
+    }
+  });
+
+export const PaymentsConfigSchema = z
+  .object({
+    cod: CodPaymentMethodSchema.default({ enabled: true }),
+    bkash: MobilePaymentMethodSchema.optional(),
+    nagad: MobilePaymentMethodSchema.optional(),
+    rocket: MobilePaymentMethodSchema.optional(),
+  })
+  .default({
+    cod: { enabled: true },
   });
 
 export const ClientConfigSchema = z
@@ -166,59 +240,21 @@ export const ClientConfigSchema = z
           }
         }
       }),
-    returnPolicyText: LocalizedStringSchema.optional().default(DEFAULT_RETURN_POLICY_TEXT),
+    returnPolicy: ReturnPolicySchema,
+    qualityBadge: QualityBadgeSchema.optional(),
+    refundNote: LocalizedStringSchema.optional(),
+    refundDays: z.number().int().min(1).max(30).optional(),
+    policyUpdatedAt: z.string().optional(),
     contact: z.object({
       phone: z.string().min(6, { error: "contact.phone is required" }),
       messengerPageUsername: z
         .string()
         .min(1, { error: "contact.messengerPageUsername is required" }),
       businessAddress: LocalizedStringSchema.optional().default(DEFAULT_BUSINESS_ADDRESS),
+      tradeLicenseNumber: z.string().optional(),
     }),
-    paymentNumbers: z
-      .object({
-        bkash: z.string().optional(),
-        nagad: z.string().optional(),
-        rocket: z.string().optional(),
-      })
-      .optional(),
-    payments: z
-      .object({
-        cod: z.union([z.boolean(), z.object({ enabled: z.boolean().default(true) })]).optional(),
-        bkash: z
-          .union([
-            z.boolean(),
-            z.string(),
-            z.object({
-              enabled: z.boolean().default(true),
-              number: z.string().optional(),
-              type: z.string().default("personal"),
-            }),
-          ])
-          .optional(),
-        nagad: z
-          .union([
-            z.boolean(),
-            z.string(),
-            z.object({
-              enabled: z.boolean().default(true),
-              number: z.string().optional(),
-              type: z.string().default("personal"),
-            }),
-          ])
-          .optional(),
-        rocket: z
-          .union([
-            z.boolean(),
-            z.string(),
-            z.object({
-              enabled: z.boolean().default(true),
-              number: z.string().optional(),
-              type: z.string().default("personal"),
-            }),
-          ])
-          .optional(),
-      })
-      .optional(),
+    payments: PaymentsConfigSchema,
+    testOnly: z.boolean().optional().default(false),
     status: z.enum(["active", "paused", "draft"]).default("active"),
     previewToken: z
       .string()
@@ -237,7 +273,14 @@ export const ClientConfigSchema = z
       .optional(),
     confirmationMode: z.enum(["call", "tap"]),
     highValueThreshold: z.number().int().positive().optional(),
-    ogImage: z.string().min(1).optional(),
+    ogImage: z
+      .string()
+      .min(1)
+      .refine(
+        (val) => !val.toLowerCase().endsWith(".svg"),
+        { error: "ogImage must be a raster image (JPG, PNG, WebP). SVG is not supported by social crawlers." }
+      )
+      .optional(),
     showPoweredBy: z.boolean().default(true),
     copy: z
       .object({

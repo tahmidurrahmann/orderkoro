@@ -1,7 +1,10 @@
+import fs from "fs";
+import path from "path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import MetaPixel from "@/components/MetaPixel";
 import ProductOrderClient from "@/components/ProductOrderClient";
+import type { ImagesManifest } from "@/components/ui/StorefrontImage";
 import { getPublicClientBySlug } from "@/lib/clients";
 import { getServerClientSecrets } from "@/lib/server-clients";
 import { formatPrice } from "@/lib/format";
@@ -13,6 +16,16 @@ interface ProductPageProps {
 }
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+function getClientImagesManifest(slug: string): ImagesManifest | undefined {
+  try {
+    const manifestPath = path.join(process.cwd(), "public", slug, "manifest.json");
+    if (fs.existsSync(manifestPath)) {
+      return JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+    }
+  } catch {}
+  return undefined;
+}
 
 export const dynamicParams = true;
 
@@ -96,10 +109,12 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     }
   }
 
+  const imagesManifest = getClientImagesManifest(slug);
+
   return (
     <>
       <MetaPixel pixelId={config.pixelId} />
-      <ProductOrderClient config={config} />
+      <ProductOrderClient config={config} imagesManifest={imagesManifest} />
     </>
   );
 }

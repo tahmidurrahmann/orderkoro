@@ -1,4 +1,5 @@
 import demoBrandRaw from "../../clients/demo-brand.json";
+import testTemplateRaw from "../../clients/test-template.json";
 import {
   type ClientConfig,
   type PublicClientConfig,
@@ -7,14 +8,17 @@ import {
   validateClientCollection,
 } from "./config-schema";
 
-/**
- * Portable Client Registry
- * Validated at module evaluation (build time) and on every lookup (request time)
- * without requiring runtime Node `fs` access on Edge/Cloudflare runtimes.
- */
-const RAW_CLIENTS: unknown[] = [demoBrandRaw];
+const isProduction =
+  typeof process !== "undefined" &&
+  (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production");
 
-const VALIDATED_CLIENTS: ClientConfig[] = validateClientCollection(RAW_CLIENTS);
+const RAW_CLIENTS: unknown[] = [demoBrandRaw, testTemplateRaw];
+
+const ALL_VALIDATED_CLIENTS: ClientConfig[] = validateClientCollection(RAW_CLIENTS);
+
+const VALIDATED_CLIENTS: ClientConfig[] = isProduction
+  ? ALL_VALIDATED_CLIENTS.filter((c) => !c.testOnly)
+  : ALL_VALIDATED_CLIENTS;
 
 const CLIENT_BY_SLUG = new Map<string, ClientConfig>(
   VALIDATED_CLIENTS.map((c) => [c.slug, c])

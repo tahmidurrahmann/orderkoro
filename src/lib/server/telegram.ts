@@ -1,6 +1,11 @@
 import "server-only";
 
-import { buildStatusInlineKeyboard, type OrderStatus } from "./status-machine";
+import {
+  buildMobilePaymentInlineKeyboard,
+  buildStatusInlineKeyboard,
+  type OrderStatus,
+  type TelegramInlineKeyboard,
+} from "./status-machine";
 
 export interface TelegramOrderPayload {
   orderNumber: string;
@@ -19,7 +24,9 @@ export interface TelegramOrderPayload {
   deliveryFee: number;
   codTotal: number;
   paymentMethod?: string;
+  paymentStatus?: "COD" | "Unverified" | "Verified" | "Not received";
   transactionId?: string;
+  paidFrom?: string;
   note?: string;
   confirmationMode: string;
 }
@@ -57,6 +64,15 @@ export function formatTelegramOrderHtml(
   lines.push(`📏 <b>Size:</b> ${escapeTelegramHtml(order.size)}`);
   lines.push(`🔢 <b>Qty:</b> ${order.quantity} × ৳${order.unitPrice}`);
   lines.push(`🚚 <b>Delivery:</b> ৳${order.deliveryFee}`);
+  const isMobilePayment = Boolean(order.paymentMethod && order.paymentMethod !== "cod");
+  const actualMethodName =
+    order.paymentMethod === "bkash"
+      ? "bKash"
+      : order.paymentMethod === "nagad"
+      ? "Nagad"
+      : order.paymentMethod === "rocket"
+      ? "Rocket"
+      : "Cash on Delivery";
   const methodLabel =
     order.paymentMethod === "bkash"
       ? "bKash (বিকাশ)"
@@ -65,11 +81,26 @@ export function formatTelegramOrderHtml(
       : order.paymentMethod === "rocket"
       ? "Rocket (রকেট)"
       : "Cash on Delivery";
-  lines.push(`💳 <b>Payment:</b> ${escapeTelegramHtml(methodLabel)}`);
-  if (order.transactionId) {
-    lines.push(`🧾 <b>TrxID:</b> <code>${escapeTelegramHtml(order.transactionId)}</code>`);
+
+  if (isMobilePayment) {
+    lines.push(`💳 <b>Payment Method:</b> ${escapeTelegramHtml(methodLabel)}`);
+    if (order.paymentStatus) {
+      lines.push(`📊 <b>Payment Status:</b> <b>${escapeTelegramHtml(order.paymentStatus)}</b>`);
+    }
+    if (order.transactionId) {
+      lines.push(`🧾 <b>TrxID:</b> <code>${escapeTelegramHtml(order.transactionId)}</code>`);
+    }
+    if (order.paidFrom) {
+      lines.push(`📱 <b>Paid From:</b> <code>${escapeTelegramHtml(order.paidFrom)}</code>`);
+    }
+    lines.push(`💵 <b>Expected Amount:</b> <b>৳${order.codTotal}</b>`);
+    if (!order.paymentStatus || order.paymentStatus === "Unverified") {
+      lines.push(`⚠️ <b>UNVERIFIED: check your ${actualMethodName} app before shipping</b>`);
+    }
+  } else {
+    lines.push(`💳 <b>Payment:</b> ${escapeTelegramHtml(methodLabel)}`);
+    lines.push(`💵 <b>Total Payable:</b> <b>৳${order.codTotal}</b>`);
   }
-  lines.push(`💵 <b>Total Payable:</b> <b>৳${order.codTotal}</b>`);
 
   if (order.note) {
     lines.push(`📝 <b>Note:</b> ${escapeTelegramHtml(order.note)}`);
@@ -112,7 +143,13 @@ export async function sendTelegramOrderMessage(
 
   const rawText = formatTelegramOrderHtml(order, "new", repeatPhoneFlag);
   const text = rawText.length > 4000 ? rawText.slice(0, 3950) + "\n...[truncated]" : rawText;
-  const replyMarkup = buildStatusInlineKeyboard("new", order.orderNumber);
+  const isMobile = Boolean(order.paymentMethod && order.paymentMethod !== "cod");
+  const replyMarkup = isMobile && order.paymentStatus !== "Verified"
+    ? buildMobilePaymentInlineKeyboard(
+        order.paymentStatus === "Not received" ? "Not received" : "Unverified",
+        order.orderNumber
+      )
+    : buildStatusInlineKeyboard("new", order.orderNumber);
 
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   const res = await fetchWithRetry(url, {
@@ -142,7 +179,8 @@ export async function editTelegramOrderMessage(
   messageId: number,
   text: string,
   status: OrderStatus,
-  orderNumber: string
+  orderNumber: string,
+  customReplyMarkup?: TelegramInlineKeyboard
 ): Promise<void> {
   if (process.env.MOCK_INTEGRATIONS === "1") {
     return;
@@ -151,7 +189,7 @@ export async function editTelegramOrderMessage(
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return;
 
-  const replyMarkup = buildStatusInlineKeyboard(status, orderNumber);
+  const replyMarkup = customReplyMarkup || buildStatusInlineKeyboard(status, orderNumber);
   const url = `https://api.telegram.org/bot${token}/editMessageText`;
 
   await fetchWithRetry(url, {

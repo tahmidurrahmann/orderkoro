@@ -3,8 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useId, useMemo, useRef, useState, useSyncExternalStore, useEffect } from "react";
-import { isEffectivelySoldOut, type PublicClientConfig } from "@/lib/config-schema";
+import React, {
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useEffect,
+} from "react";
+import {
+  isEffectivelySoldOut,
+  type PublicClientConfig,
+} from "@/lib/config-schema";
 import { darkenHex } from "@/lib/contrast";
 import {
   calculateOrderTotals,
@@ -13,7 +23,12 @@ import {
 } from "@/lib/delivery";
 import { filterDistricts, findDistrictById } from "@/lib/districts";
 import { calculateSavings, type SupportedLocale } from "@/lib/format";
-import { getClientCopy, resolveLocalizedText, type LocalizedText, type CopyDictionary } from "@/lib/i18n";
+import {
+  getClientCopy,
+  resolveLocalizedText,
+  type LocalizedText,
+  type CopyDictionary,
+} from "@/lib/i18n";
 import { getSavedLocale, saveLocalePreference } from "@/lib/locale-preference";
 import { saveOrderSummaryToSession } from "@/lib/order-session";
 import { normalizeBdPhone, validateBdPhone } from "@/lib/phone";
@@ -27,24 +42,35 @@ import OrderForm, { type FormErrors } from "./product/OrderForm";
 import StickyOrderBar from "./product/StickyOrderBar";
 import ShareRow from "./product/ShareRow";
 import TrustBlock from "./product/TrustBlock";
+import { getHeaderPaymentChip, getHeaderReturnChip } from "@/lib/policy-text";
+import type { ImagesManifest } from "./ui/StorefrontImage";
 
 const emptySubscribe = () => () => {};
 
 export interface ProductOrderClientProps {
   config: PublicClientConfig;
+  imagesManifest?: ImagesManifest;
 }
 
-export default function ProductOrderClient({ config }: ProductOrderClientProps) {
+export default function ProductOrderClient({
+  config,
+  imagesManifest,
+}: ProductOrderClientProps) {
   const router = useRouter();
   const uid = useId();
 
   // 1. Language state (useSyncExternalStore eliminates setState in useEffect)
   const initialLang = useSyncExternalStore(
     emptySubscribe,
-    () => (config.language.allowSwitch ? getSavedLocale(config.language.default) : config.language.default),
-    () => config.language.default
+    () =>
+      config.language.allowSwitch
+        ? getSavedLocale(config.language.default)
+        : config.language.default,
+    () => config.language.default,
   );
-  const [selectedLang, setSelectedLang] = useState<SupportedLocale | null>(null);
+  const [selectedLang, setSelectedLang] = useState<SupportedLocale | null>(
+    null,
+  );
   const lang = selectedLang ?? initialLang;
 
   // Synchronize document language dynamically for accessibility and translation prevention
@@ -62,14 +88,14 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
 
   const copy = useMemo(
     () => getClientCopy(lang, config.copy),
-    [lang, config.copy]
+    [lang, config.copy],
   );
 
   // 2. Product variant & gallery state
   const [selectedColorIdx, setSelectedColorIdx] = useState<number>(0);
   const firstAvailableSize = useMemo(
     () => config.sizes.find((s) => s.available)?.name ?? "",
-    [config.sizes]
+    [config.sizes],
   );
   const [selectedSize, setSelectedSize] = useState<string>(firstAvailableSize);
   const [quantity, setQuantity] = useState<number>(1);
@@ -97,8 +123,11 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
     return list[0]?.id || "cod";
   });
   const [transactionId, setTransactionId] = useState<string>("");
+  const [paidFrom, setPaidFrom] = useState<string>("");
 
-  const [openDropdownFormId, setOpenDropdownFormId] = useState<"m" | "d" | null>(null);
+  const [openDropdownFormId, setOpenDropdownFormId] = useState<
+    "m" | "d" | null
+  >(null);
   const [districtSearchQuery, setDistrictSearchQuery] = useState<string>("");
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -108,8 +137,10 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
   const [serverError, setServerError] = useState<string | null>(null);
 
   // Idempotency key (UUID) & form mounted timestamp (initialized in effect for React 19 purity)
+  const isSubmittingRef = useRef<boolean>(false);
   const idempotencyKeyRef = useRef<string>("");
   const formStartedAtRef = useRef<number>(0);
+  const lastOrderContentSignatureRef = useRef<string>("");
 
   useEffect(() => {
     if (!idempotencyKeyRef.current) {
@@ -144,12 +175,13 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
   const shareUrl = useSyncExternalStore(
     emptySubscribe,
     () => window.location.href,
-    () => `https://orderkoro.example/${config.slug}`
+    () => `https://orderkoro.example/${config.slug}`,
   );
   const canNativeShare = useSyncExternalStore(
     emptySubscribe,
-    () => typeof navigator !== "undefined" && typeof navigator.share === "function",
-    () => false
+    () =>
+      typeof navigator !== "undefined" && typeof navigator.share === "function",
+    () => false,
   );
 
   // Field refs for smooth scroll and focus management
@@ -171,7 +203,7 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
         const entry = entries[0];
         if (entry) setIsFormInView(entry.isIntersecting);
       },
-      { threshold: 0.12 }
+      { threshold: 0.12 },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -184,7 +216,7 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
 
   const savings = useMemo(
     () => calculateSavings(config.product.price, config.product.oldPrice),
-    [config.product.price, config.product.oldPrice]
+    [config.product.price, config.product.oldPrice],
   );
 
   const suburbZoneId = useMemo(() => hasDhakaSuburbZone(config), [config]);
@@ -197,19 +229,19 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
         config,
         quantity,
         selectedDistrict,
-        showDhakaSuburbSelector ? dhakaArea : "city"
+        showDhakaSuburbSelector ? dhakaArea : "city",
       ),
-    [config, quantity, selectedDistrict, showDhakaSuburbSelector, dhakaArea]
+    [config, quantity, selectedDistrict, showDhakaSuburbSelector, dhakaArea],
   );
 
   const filteredDistricts = useMemo(
     () => filterDistricts(districtSearchQuery),
-    [districtSearchQuery]
+    [districtSearchQuery],
   );
 
   const selectedDistrictObj = useMemo(
     () => (selectedDistrict ? findDistrictById(selectedDistrict) : undefined),
-    [selectedDistrict]
+    [selectedDistrict],
   );
 
   function validateSingleField(
@@ -220,7 +252,9 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
       phone?: string;
       district?: string;
       address?: string;
-    }
+      transactionId?: string;
+      paidFrom?: string;
+    },
   ): string | undefined {
     const vSize = values?.size ?? selectedSize;
     const vName = (values?.name ?? customerName).trim();
@@ -261,6 +295,31 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
         }
         return undefined;
       }
+      case "transactionId": {
+        if (paymentMethod !== "cod") {
+          const trx = (values?.transactionId ?? transactionId)
+            .trim()
+            .toUpperCase();
+          if (!trx || !/^[A-Z0-9]{6,20}$/.test(trx)) {
+            return lang === "bn"
+              ? "সঠিক ট্রানজেকশন আইডি (TrxID) লিখুন (৬-২০ অক্ষর বা সংখ্যা)"
+              : "Please enter a valid TrxID (6-20 alphanumeric characters)";
+          }
+        }
+        return undefined;
+      }
+      case "paidFrom": {
+        if (paymentMethod !== "cod") {
+          const pf = values?.paidFrom ?? paidFrom;
+          const check = validateBdPhone(pf);
+          if (!check.valid) {
+            return lang === "bn"
+              ? "সঠিক ১১ ডিজিটের মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)"
+              : "Please enter a valid 11-digit mobile number";
+          }
+        }
+        return undefined;
+      }
     }
   }
 
@@ -272,13 +331,20 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
       setCustomerPhone(norm);
       overridePhone = norm;
     }
+    if (field === "paidFrom" && paidFrom.trim()) {
+      const norm = normalizeBdPhone(paidFrom);
+      setPaidFrom(norm);
+    }
     const err = validateSingleField(field, { phone: overridePhone });
     setErrors((prev) => ({ ...prev, [field]: err }));
   }
 
   function handleStickyOrderClick() {
     if (config.soldOut) return;
-    formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    formSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
 
     window.setTimeout(() => {
       if (!customerName.trim()) {
@@ -297,7 +363,7 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (config.soldOut || isSubmitting) return;
+    if (isSubmittingRef.current || config.soldOut) return;
 
     const normalizedPhone = normalizeBdPhone(customerPhone);
     if (normalizedPhone !== customerPhone) {
@@ -310,11 +376,13 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
       phone: validateSingleField("phone", { phone: normalizedPhone }),
       district: validateSingleField("district"),
       address: validateSingleField("address"),
+      paidFrom: validateSingleField("paidFrom"),
+      transactionId: validateSingleField("transactionId"),
     };
 
-    const activeErrorKeys = (Object.keys(nextErrors) as (keyof FormErrors)[]).filter(
-      (k) => Boolean(nextErrors[k])
-    );
+    const activeErrorKeys = (
+      Object.keys(nextErrors) as (keyof FormErrors)[]
+    ).filter((k) => Boolean(nextErrors[k]));
 
     setTouched({
       size: true,
@@ -322,6 +390,8 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
       phone: true,
       district: true,
       address: true,
+      paidFrom: true,
+      transactionId: true,
     });
     setErrors(nextErrors);
 
@@ -329,30 +399,76 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
       setShowErrorSummary(true);
       const firstInvalid = activeErrorKeys[0];
       if (firstInvalid === "size") {
-        sizeGroupRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        sizeGroupRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
       } else if (firstInvalid === "name") {
-        nameInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        nameInputRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
         nameInputRef.current?.focus();
       } else if (firstInvalid === "phone") {
-        phoneInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        phoneInputRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
         phoneInputRef.current?.focus();
       } else if (firstInvalid === "district") {
-        districtTriggerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        districtTriggerRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
         districtTriggerRef.current?.focus();
       } else if (firstInvalid === "address") {
-        addressInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        addressInputRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
         addressInputRef.current?.focus();
       }
       return;
     }
 
-    setShowErrorSummary(false);
+    // Reuse the same idempotencyKey when retrying the same order contents;
+    // create a new key only after a successful order or when the user changes order contents.
+    const currentOrderSignature = [
+      config.slug,
+      customerName.trim(),
+      normalizedPhone,
+      customerAddress.trim(),
+      selectedDistrict,
+      showDhakaSuburbSelector ? dhakaArea : "city",
+      activeColor.id || "",
+      selectedSize,
+      orderTotals.quantity,
+      paymentMethod,
+      paymentMethod !== "cod" ? transactionId.trim().toUpperCase() : "",
+      paymentMethod !== "cod" ? normalizeBdPhone(paidFrom) : "",
+      customerNote.trim(),
+    ].join("|");
+
+    if (
+      lastOrderContentSignatureRef.current &&
+      lastOrderContentSignatureRef.current !== currentOrderSignature
+    ) {
+      idempotencyKeyRef.current =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `idem_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    }
+    lastOrderContentSignatureRef.current = currentOrderSignature;
+
+    // Synchronous ref-based lock set on click before async operations
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
+    setShowErrorSummary(false);
     setServerError(null);
 
     try {
       const searchParams = new URLSearchParams(
-        typeof window !== "undefined" ? window.location.search : ""
+        typeof window !== "undefined" ? window.location.search : "",
       );
       const utm_source = searchParams.get("utm_source") || undefined;
       const utm_medium = searchParams.get("utm_medium") || undefined;
@@ -369,52 +485,76 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
           config,
           quantity,
           selectedDistrict,
-          showDhakaSuburbSelector ? dhakaArea : "city"
+          showDhakaSuburbSelector ? dhakaArea : "city",
         ).delivery;
 
       const activeColorName = resolveLocalizedText(activeColor.name, lang);
       const zoneId =
         showDhakaSuburbSelector && dhakaArea === "suburb"
-          ? (suburbZoneId || "dhaka_suburb")
-          : (deliveryQuote?.zoneId || config.delivery.defaultZoneId);
+          ? suburbZoneId || "dhaka_suburb"
+          : deliveryQuote?.zoneId || config.delivery.defaultZoneId;
 
-      const response = await fetch("/api/order", {
+      const orderPayload = {
+        slug: config.slug,
+        name: customerName.trim(),
+        phone: customerPhone.trim(),
+        address: customerAddress.trim(),
+        district: selectedDistrict,
+        zone: zoneId,
+        color: activeColor.id || activeColorName,
+        size: selectedSize,
+        quantity: orderTotals.quantity,
+        paymentMethod,
+        transactionId:
+          paymentMethod !== "cod"
+            ? transactionId.trim().toUpperCase()
+            : undefined,
+        paidFrom:
+          paymentMethod !== "cod" ? normalizeBdPhone(paidFrom) : undefined,
+        note: customerNote.trim() || undefined,
+        honeypot: honeypot || undefined,
+        website: honeypot || undefined,
+        formStartedAt: formStartedAtRef.current,
+        idempotencyKey: idempotencyKeyRef.current,
+        lang: lang,
+        attribution: {
+          utm_source,
+          utm_medium,
+          utm_campaign,
+          utm_content,
+          utm_term,
+          fbclid,
+          _fbp,
+          _fbc,
+        },
+      };
+
+      let response = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug: config.slug,
-          name: customerName.trim(),
-          phone: customerPhone.trim(),
-          address: customerAddress.trim(),
-          district: selectedDistrict,
-          zone: zoneId,
-          color: activeColor.id || activeColorName,
-          size: selectedSize,
-          quantity: orderTotals.quantity,
-          paymentMethod,
-          transactionId: transactionId.trim() || undefined,
-          note: customerNote.trim() || undefined,
-          honeypot: honeypot || undefined,
-          website: honeypot || undefined,
-          formStartedAt: formStartedAtRef.current,
-          idempotencyKey: idempotencyKeyRef.current,
-          lang: lang,
-          attribution: {
-            utm_source,
-            utm_medium,
-            utm_campaign,
-            utm_content,
-            utm_term,
-            fbclid,
-            _fbp,
-            _fbc,
-          },
-        }),
+        body: JSON.stringify(orderPayload),
       });
 
-      const data = await response.json();
+      let data = await response.json();
+
+      // Handle concurrent order processing: wait 2s and retry once with the same key
+      if (response.status === 409 && data.retryable) {
+        setServerError(
+          lang === "bn"
+            ? "অর্ডারটি প্রসেস হচ্ছে, অনুগ্রহ করে একটু অপেক্ষা করুন..."
+            : "Your order is processing, please wait...",
+        );
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        response = await fetch("/api/order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderPayload),
+        });
+        data = await response.json();
+      }
 
       if (!response.ok || !data.ok) {
+        isSubmittingRef.current = false;
         setIsSubmitting(false);
 
         if (response.status === 400 && data.field) {
@@ -425,24 +565,31 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
           setServerError(
             lang === "bn"
               ? "অতিরিক্ত চেষ্টার কারণে সাময়িকভাবে অর্ডার গ্রহণ স্থগিত আছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।"
-              : "Too many attempts. Please wait a few minutes before trying again."
+              : "Too many attempts. Please wait a few minutes before trying again.",
           );
         } else if (response.status === 502) {
           setServerError(
             lang === "bn"
               ? "অর্ডার প্রক্রিয়া সাময়িকভাবে বিলম্বিত হচ্ছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
-              : "Order service temporarily unavailable. Please retry shortly."
+              : "Order service temporarily unavailable. Please retry shortly.",
           );
         } else {
           setServerError(
             data.error ||
               (lang === "bn"
                 ? "অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
-                : "Failed to place order. Please check your information and retry.")
+                : "Failed to place order. Please check your information and retry."),
           );
         }
         return;
       }
+
+      // Successful order: reset content tracker and assign fresh key for subsequent orders
+      lastOrderContentSignatureRef.current = "";
+      idempotencyKeyRef.current =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `idem_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
       saveOrderSummaryToSession({
         orderNumber: data.orderNumber || data.summary?.orderNumber,
@@ -453,13 +600,19 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
         quantity: orderTotals.quantity,
         unitPrice: orderTotals.unitPrice,
         subtotal: orderTotals.unitPrice * orderTotals.quantity,
-        deliveryCharge: data.summary?.deliveryFee ?? (orderTotals.delivery?.effectiveCharge ?? 0),
-        deliveryZoneLabel: deliveryQuote ? deliveryQuote.label : config.delivery.zones[0].label,
+        deliveryCharge:
+          data.summary?.deliveryFee ??
+          orderTotals.delivery?.effectiveCharge ??
+          0,
+        deliveryZoneLabel: deliveryQuote
+          ? deliveryQuote.label
+          : config.delivery.zones[0].label,
         daysMin: deliveryQuote ? deliveryQuote.daysMin : 2,
         daysMax: deliveryQuote ? deliveryQuote.daysMax : 4,
         total: data.summary?.total ?? orderTotals.total,
         confirmationMode: config.confirmationMode || "call",
         language: lang,
+        paymentMethod: paymentMethod,
         eventId: data.eventId || data.orderNumber,
         createdAtIso: data.summary?.createdAtIso || new Date().toISOString(),
       });
@@ -467,11 +620,12 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
       router.push(`/${config.slug}/thanks`);
     } catch (err) {
       console.error("[Order Form] Network error:", err);
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
       setServerError(
         lang === "bn"
           ? "ইন্টারনেট সংযোগে সমস্যা দেখা দিয়েছে। আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।"
-          : "Network connection error. Please verify your connection and retry."
+          : "Network connection error. Please verify your connection and retry.",
       );
     }
   }
@@ -491,6 +645,9 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
   const primaryHover = darkenHex(primaryColor, 0.84);
   const accentColor = config.brand.accentColor || "#B45309";
 
+  const paymentChipText = getHeaderPaymentChip(config.payments, lang);
+  const returnChipText = getHeaderReturnChip(config.returnPolicy, lang);
+
   return (
     <div
       data-lang={lang}
@@ -504,9 +661,18 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
       className="min-h-screen-safe flex flex-col bg-[var(--bg-canvas)] text-[var(--text-primary)]"
     >
       {/* 1. Header */}
-      <header suppressHydrationWarning className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-3 min-[360px]:px-4 sm:px-6 lg:px-8 py-2.5 backdrop-blur-md">
-        <div suppressHydrationWarning className="mx-auto flex min-h-12 max-w-6xl items-center justify-between">
-          <div suppressHydrationWarning className="flex items-center gap-2.5 min-w-0">
+      <header
+        suppressHydrationWarning
+        className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-3 min-[360px]:px-4 sm:px-6 lg:px-8 py-2.5 backdrop-blur-md"
+      >
+        <div
+          suppressHydrationWarning
+          className="mx-auto flex min-h-12 max-w-6xl items-center justify-between"
+        >
+          <div
+            suppressHydrationWarning
+            className="flex items-center gap-2.5 min-w-0"
+          >
             {activeLogoUrl ? (
               <Image
                 src={activeLogoUrl}
@@ -532,18 +698,43 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
           <div className="hidden lg:flex items-center gap-5 text-xs font-medium text-[var(--text-secondary)]">
             <span className="inline-flex items-center gap-1.5 text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-              {copy.codBadgeText}
+              {paymentChipText}
             </span>
-            <span className="inline-flex items-center gap-1.5 font-medium text-[var(--text-secondary)]">
-              <svg className="h-4 w-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span>{copy.trustReturnBadge}</span>
-            </span>
+            {returnChipText && (
+              <span className="inline-flex items-center gap-1.5 font-medium text-[var(--text-secondary)]">
+                <svg
+                  className="h-4 w-4 text-emerald-600 shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+                <span>{returnChipText}</span>
+              </span>
+            )}
             {config.contact.phone && (
-              <a href={`tel:${config.contact.phone}`} className="inline-flex items-center gap-1.5 font-semibold text-[var(--brand-primary)] cursor-pointer hover:underline">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              <a
+                href={`tel:${config.contact.phone}`}
+                className="inline-flex items-center gap-1.5 font-semibold text-[var(--brand-primary)] cursor-pointer hover:underline"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                  />
                 </svg>
                 {config.contact.phone}
               </a>
@@ -603,6 +794,7 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
               soldOut={isSoldOut}
               copy={copy}
               lang={lang}
+              manifest={imagesManifest}
             />
 
             <ProductDescription
@@ -615,7 +807,9 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
             <TrustBlock
               phone={config.contact.phone}
               messengerPageUsername={config.contact.messengerPageUsername}
-              returnPolicyText={config.returnPolicyText}
+              returnPolicy={config.returnPolicy}
+              payments={config.payments}
+              qualityBadge={config.qualityBadge}
               copy={copy}
               lang={lang}
             />
@@ -707,6 +901,8 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
                     setPaymentMethod={setPaymentMethod}
                     transactionId={transactionId}
                     setTransactionId={setTransactionId}
+                    paidFrom={paidFrom}
+                    setPaidFrom={setPaidFrom}
                     errorSummaryRef={errorSummaryRef}
                     nameInputRef={nameInputRef}
                     phoneInputRef={phoneInputRef}
@@ -738,6 +934,7 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
           soldOut={isSoldOut}
           copy={copy}
           lang={lang}
+          manifest={imagesManifest}
         />
 
         {/* 3. Title, Selectors, Pricing */}
@@ -847,6 +1044,8 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
                 setPaymentMethod={setPaymentMethod}
                 transactionId={transactionId}
                 setTransactionId={setTransactionId}
+                paidFrom={paidFrom}
+                setPaidFrom={setPaidFrom}
                 errorSummaryRef={errorSummaryRef}
                 nameInputRef={nameInputRef}
                 phoneInputRef={phoneInputRef}
@@ -865,7 +1064,9 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
           <TrustBlock
             phone={config.contact.phone}
             messengerPageUsername={config.contact.messengerPageUsername}
-            returnPolicyText={config.returnPolicyText}
+            returnPolicy={config.returnPolicy}
+            payments={config.payments}
+            qualityBadge={config.qualityBadge}
             copy={copy}
             lang={lang}
           />
@@ -882,7 +1083,13 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
         </div>
 
         {/* 9. Mobile Footer */}
-        <footer className="border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-4 py-4 text-center text-xs text-[var(--text-muted)]">
+        <footer
+          className={`border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-4 pt-4 text-center text-xs text-[var(--text-muted)] ${
+            !isPaused && !isSoldOut
+              ? "pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))]"
+              : "pb-4"
+          }`}
+        >
           <div className="mb-2 flex items-center justify-center gap-4 text-xs">
             <Link
               href={`/${config.slug}/privacy`}
@@ -898,7 +1105,10 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
               {lang === "bn" ? "শর্তাবলী ও রিটার্ন পলিসি" : "Terms & Returns"}
             </Link>
           </div>
-          <p>© {new Date().getFullYear()} {brandNameText}. {copy.footerRightsReserved}</p>
+          <p>
+            © {new Date().getFullYear()} {brandNameText}.{" "}
+            {copy.footerRightsReserved}
+          </p>
           {config.showPoweredBy && (
             <p className="mt-1 text-[11px] opacity-75">{copy.poweredByText}</p>
           )}
@@ -923,7 +1133,10 @@ export default function ProductOrderClient({ config }: ProductOrderClientProps) 
               {lang === "bn" ? "শর্তাবলী ও রিটার্ন পলিসি" : "Terms & Returns"}
             </Link>
           </div>
-          <p>© {new Date().getFullYear()} {brandNameText}. {copy.footerRightsReserved}</p>
+          <p>
+            © {new Date().getFullYear()} {brandNameText}.{" "}
+            {copy.footerRightsReserved}
+          </p>
           {config.showPoweredBy && (
             <p className="text-[11px] opacity-75">{copy.poweredByText}</p>
           )}
@@ -956,13 +1169,25 @@ function SellerPausedBanner({
   return (
     <div className="rounded-2xl border border-amber-200 bg-amber-50/90 p-5 sm:p-6 text-center space-y-3.5 shadow-2xs">
       <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
         </svg>
       </div>
       <div className="space-y-1">
         <h3 className="text-base font-bold text-amber-900">
-          {lang === "bn" ? "অর্ডার গ্রহণ সাময়িকভাবে স্থগিত রয়েছে" : "Orders Temporarily Paused"}
+          {lang === "bn"
+            ? "অর্ডার গ্রহণ সাময়িকভাবে স্থগিত রয়েছে"
+            : "Orders Temporarily Paused"}
         </h3>
         <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
           {lang === "bn"
@@ -980,15 +1205,27 @@ function SellerPausedBanner({
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.13.26.35.27.57l.05 1.78c.04.57.61.94 1.13.71l1.98-.87c.17-.08.36-.1.55-.06.91.25 1.87.38 2.88.38 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm6 7.46-2.93 4.67c-.47.73-1.47.92-2.17.4l-2.33-1.75a.6.6 0 0 0-.72 0l-3.15 2.39c-.42.32-.97-.18-.69-.63l2.93-4.67c.47-.73 1.47-.92 2.17-.4l2.33 1.75a.6.6 0 0 0 .72 0l3.15-2.39c.42-.32.97.18.69.63z" />
           </svg>
-          <span>{lang === "bn" ? "মেসেঞ্জারে নক করুন" : "Chat on Messenger"}</span>
+          <span>
+            {lang === "bn" ? "মেসেঞ্জারে নক করুন" : "Chat on Messenger"}
+          </span>
         </a>
         {config.contact.phone && (
           <a
             href={`tel:${config.contact.phone}`}
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-amber-300 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-amber-900 hover:bg-amber-100/50 cursor-pointer"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+              />
             </svg>
             <span>{config.contact.phone}</span>
           </a>
@@ -1025,7 +1262,9 @@ function ProductDescription({
             const colonIndex = rawText.indexOf(":");
             const hasColon = colonIndex > 0;
             const label = hasColon ? rawText.slice(0, colonIndex).trim() : null;
-            const value = hasColon ? rawText.slice(colonIndex + 1).trim() : rawText;
+            const value = hasColon
+              ? rawText.slice(colonIndex + 1).trim()
+              : rawText;
 
             return (
               <li key={idx} className="flex items-start gap-2.5">
@@ -1033,14 +1272,20 @@ function ProductDescription({
                   className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]"
                   aria-hidden="true"
                 >
-                  <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
+                  <svg
+                    className="h-2.5 w-2.5"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
                     <circle cx="12" cy="12" r="6" />
                   </svg>
                 </span>
                 <span className="leading-snug">
                   {label ? (
                     <>
-                      <strong className="font-semibold text-[var(--text-primary)]">{label}:</strong>{" "}
+                      <strong className="font-semibold text-[var(--text-primary)]">
+                        {label}:
+                      </strong>{" "}
                       <span>{value}</span>
                     </>
                   ) : (

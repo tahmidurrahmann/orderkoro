@@ -1,38 +1,37 @@
 #!/usr/bin/env node
-/**
- * Scaffolds a new client configuration in clients/<slug>.json from CLI flags or interactive prompts,
- * prints field guidance, and validates the generated config against all schema and collision rules.
- *
- * Usage with flags:
- *   node scripts/new-client.mjs --slug=arong-loom --prefix=ARL --brand="আড়ং লুম" --price=1350 --phone=01700112233 --messenger=arongloom.bd
- */
 
-import fs from "node:fs";
-import path from "node:path";
-import readline from "node:readline/promises";
-import { fileURLToPath } from "node:url";
-import {
-  validateClientsDirectory,
-  validateSingleClientConfig,
-} from "./validate-clients.mjs";
+import fs from "fs";
+import path from "path";
+import readline from "readline/promises";
+import crypto from "crypto";
+import { validateSingleClientConfig } from "./validate-clients.mjs";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const CLIENTS_DIR = path.resolve(__dirname, "..", "clients");
+const CLIENTS_DIR = path.resolve("clients");
 
-function parseArgs(argv) {
-  const out = {};
-  for (const arg of argv.slice(2)) {
+function parseFlags(argv) {
+  const flags = {};
+  for (let i = 2; i < argv.length; i++) {
+    const arg = argv[i];
     if (arg.startsWith("--")) {
-      const [k, ...rest] = arg.slice(2).split("=");
-      out[k] = rest.length > 0 ? rest.join("=") : "true";
+      const eqIdx = arg.indexOf("=");
+      if (eqIdx !== -1) {
+        flags[arg.slice(2, eqIdx)] = arg.slice(eqIdx + 1);
+      } else {
+        const next = argv[i + 1];
+        if (next && !next.startsWith("--")) {
+          flags[arg.slice(2)] = next;
+          i++;
+        } else {
+          flags[arg.slice(2)] = true;
+        }
+      }
     }
   }
-  return out;
+  return flags;
 }
 
 async function main() {
-  const flags = parseArgs(process.argv);
+  const flags = parseFlags(process.argv);
   const isNonInteractive = Boolean(flags.slug && flags.prefix);
 
   let slug = flags.slug;
@@ -50,10 +49,23 @@ async function main() {
   let pixelId = flags.pixelId || undefined;
   let status = flags.status === "paused" ? "paused" : flags.status === "draft" ? "draft" : "active";
   let previewToken = flags.previewToken || (status === "draft" ? crypto.randomUUID().replace(/-/g, "") : undefined);
-  let returnPolicyBn = flags.returnPolicyBn || "পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানের সামনে চেক করে নিন। ত্রুটি থাকলে তাৎক্ষণিক রিটার্ন সুবিধা।";
-  let returnPolicyEn = flags.returnPolicyEn || "Check your parcel in front of the delivery rider. Instant return if defective.";
+
+  let returnEnabled = flags.returnEnabled !== "false";
+  let returnDays = Number(flags.returnDays ?? 0);
+  let exchangeEnabled = flags.exchangeEnabled !== "false";
+  let exchangeDays = Number(flags.exchangeDays ?? 3);
+  let returnShippingPaidBy = flags.returnShippingPaidBy || "customer";
+  let conditionsText = flags.conditions || undefined;
+  let refundDays = flags.refundDays ? Number(flags.refundDays) : undefined;
   let addressBn = flags.addressBn || "ঢাকা, বাংলাদেশ";
   let addressEn = flags.addressEn || "Dhaka, Bangladesh";
+  let tradeLicense = flags.tradeLicense || undefined;
+  let qualityBadge = null;
+
+  let codEnabled = true;
+  let bkashConfig = null;
+  let nagadConfig = null;
+  let rocketConfig = null;
 
   if (!isNonInteractive) {
     const rl = readline.createInterface({
@@ -86,7 +98,96 @@ async function main() {
     pixelId = (await rl.question("Meta Pixel ID (optional, press Enter to skip): ")).trim() || undefined;
     const statusAnswer = (await rl.question("Initial store status (active/paused) [active]: ")).trim().toLowerCase();
     status = statusAnswer === "paused" ? "paused" : "active";
+
+    console.log("--- Payment Methods ---");
+    const codAnswer = (await rl.question("Enable Cash on Delivery (y/n) [y]: ")).trim().toLowerCase();
+    codEnabled = codAnswer !== "n";
+
+    const bkashAnswer = (await rl.question("Enable bKash (y/n) [n]: ")).trim().toLowerCase();
+    if (bkashAnswer === "y") {
+      const bNum = (await rl.question("  bKash 11-digit mobile number: ")).trim();
+      const bType = (await rl.question("  bKash account type (personal/agent/merchant) [personal]: ")).trim().toLowerCase() || "personal";
+      bkashConfig = { enabled: true, number: bNum, type: bType };
+    }
+
+    const nagadAnswer = (await rl.question("Enable Nagad (y/n) [n]: ")).trim().toLowerCase();
+    if (nagadAnswer === "y") {
+      const nNum = (await rl.question("  Nagad 11-digit mobile number: ")).trim();
+      const nType = (await rl.question("  Nagad account type (personal/agent/merchant) [personal]: ")).trim().toLowerCase() || "personal";
+      nagadConfig = { enabled: true, number: nNum, type: nType };
+    }
+
+    const rocketAnswer = (await rl.question("Enable Rocket (y/n) [n]: ")).trim().toLowerCase();
+    if (rocketAnswer === "y") {
+      const rNum = (await rl.question("  Rocket 11-digit mobile number: ")).trim();
+      const rType = (await rl.question("  Rocket account type (personal/agent/merchant) [personal]: ")).trim().toLowerCase() || "personal";
+      rocketConfig = { enabled: true, number: rNum, type: rType };
+    }
+
+    console.log("--- Return & Exchange Policy ---");
+    const retAnswer = (await rl.question("Enable returns? (y/n) [y]: ")).trim().toLowerCase();
+    returnEnabled = retAnswer !== "n";
+    if (returnEnabled) {
+      const d = (await rl.question("  Return window in days (0 for delivery rider only, 1-30) [0]: ")).trim();
+      returnDays = d ? Number(d) : 0;
+    }
+
+    const excAnswer = (await rl.question("Enable exchanges? (y/n) [y]: ")).trim().toLowerCase();
+    exchangeEnabled = excAnswer !== "n";
+    if (exchangeEnabled) {
+      const d = (await rl.question("  Exchange window in days (1-30) [3]: ")).trim();
+      exchangeDays = d ? Number(d) : 3;
+    }
+
+    const cond = (await rl.question("  Extra policy conditions (optional, press Enter to skip): ")).trim();
+    if (cond) conditionsText = cond;
+
+    const shipPaid = (await rl.question("  Who pays return shipping? (customer/seller/shared) [customer]: ")).trim().toLowerCase();
+    if (["customer", "seller", "shared"].includes(shipPaid)) {
+      returnShippingPaidBy = shipPaid;
+    }
+
+    const refD = (await rl.question("  Refund processing days for mobile payments (optional, e.g. 5) [skip]: ")).trim();
+    if (refD) refundDays = Number(refD);
+
+    console.log("--- Business Information ---");
+    addressBn = (await rl.question("  Business Address (Bangla) [ঢাকা, বাংলাদেশ]: ")).trim() || addressBn;
+    addressEn = (await rl.question("  Business Address (English) [Dhaka, Bangladesh]: ")).trim() || addressEn;
+    const tl = (await rl.question("  Trade license number (optional, press Enter to skip): ")).trim();
+    if (tl) tradeLicense = tl;
+
+    const qbAnswer = (await rl.question("Include quality guarantee badge? (y/n) [n]: ")).trim().toLowerCase();
+    if (qbAnswer === "y") {
+      const qTitleBn = (await rl.question("  Quality badge title (Bangla) [১০০% অরিজিনাল পণ্য]: ")).trim() || "১০০% অরিজিনাল পণ্য";
+      const qTitleEn = (await rl.question("  Quality badge title (English) [100% Authentic Product]: ")).trim() || "100% Authentic Product";
+      const qSubBn = (await rl.question("  Quality badge subtitle (Bangla) [খাঁটি কোয়ালিটি নিশ্চিত]: ")).trim() || "খাঁটি কোয়ালিটি নিশ্চিত";
+      const qSubEn = (await rl.question("  Quality badge subtitle (English) [Quality Guaranteed]: ")).trim() || "Quality Guaranteed";
+      qualityBadge = {
+        title: { bn: qTitleBn, en: qTitleEn },
+        subtitle: { bn: qSubBn, en: qSubEn },
+      };
+    }
+
     rl.close();
+  }
+
+  let payments = {
+    cod: { enabled: flags.cod !== "false" && codEnabled },
+  };
+  if (flags.bkashNumber) {
+    payments.bkash = { enabled: true, number: flags.bkashNumber, type: flags.bkashType || "personal" };
+  } else if (bkashConfig) {
+    payments.bkash = bkashConfig;
+  }
+  if (flags.nagadNumber) {
+    payments.nagad = { enabled: true, number: flags.nagadNumber, type: flags.nagadType || "personal" };
+  } else if (nagadConfig) {
+    payments.nagad = nagadConfig;
+  }
+  if (flags.rocketNumber) {
+    payments.rocket = { enabled: true, number: flags.rocketNumber, type: flags.rocketType || "personal" };
+  } else if (rocketConfig) {
+    payments.rocket = rocketConfig;
   }
 
   const newConfig = {
@@ -158,10 +259,20 @@ async function main() {
       },
       defaultZoneId: "outside-dhaka",
     },
-    returnPolicyText: {
-      bn: returnPolicyBn,
-      en: returnPolicyEn,
+    returnPolicy: {
+      return: {
+        enabled: returnEnabled,
+        ...(returnEnabled ? { days: returnDays } : {}),
+      },
+      exchange: {
+        enabled: exchangeEnabled,
+        ...(exchangeEnabled ? { days: exchangeDays } : {}),
+      },
+      ...(conditionsText ? { conditions: { bn: conditionsText, en: conditionsText } } : {}),
+      returnShippingPaidBy,
     },
+    ...(qualityBadge ? { qualityBadge } : {}),
+    ...(refundDays ? { refundDays } : {}),
     contact: {
       phone,
       messengerPageUsername: messenger,
@@ -169,7 +280,9 @@ async function main() {
         bn: addressBn,
         en: addressEn,
       },
+      ...(tradeLicense ? { tradeLicenseNumber: tradeLicense } : {}),
     },
+    payments,
     sheetId,
     telegramChatId,
     ...(pixelId ? { pixelId } : {}),
@@ -195,27 +308,13 @@ async function main() {
   }
 
   const targetPath = path.join(CLIENTS_DIR, `${slug}.json`);
-  if (fs.existsSync(targetPath) && !flags.force) {
-    console.error(`❌ File already exists: clients/${slug}.json (use --force to overwrite)`);
+  if (fs.existsSync(targetPath)) {
+    console.error(`❌ Client config already exists at ${targetPath}`);
     process.exit(1);
   }
 
-  fs.writeFileSync(targetPath, JSON.stringify(newConfig, null, 2) + "\n", "utf-8");
-
-  const dirCheck = validateClientsDirectory(CLIENTS_DIR);
-  if (!dirCheck.ok) {
-    fs.unlinkSync(targetPath);
-    console.error("❌ Client collection validation failed (rolled back):");
-    for (const e of dirCheck.errors) {
-      console.error(`  - ${e}`);
-    }
-    process.exit(1);
-  }
-
-  console.log(`✅ Scaffolded and validated clients/${slug}.json`);
-  console.log("   Next steps:");
-  console.log(`   1. Place at least 3 product images in public/${slug}/`);
-  console.log(`   2. Import clients/${slug}.json in src/lib/clients.ts`);
+  fs.writeFileSync(targetPath, JSON.stringify(newConfig, null, 2), "utf8");
+  console.log(`✅ Created new client config: ${targetPath}`);
 }
 
 main().catch((err) => {

@@ -155,13 +155,30 @@
       "en": "Check your garment color and size in front of the delivery rider before paying."
     }
   },
-  "returnPolicyText": {
-    "bn": "পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানের সামনে চেক করে নিন। সাইজ বা পণ্যে কোনো ত্রুটি থাকলে তাৎক্ষণিক রিটার্ন অথবা ৩ দিনের মধ্যে সহজ এক্সচেঞ্জ সুবিধা রয়েছে।",
-    "en": "Inspect your Panjabi in front of the rider upon delivery. Instant return for any defect, or easy size exchange within 3 days of delivery."
+  "returnPolicy": {
+    "return": {
+      "enabled": true,
+      "days": 0
+    },
+    "exchange": {
+      "enabled": true,
+      "days": 3
+    },
+    "returnShippingPaidBy": "customer"
+  },
+  "qualityBadge": {
+    "title": {
+      "bn": "১০০% প্রিমিয়াম সুতি",
+      "en": "100% Premium Cotton"
+    },
+    "subtitle": {
+      "bn": "খাঁটি কোয়ালিটি নিশ্চিত",
+      "en": "Guaranteed Authentic Quality"
+    }
   },
   "contact": {
-    "phone": "01711002233",
-    "messengerPageUsername": "bunonatelier.bd",
+    "phone": "01900000000",
+    "messengerPageUsername": "bunonatelier",
     "businessAddress": {
       "bn": "বাড়ি ১২, রোড ৫, ধানমন্ডি, ঢাকা ১২০৫",
       "en": "House 12, Road 5, Dhanmondi, Dhaka 1205"
@@ -170,32 +187,17 @@
   "payments": {
     "cod": {
       "enabled": true
-    },
-    "bkash": {
-      "enabled": true,
-      "number": "01711002233",
-      "type": "personal"
-    },
-    "nagad": {
-      "enabled": true,
-      "number": "01711002233",
-      "type": "personal"
-    },
-    "rocket": {
-      "enabled": true,
-      "number": "01711002233",
-      "type": "personal"
     }
   },
   "status": "active",
   "seo": {
     "index": true
   },
-  "sheetId": "1KbyKBJIh7fe28lupamxrMO1I4QQtdsxTdmEEASCsWXU",
+  "sheetId": "1t6kpHRdTgIPnRbJiKJodSEw5HLMKm1hSx89Z0ggISYI",
   "telegramChatId": "-5233056020",
   "pixelId": "109283746501928",
   "confirmationMode": "call",
   "highValueThreshold": 3500,
-  "ogImage": "/demo-brand/indigo-front.svg",
+  "ogImage": "/demo-brand/og.jpg",
   "showPoweredBy": true
 }

@@ -8,6 +8,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadScriptEnv, requireEnvVars } from "./lib/load-env.mjs";
+
+loadScriptEnv();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,13 +36,9 @@ if (process.env.MOCK_INTEGRATIONS === "1") {
   process.exit(0);
 }
 
+requireEnvVars(["UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"]);
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
 const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-if (!redisUrl || !redisToken) {
-  console.error("❌ Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN.");
-  process.exit(1);
-}
 
 async function run() {
   const listKey = `failed:${slug}`;
@@ -50,7 +49,7 @@ async function run() {
   });
 
   if (!res.ok) {
-    console.error(`❌ Failed to read dead-letter queue from Redis (${res.status})`);
+    console.error(`❌ Redis lrange failed (${res.status})`);
     process.exit(1);
   }
 
@@ -58,38 +57,21 @@ async function run() {
   const items = data.result || [];
 
   if (items.length === 0) {
-    console.log(`✅ Dead-letter queue ${listKey} is empty. No failed orders to replay.`);
+    console.log(`✅ Dead-letter queue for ${listKey} is empty (0 failed orders).`);
     process.exit(0);
   }
 
-  console.log(`📦 Found ${items.length} failed orders in ${listKey}. Processing...`);
-
-  let succeeded = 0;
-  let failed = 0;
-
+  console.log(`📋 Found ${items.length} failed order(s) in ${listKey}:`);
   for (let i = 0; i < items.length; i++) {
-    const raw = items[i];
-    let payload;
     try {
-      payload = typeof raw === "string" ? JSON.parse(raw) : raw;
+      const parsed = typeof items[i] === "string" ? JSON.parse(items[i]) : items[i];
+      console.log(`  [${i + 1}] Order: ${parsed.orderNumber || "unknown"} | Reason: ${parsed.reason || "unknown"} | Failed channels: ${JSON.stringify(parsed.failedChannels || [])}`);
     } catch {
-      console.warn(`⚠️ Skipping unparseable order item at index ${i}`);
-      failed++;
-      continue;
+      console.log(`  [${i + 1}] Raw entry: ${items[i]}`);
     }
-
-    console.log(`Processing Order #${payload.orderNumber || "unknown"} (Missing: ${payload.failedChannels?.join(", ")})`);
-
-    // In production, we'd trigger the individual sheet append / telegram send
-    // For now mark as processed if retry succeeds
-    succeeded++;
   }
 
-  console.log(`\nReplay Summary for ${slug}:`);
-  console.log(`  - Total items: ${items.length}`);
-  console.log(`  - Succeeded: ${succeeded}`);
-  console.log(`  - Remaining failed: ${failed}`);
-
+  console.log("\n⚠️  To safely re-dispatch these orders, fix the underlying external credentials (Sheets/Telegram) and execute the replay worker.");
   process.exit(0);
 }
 

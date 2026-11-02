@@ -23,7 +23,8 @@
     "new-client": "node scripts/new-client.mjs",
     "smoke": "node scripts/smoke.mjs",
     "a11y": "node scripts/a11y-check.mjs",
-    "clear-rate-limits": "node scripts/clear-rate-limits.mjs"
+    "clear-rate-limits": "node scripts/clear-rate-limits.mjs",
+    "optimize-images": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
     "@upstash/redis": "1.40.0",
@@ -41,6 +42,7 @@
     "@types/react-dom": "19.2.2",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.3",
+    "sharp": "0.35.5",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "vitest": "^5.0.5"

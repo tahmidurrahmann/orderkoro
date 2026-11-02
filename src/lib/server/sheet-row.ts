@@ -26,6 +26,10 @@ export const SHEET_HEADERS = [
   "fbclid",
   "_fbp",
   "_fbc",
+  "Payment Method",
+  "Payment Status",
+  "TrxID",
+  "Paid From Number",
 ] as const;
 
 export interface OrderAttribution {
@@ -58,19 +62,23 @@ export interface OrderRecordForSheet {
   note?: string;
   confirmationMode: string;
   attribution?: OrderAttribution;
+  paymentMethod?: string;
+  paymentStatus?: "COD" | "Unverified" | "Verified" | "Not received";
+  trxId?: string;
+  paidFrom?: string;
 }
 
 /**
  * Formula Injection Protection:
- * Prefixes any string starting with =, +, -, @ (including any leading whitespace before them) with an apostrophe.
+ * Prefixes any string starting with =, +, -, @, \t, \r (including any leading whitespace before them) with an apostrophe.
  */
 export function sanitizeSpreadsheetCell(value: unknown): string {
   if (value === null || value === undefined) {
     return "";
   }
   const str = String(value);
-  // Match =, +, -, @ even after leading whitespace
-  if (/^\s*[=+\-@]/.test(str)) {
+  // Match =, +, -, @, \t, \r even after leading whitespace
+  if (/^\s*[=+\-@\t\r]/.test(str)) {
     return `'${str}`;
   }
   return str;
@@ -105,5 +113,11 @@ export function buildSheetRow(record: OrderRecordForSheet): unknown[] {
     sanitizeSpreadsheetCell(attr.fbclid || ""), // 22: fbclid
     sanitizeSpreadsheetCell(attr._fbp || ""), // 23: _fbp
     sanitizeSpreadsheetCell(attr._fbc || ""), // 24: _fbc
+    sanitizeSpreadsheetCell(record.paymentMethod || "cod"), // 25: Payment Method
+    sanitizeSpreadsheetCell(
+      record.paymentStatus || (record.paymentMethod === "cod" || !record.paymentMethod ? "COD" : "Unverified")
+    ), // 26: Payment Status
+    sanitizeSpreadsheetCell(record.trxId || ""), // 27: TrxID
+    String(record.paidFrom || ""), // 28: Paid From Number (string with leading 0 preserved)
   ];
 }

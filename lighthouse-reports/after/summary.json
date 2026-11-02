@@ -1,0 +1,96 @@
+{
+  "home": [
+    {
+      "run": 1,
+      "perf": 100,
+      "a11y": 95,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcp": "0.8 s",
+      "lcpNumeric": 770,
+      "fcp": "0.8 s",
+      "tbt": "60 ms",
+      "cls": "0",
+      "clsNumeric": 0,
+      "speedIndex": "0.8 s",
+      "lcpElement": "N/A"
+    },
+    {
+      "run": 2,
+      "perf": 100,
+      "a11y": 95,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcp": "0.8 s",
+      "lcpNumeric": 761,
+      "fcp": "0.8 s",
+      "tbt": "70 ms",
+      "cls": "0",
+      "clsNumeric": 0,
+      "speedIndex": "0.8 s",
+      "lcpElement": "N/A"
+    },
+    {
+      "run": 3,
+      "perf": 100,
+      "a11y": 95,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcp": "0.8 s",
+      "lcpNumeric": 763,
+      "fcp": "0.8 s",
+      "tbt": "90 ms",
+      "cls": "0",
+      "clsNumeric": 0,
+      "speedIndex": "0.8 s",
+      "lcpElement": "N/A"
+    }
+  ],
+  "demo-brand": [
+    {
+      "run": 1,
+      "perf": 87,
+      "a11y": 96,
+      "bestPractices": 96,
+      "seo": 100,
+      "lcp": "4.0 s",
+      "lcpNumeric": 3987,
+      "fcp": "1.0 s",
+      "tbt": "70 ms",
+      "cls": "0",
+      "clsNumeric": 0.0001,
+      "speedIndex": "1.0 s",
+      "lcpElement": "N/A"
+    },
+    {
+      "run": 2,
+      "perf": 74,
+      "a11y": 96,
+      "bestPractices": 96,
+      "seo": 100,
+      "lcp": "4.5 s",
+      "lcpNumeric": 4512,
+      "fcp": "0.9 s",
+      "tbt": "380 ms",
+      "cls": "0",
+      "clsNumeric": 0,
+      "speedIndex": "3.7 s",
+      "lcpElement": "N/A"
+    },
+    {
+      "run": 3,
+      "perf": 85,
+      "a11y": 96,
+      "bestPractices": 96,
+      "seo": 100,
+      "lcp": "4.4 s",
+      "lcpNumeric": 4361,
+      "fcp": "1.1 s",
+      "tbt": "50 ms",
+      "cls": "0",
+      "clsNumeric": 0,
+      "speedIndex": "1.1 s",
+      "lcpElement": "N/A"
+    }
+  ]
+}

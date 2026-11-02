@@ -8,11 +8,17 @@ import {
   releaseOrderLock,
   storeOrderMeta,
   updateOrderMetaStatus,
+  updateOrderMetaPaymentStatus,
 } from "@/lib/server/redis";
-import { updateSheetOrderStatusWithRetry } from "@/lib/server/sheets";
+import {
+  updateSheetOrderStatusWithRetry,
+  updateSheetPaymentStatusWithRetry,
+} from "@/lib/server/sheets";
 import {
   canTransitionStatus,
   parseCallbackData,
+  buildMobilePaymentInlineKeyboard,
+  buildStatusInlineKeyboard,
   type OrderStatus,
 } from "@/lib/server/status-machine";
 import {
@@ -99,7 +105,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, error: "Invalid callback format" });
     }
 
-    const { action, orderNumber } = parsed;
+    const orderNumber = parsed.orderNumber;
     const redis = getRedisDriver();
 
     // Acquire atomic per-order lock with unique request token and 60s TTL
@@ -166,6 +172,122 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      if (parsed.type === "payment") {
+        const { paymentAction } = parsed;
+        const targetPaymentStatus = paymentAction === "verified" ? "Verified" : "Not received";
+
+        if (meta?.paymentMethod === "cod") {
+          logger.warn("Attempted payment callback on COD order", { orderNumber });
+          await answerTelegramCallback(
+            callbackQueryId,
+            "Invalid action: Payment verification is only available for mobile payments",
+            true
+          );
+          return NextResponse.json({
+            ok: false,
+            error: "Payment verification is not applicable to Cash on Delivery orders",
+            changed: false,
+          });
+        }
+
+        if (meta?.paymentStatus === targetPaymentStatus) {
+          await answerTelegramCallback(
+            callbackQueryId,
+            `Payment is already marked as ${targetPaymentStatus}`
+          );
+          return NextResponse.json({ ok: true, idempotent: true, paymentStatus: targetPaymentStatus });
+        }
+
+        let sheetUpdated = false;
+        let sheetError: Error | null = null;
+        try {
+          await updateSheetPaymentStatusWithRetry(
+            secrets.sheetId,
+            meta?.rowRef || "",
+            orderNumber,
+            targetPaymentStatus
+          );
+          sheetUpdated = true;
+        } catch (sheetErr) {
+          sheetError = sheetErr as Error;
+          logger.error("Failed to update Google Sheet payment status", {
+            orderNumber,
+            error: sheetError,
+          });
+        }
+
+        await updateOrderMetaPaymentStatus(orderNumber, targetPaymentStatus, redis);
+
+        if (!sheetUpdated) {
+          await sendAdminTelegramAlert(
+            adminChatId,
+            `⚠️ <b>ADMIN ALERT: Webhook Payment Sheet Update Failed</b>\n` +
+            `• <b>Order:</b> <code>${escapeTelegramHtml(orderNumber)}</code>\n` +
+            `• <b>Payment Status:</b> ${targetPaymentStatus}\n` +
+            `• <b>Error:</b> <code>${escapeTelegramHtml(sheetError?.message || "Unknown error")}</code>`
+          );
+        }
+
+        await answerTelegramCallback(
+          callbackQueryId,
+          sheetUpdated
+            ? `Payment status updated to ${targetPaymentStatus}`
+            : `Payment status updated to ${targetPaymentStatus} (Sheet sync pending)`
+        );
+
+        if (messageId && callbackQuery.message?.text) {
+          let updatedText = callbackQuery.message.text;
+          if (/Payment Status:\s*[A-Za-z ]+/i.test(updatedText)) {
+            updatedText = updatedText.replace(
+              /Payment Status:\s*[A-Za-z ]+/i,
+              `Payment Status: <b>${targetPaymentStatus}</b>`
+            );
+          } else {
+            updatedText += `\n📊 <b>Payment Status:</b> <b>${targetPaymentStatus}</b>`;
+          }
+
+          if (targetPaymentStatus === "Verified") {
+            updatedText = updatedText
+              .replace(/⚠️\s*UNVERIFIED:[^\n]*/gi, "✅ <b>Payment Verified</b>")
+              .replace(/⚠️\s*PAYMENT NOT RECEIVED/gi, "✅ <b>Payment Verified</b>")
+              .replace(/\n\n\n+/g, "\n\n");
+          } else if (targetPaymentStatus === "Not received") {
+            updatedText = updatedText
+              .replace(/⚠️\s*UNVERIFIED:[^\n]*/gi, "⚠️ <b>PAYMENT NOT RECEIVED</b>")
+              .replace(/✅\s*Payment Verified/gi, "⚠️ <b>PAYMENT NOT RECEIVED</b>");
+          }
+
+          const newKeyboard =
+            targetPaymentStatus === "Verified"
+              ? buildStatusInlineKeyboard((meta?.status || "new") as OrderStatus, orderNumber)
+              : buildMobilePaymentInlineKeyboard("Not received", orderNumber);
+
+          try {
+            await editTelegramOrderMessage(
+              chatId,
+              messageId,
+              updatedText,
+              (meta?.status || "new") as OrderStatus,
+              orderNumber,
+              newKeyboard
+            );
+          } catch (editErr) {
+            logger.warn("Failed to edit Telegram order message for payment status", {
+              orderNumber,
+              error: editErr as Error,
+            });
+          }
+        }
+
+        return NextResponse.json({
+          ok: true,
+          orderNumber,
+          paymentStatus: targetPaymentStatus,
+          sheetUpdated,
+        });
+      }
+
+      const action = parsed.action;
       const currentStatus = (meta?.status || "new") as OrderStatus;
 
       // Duplicate press / already at target status

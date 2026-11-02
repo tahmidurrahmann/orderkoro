@@ -1,0 +1,47 @@
+[
+  {
+    "run": 1,
+    "perf": 100,
+    "a11y": 95,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcp": "0.8 s",
+    "lcpNumeric": 760,
+    "fcp": "0.8 s",
+    "cls": "0",
+    "clsNumeric": 0,
+    "tbt": "50 ms",
+    "speedIndex": "0.8 s",
+    "lcpElement": "N/A"
+  },
+  {
+    "run": 2,
+    "perf": 100,
+    "a11y": 95,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcp": "0.8 s",
+    "lcpNumeric": 758,
+    "fcp": "0.8 s",
+    "cls": "0",
+    "clsNumeric": 0,
+    "tbt": "40 ms",
+    "speedIndex": "0.8 s",
+    "lcpElement": "N/A"
+  },
+  {
+    "run": 3,
+    "perf": 100,
+    "a11y": 95,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcp": "0.8 s",
+    "lcpNumeric": 758,
+    "fcp": "0.8 s",
+    "cls": "0",
+    "clsNumeric": 0,
+    "tbt": "30 ms",
+    "speedIndex": "0.8 s",
+    "lcpElement": "N/A"
+  }
+]

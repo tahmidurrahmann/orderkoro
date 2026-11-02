@@ -7,19 +7,14 @@
  *   WEBHOOK_URL="https://your-domain.com/api/telegram/webhook" node scripts/set-telegram-webhook.mjs
  */
 
+import { loadScriptEnv, requireEnvVars } from "./lib/load-env.mjs";
+
+loadScriptEnv();
+
+requireEnvVars(["TELEGRAM_BOT_TOKEN", "TELEGRAM_WEBHOOK_SECRET"]);
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
 const webhookUrl = process.env.WEBHOOK_URL || process.argv[2];
-
-if (!botToken) {
-  console.error("❌ Missing TELEGRAM_BOT_TOKEN environment variable.");
-  process.exit(1);
-}
-
-if (!webhookSecret) {
-  console.error("❌ Missing TELEGRAM_WEBHOOK_SECRET environment variable.");
-  process.exit(1);
-}
 
 if (!webhookUrl || !webhookUrl.startsWith("https://")) {
   console.error(

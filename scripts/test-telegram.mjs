@@ -8,6 +8,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadScriptEnv, requireEnvVars } from "./lib/load-env.mjs";
+
+loadScriptEnv();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,11 +44,8 @@ if (process.env.MOCK_INTEGRATIONS === "1") {
   process.exit(0);
 }
 
+requireEnvVars(["TELEGRAM_BOT_TOKEN"]);
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
-if (!botToken) {
-  console.error("❌ Missing TELEGRAM_BOT_TOKEN environment variable.");
-  process.exit(1);
-}
 
 const testOrderNumber = `${clientConfig.orderPrefix || "TEST"}-TEST-${Math.floor(1000 + Math.random() * 9000)}`;
 

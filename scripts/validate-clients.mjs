@@ -15,14 +15,9 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, "..");
 const CLIENTS_DIR = path.join(ROOT_DIR, "clients");
 
-const envPath = path.join(ROOT_DIR, ".env");
-if (fs.existsSync(envPath) && typeof process.loadEnvFile === "function") {
-  try {
-    process.loadEnvFile(envPath);
-  } catch {
-    // Ignore .env loading errors in CI environments without .env
-  }
-}
+import { loadScriptEnv } from "./lib/load-env.mjs";
+
+loadScriptEnv();
 
 const HEX_REGEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
@@ -211,8 +206,35 @@ export function validateSingleClientConfig(cfg, fileName = "config.json") {
     }
   }
 
-  if (!isNonEmptyLocalized(cfg.returnPolicyText)) {
-    errors.push(`returnPolicyText: required non-empty string or { bn, en }`);
+  if ("returnPolicyText" in cfg) {
+    errors.push(`returnPolicyText: legacy field is removed; use structured returnPolicy`);
+  }
+
+  if (!cfg.returnPolicy || typeof cfg.returnPolicy !== "object") {
+    errors.push(`returnPolicy: required object with return and exchange fields`);
+  } else {
+    const ret = cfg.returnPolicy.return;
+    const exc = cfg.returnPolicy.exchange;
+
+    if (!ret || typeof ret.enabled !== "boolean") {
+      errors.push(`returnPolicy.return.enabled: required boolean`);
+    } else if (ret.enabled) {
+      if (typeof ret.days !== "number" || !Number.isInteger(ret.days) || ret.days < 0 || ret.days > 30) {
+        errors.push(`returnPolicy.return.days: required integer between 0 and 30 when return is enabled`);
+      }
+    }
+
+    if (!exc || typeof exc.enabled !== "boolean") {
+      errors.push(`returnPolicy.exchange.enabled: required boolean`);
+    } else if (exc.enabled) {
+      if (typeof exc.days !== "number" || !Number.isInteger(exc.days) || exc.days < 1 || exc.days > 30) {
+        errors.push(`returnPolicy.exchange.days: required integer between 1 and 30 when exchange is enabled`);
+      }
+    }
+
+    if (cfg.returnPolicy.returnShippingPaidBy && !["customer", "seller", "shared"].includes(cfg.returnPolicy.returnShippingPaidBy)) {
+      errors.push(`returnPolicy.returnShippingPaidBy: must be 'customer', 'seller', or 'shared'`);
+    }
   }
 
   if (
@@ -233,6 +255,50 @@ export function validateSingleClientConfig(cfg, fileName = "config.json") {
   }
   if (cfg.confirmationMode !== "call" && cfg.confirmationMode !== "tap") {
     errors.push(`confirmationMode: must be "call" or "tap"`);
+  }
+
+  // Payments validation (canonical shape only)
+  if (cfg.paymentNumbers !== undefined) {
+    errors.push(`payments: legacy paymentNumbers field is removed; use payments: { bkash: { enabled, number, type }, ... }`);
+  }
+
+  if (cfg.payments !== undefined) {
+    if (typeof cfg.payments !== "object" || cfg.payments === null || Array.isArray(cfg.payments)) {
+      errors.push(`payments: must be an object with payment methods`);
+    } else {
+      if (typeof cfg.payments.cod === "boolean") {
+        errors.push(`payments.cod: legacy boolean form is removed; use { enabled: boolean }`);
+      } else if (cfg.payments.cod !== undefined) {
+        if (typeof cfg.payments.cod !== "object" || cfg.payments.cod === null) {
+          errors.push(`payments.cod: must be an object { enabled: boolean }`);
+        } else if (typeof cfg.payments.cod.enabled !== "boolean") {
+          errors.push(`payments.cod.enabled: must be a boolean`);
+        }
+      }
+
+      for (const mfs of ["bkash", "nagad", "rocket"]) {
+        const val = cfg.payments[mfs];
+        if (typeof val === "boolean" || typeof val === "string") {
+          errors.push(`payments.${mfs}: legacy format is removed; use { enabled: boolean, number: string, type: "personal"|"agent"|"merchant" }`);
+        } else if (val !== undefined) {
+          if (typeof val !== "object" || val === null) {
+            errors.push(`payments.${mfs}: must be an object`);
+          } else {
+            if (typeof val.enabled !== "boolean") {
+              errors.push(`payments.${mfs}.enabled: must be a boolean`);
+            }
+            if (val.enabled === true) {
+              if (typeof val.number !== "string" || !/^01[3-9]\d{8}$/.test(val.number.trim())) {
+                errors.push(`payments.${mfs}.number: required valid 11-digit Bangladeshi mobile number (01[3-9]XXXXXXXX) when enabled`);
+              }
+              if (!["personal", "agent", "merchant"].includes(val.type)) {
+                errors.push(`payments.${mfs}.type: must be "personal", "agent", or "merchant" (got "${val.type}")`);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   // Status & previewToken validation
@@ -293,6 +359,15 @@ export function validateClientsDirectory(dirPath = CLIENTS_DIR) {
     for (const w of result.warnings) {
       allWarnings.push(w);
     }
+
+    const isProduction =
+      process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+    if (isProduction && parsed.testOnly === true) {
+      allErrors.push(
+        `${file}: testOnly client "${parsed.slug}" cannot be registered in a production build (NODE_ENV=production or VERCEL_ENV=production)`
+      );
+    }
+
     if (!result.valid) {
       for (const e of result.errors) {
         allErrors.push(`${file} -> ${e}`);

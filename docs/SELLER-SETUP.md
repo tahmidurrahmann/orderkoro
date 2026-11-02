@@ -1,6 +1,6 @@
 # Seller Onboarding Guide / সেলার অনবোর্ডিং নির্দেশিকা (`docs/SELLER-SETUP.md`)
 
-This guide explains how a seller prepares their Google Sheet, Telegram notification group, and product details for a high-converting single-product Cash on Delivery (COD) order page.
+This guide explains how a seller prepares their Google Sheet, Telegram notification group, and product details for a single-product Cash on Delivery (COD) order page.
 
 ---
 
@@ -13,7 +13,7 @@ This guide explains how a seller prepares their Google Sheet, Telegram notificat
 4. Add the agency service account email (ask your developer for the exact `@...iam.gserviceaccount.com` email address) and set the permission role to **Editor**.
 5. Copy the Sheet URL and send it to your developer.
 
-#### 25-Column Sheet Header Row (Copy & Paste into Row 1, Columns A to Y):
+#### 29-Column Sheet Header Row (Copy & Paste into Row 1, Columns A to AC):
 | Col | Header | Description |
 |---|---|---|
 | A | `Order No` | Order number (e.g. `BNN-0001`) |
@@ -41,6 +41,10 @@ This guide explains how a seller prepares their Google Sheet, Telegram notificat
 | W | `fbclid` | Facebook click ID |
 | X | `_fbp` | Meta Pixel browser cookie |
 | Y | `_fbc` | Meta Pixel click cookie |
+| Z | `Payment Method` | Chosen method (`cod`, `bkash`, `nagad`, `rocket`) |
+| AA | `Payment Status` | Verification status (`COD`, `Unverified`, `Verified`, `Not received`) |
+| AB | `TrxID` | Customer transaction ID (for mobile payments) |
+| AC | `Paid From Number` | Customer mobile wallet number (for mobile payments) |
 
 ---
 
@@ -58,7 +62,17 @@ This guide explains how a seller prepares their Google Sheet, Telegram notificat
 2. **Pricing & Sizing:** Product price, regular price (if discount), available sizes (e.g. M, L, XL), and colors.
 3. **Delivery Charges:** Delivery fee for Dhaka City, Dhaka Suburbs, and Outside Dhaka, plus free delivery threshold.
 4. **Contact Details:** Official customer support phone number and Facebook Page username for Messenger (`m.me/yourpage`).
-5. **Meta Pixel ID (Optional):** Numeric Facebook Pixel ID from Events Manager if running ads.
+5. **Mobile Payment Details (Optional):** If you want to accept bKash, Nagad, or Rocket:
+   - Wallet mobile number (11-digit Bangladeshi mobile).
+   - Account type: `personal` (Send Money), `agent` (Cash Out), or `merchant` (Payment).
+6. **Meta Pixel ID (Optional):** Numeric Facebook Pixel ID from Events Manager if running ads.
+7. **Return & Exchange Policy:**
+   - Return allowed? Window in days (0 for delivery inspection only, or 1 to 30 days).
+   - Exchange allowed? Window in days (1 to 30 days).
+   - Who pays return/exchange shipping? (`seller`, `customer`, or `shared`).
+   - Any extra conditions (e.g. tag intact, video unboxing).
+8. **Business Address & Trade License (Optional):** Physical business address and trade license number for legal pages.
+9. **Quality Claim Badge (Optional):** Custom badge title and subtitle (e.g. 100% Genuine Cotton / Handcrafted).
 
 ---
 
@@ -71,8 +85,8 @@ This guide explains how a seller prepares their Google Sheet, Telegram notificat
 ৪. ডেভেলপার কর্তৃক প্রদত্ত সার্ভিস অ্যাকাউন্ট ইমেইলটি (যেমন: `...@...iam.gserviceaccount.com`) পেস্ট করুন এবং পারমিশন **Editor** সিলেক্ট করে শেয়ার করুন।
 ৫. শিটটির লিংক কপি করে আপনার ডেভেলপারকে পাঠিয়ে দিন।
 
-#### ২৫টি কলামের হেডার রো (Row 1-এ কপি করে পেস্ট করুন):
-`Order No	Created At	Status	Name	Phone	Address	District	Zone	Product	Color	Size	Qty	Unit Price	Delivery Fee	COD Total	Note	Confirmation Mode	UTM Source	UTM Medium	UTM Campaign	UTM Content	UTM Term	fbclid	_fbp	_fbc`
+#### ২৯টি কলামের হেডার রো (Row 1-এ কপি করে পেস্ট করুন):
+`Order No	Created At	Status	Name	Phone	Address	District	Zone	Product	Color	Size	Qty	Unit Price	Delivery Fee	COD Total	Note	Confirmation Mode	UTM Source	UTM Medium	UTM Campaign	UTM Content	UTM Term	fbclid	_fbp	_fbc	Payment Method	Payment Status	TrxID	Paid From Number`
 
 ---
 
@@ -90,4 +104,12 @@ This guide explains how a seller prepares their Google Sheet, Telegram notificat
 ২. **মূল্য ও সাইজ:** বিক্রয়মূল্য, পূর্বের মূল্য (যদি ছাড় থাকে), সাইজসমূহ (M, L, XL ইত্যাদি) এবং কালারসমূহ।
 ৩. **ডেলিভারি চার্জ:** ঢাকা সিটি, ঢাকা সাব-অার্ব এবং ঢাকার বাইরের ডেলিভারি চার্জ। কত টাকার অর্ডারে ফ্রি ডেলিভারি দিতে চান তা উল্লেখ করুন।
 ৪. **যোগাযোগের তথ্য:** হেল্পলাইন মোবাইল নম্বর এবং ফেসবুক পেজের ইউজারনেম (যাতে কাস্টমার মেসেঞ্জারে মেসেজ দিতে পারে)।
-৫. **মেটা পিক্সেল আইডি (ঐচ্ছিক):** ফেসবুক বিজ্ঞাপনের জন্য আপনার মেটা পিক্সেল আইডি (Meta Pixel ID)।
+৫. **মোবাইল পেমেন্ট তথ্য (ঐচ্ছিক):** বিকাশ, নগদ বা রকেট চালু করতে চাইলে নম্বর এবং অ্যাকাউন্টের ধরন (`personal`, `agent`, বা `merchant`)।
+৬. **মেটা পিক্সেল আইডি (ঐচ্ছিক):** ফেসবুক বিজ্ঞাপনের জন্য আপনার মেটা পিক্সেল আইডি (Meta Pixel ID)।
+৭. **রিটার্ন ও এক্সচেঞ্জ পলিসি:**
+   - রিটার্ন সুবিধা আছে কি না? সময়সীমা (০ দিন মানে ডেলিভারির সময় রাইডারের সামনে চেক করে ফেরত, অথবা ১ থেকে ৩০ দিন)।
+   - এক্সচেঞ্জ সুবিধা আছে কি না? সময়সীমা (১ থেকে ৩০ দিন)।
+   - রিটার্ন বা এক্সচেঞ্জের ডেলিভারি চার্জ কে দেবে? (`seller`, `customer`, বা `shared`)।
+   - বিশেষ কোনো শর্ত থাকলে তা উল্লেখ করুন।
+৮. **ব্যবসার ঠিকানা ও ট্রেড লাইসেন্স (ঐচ্ছিক):** শোরুম বা অফিসের ঠিকানা এবং ট্রেড লাইসেন্স নম্বর (টার্মস ও প্রাইভেসি পেজের জন্য)।
+৯. **কোয়ালিটি ব্যাজ (ঐচ্ছিক):** বিশেষ কোনো কোয়ালিটি বা কারুশিল্প দাবি থাকলে তার শিরোনাম ও বিবরণ।

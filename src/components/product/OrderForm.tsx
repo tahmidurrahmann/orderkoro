@@ -15,6 +15,8 @@ export type FormErrors = {
   phone?: string;
   district?: string;
   address?: string;
+  transactionId?: string;
+  paidFrom?: string;
 };
 
 export interface OrderFormProps {
@@ -57,6 +59,8 @@ export interface OrderFormProps {
   setPaymentMethod?: (method: "cod" | "bkash" | "nagad" | "rocket") => void;
   transactionId?: string;
   setTransactionId?: (trxId: string) => void;
+  paidFrom?: string;
+  setPaidFrom?: (val: string) => void;
   errorSummaryRef: React.RefObject<HTMLDivElement | null>;
   nameInputRef: React.RefObject<HTMLInputElement | null>;
   phoneInputRef: React.RefObject<HTMLInputElement | null>;
@@ -107,6 +111,8 @@ export default function OrderForm({
   setPaymentMethod,
   transactionId = "",
   setTransactionId,
+  paidFrom = "",
+  setPaidFrom,
   errorSummaryRef,
   nameInputRef,
   phoneInputRef,
@@ -890,6 +896,21 @@ export default function OrderForm({
                 </div>
               </div>
 
+              {/* Exact Amount to Send */}
+              <div className="rounded-xl bg-[var(--bg-surface)] p-3 border border-[var(--border-strong)] shadow-xs flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="block text-[11px] sm:text-xs text-[var(--text-secondary)] font-bold uppercase tracking-wider truncate">
+                    {copy.exactAmountToSendLabel}:
+                  </span>
+                  <span className="block text-[10px] text-[var(--text-muted)] font-medium truncate">
+                    {lang === "bn" ? "ডেলিভারি চার্জসহ মোট প্রদেয়" : "Total including delivery charge"}
+                  </span>
+                </div>
+                <span className="font-mono text-base min-[360px]:text-lg sm:text-xl font-extrabold text-[var(--text-primary)] shrink-0">
+                  {formatPrice(orderTotals.total, lang)}
+                </span>
+              </div>
+
               {/* Dynamic Action & Step Notice (Send Money vs Cash Out vs Payment) */}
               <div className="rounded-xl bg-black/3 p-2.5 border border-black/5">
                 <p className="text-[11px] sm:text-xs leading-relaxed text-[var(--text-secondary)] font-medium">
@@ -899,10 +920,42 @@ export default function OrderForm({
                 </p>
               </div>
 
+              {/* Paid From Mobile Number Input */}
+              <div>
+                <label htmlFor={`${uid}-${idPrefix}-paid-from`} className="block text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+                  {copy.fieldPaidFromLabel} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id={`${uid}-${idPrefix}-paid-from`}
+                  name="paidFrom"
+                  type="tel"
+                  autoComplete="tel"
+                  disabled={config.soldOut || isSubmitting}
+                  placeholder={copy.fieldPaidFromPlaceholder}
+                  value={paidFrom}
+                  onChange={(e) => setPaidFrom?.(e.target.value)}
+                  onBlur={() => handleBlur("paidFrom")}
+                  className={`mt-1 block w-full rounded-xl border p-2.5 sm:p-3 text-sm min-[360px]:text-base font-mono tracking-wider text-[var(--text-primary)] transition focus:outline-none focus:ring-2 ${
+                    errors.paidFrom
+                      ? "border-red-500 bg-red-50/20 focus:ring-red-400"
+                      : "border-[var(--border-strong)] bg-[var(--bg-surface)] focus:ring-[var(--brand-primary)]"
+                  }`}
+                />
+                {errors.paidFrom ? (
+                  <p role="alert" className="mt-1 text-xs font-semibold text-red-600">
+                    {errors.paidFrom}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-[10px] min-[360px]:text-[11px] text-[var(--text-muted)]">
+                    {copy.fieldPaidFromHint}
+                  </p>
+                )}
+              </div>
+
               {/* Transaction ID Input */}
               <div>
                 <label htmlFor={`${uid}-${idPrefix}-trx-id`} className="block text-xs sm:text-sm font-bold text-[var(--text-primary)]">
-                  {copy.fieldTrxIdLabel}
+                  {copy.fieldTrxIdLabel} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id={`${uid}-${idPrefix}-trx-id`}
@@ -913,11 +966,22 @@ export default function OrderForm({
                   placeholder={copy.fieldTrxIdPlaceholder}
                   value={transactionId}
                   onChange={(e) => setTransactionId?.(e.target.value.toUpperCase().trim())}
-                  className="mt-1 block w-full rounded-xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-2.5 sm:p-3 text-sm min-[360px]:text-base font-mono tracking-wider text-[var(--text-primary)] uppercase transition focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                  onBlur={() => handleBlur("transactionId")}
+                  className={`mt-1 block w-full rounded-xl border p-2.5 sm:p-3 text-sm min-[360px]:text-base font-mono tracking-wider text-[var(--text-primary)] uppercase transition focus:outline-none focus:ring-2 ${
+                    errors.transactionId
+                      ? "border-red-500 bg-red-50/20 focus:ring-red-400"
+                      : "border-[var(--border-strong)] bg-[var(--bg-surface)] focus:ring-[var(--brand-primary)]"
+                  }`}
                 />
-                <p className="mt-1 text-[10px] min-[360px]:text-[11px] text-[var(--text-muted)]">
-                  {copy.fieldTrxIdHint}
-                </p>
+                {errors.transactionId ? (
+                  <p role="alert" className="mt-1 text-xs font-semibold text-red-600">
+                    {errors.transactionId}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-[10px] min-[360px]:text-[11px] text-[var(--text-muted)]">
+                    {copy.fieldTrxIdHint}
+                  </p>
+                )}
               </div>
             </div>
           )}

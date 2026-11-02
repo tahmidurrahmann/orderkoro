@@ -73,6 +73,10 @@ export interface CopyDictionary {
   fieldTrxIdLabel: string;
   fieldTrxIdPlaceholder: string;
   fieldTrxIdHint: string;
+  fieldPaidFromLabel: string;
+  fieldPaidFromPlaceholder: string;
+  fieldPaidFromHint: string;
+  exactAmountToSendLabel: string;
   copyNumberButtonText: string;
   copiedNumberFeedback: string;
   accountTypePersonal: string;
@@ -207,6 +211,10 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     fieldTrxIdLabel: "ট্রানজেকশন আইডি (TrxID)",
     fieldTrxIdPlaceholder: "যেমন: 8N7A6D5E",
     fieldTrxIdHint: "পেমেন্ট সম্পন্ন করার পর প্রাপ্ত TrxID এখানে লিখুন",
+    fieldPaidFromLabel: "যে নম্বর থেকে পাঠিয়েছেন",
+    fieldPaidFromPlaceholder: "যেমন: 017XXXXXXXX",
+    fieldPaidFromHint: "যে মোবাইল অ্যাকাউন্ট থেকে টাকা পাঠিয়েছেন তা লিখুন",
+    exactAmountToSendLabel: "প্রেরণের মোট পরিমাণ",
     copyNumberButtonText: "নম্বর কপি করুন",
     copiedNumberFeedback: "কপি হয়েছে!",
     accountTypePersonal: "পার্সোনাল",
@@ -225,13 +233,13 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
 
     stickyBarOrderNow: "অর্ডার করুন",
 
-    trustReturnBadge: "৭ দিনের সহজ রিটার্ন সুবিধা",
+    trustReturnBadge: "সহজ রিটার্ন সুবিধা",
     trustHeading: "কেন আমাদের থেকে নিশ্চিন্তে নেবেন",
     trustPillar1Title: "ক্যাশ অন ডেলিভারি",
     trustPillar1Body: "হাতে পেয়ে দেখে পেমেন্ট",
-    trustPillar2Title: "৭ দিনের সহজ রিটার্ন",
-    trustPillar2Body: "পছন্দ না হলে সহজ পরিবর্তন",
-    trustPillar3Title: "১০০% প্রিমিয়াম সুতি",
+    trustPillar2Title: "সহজ রিটার্ন",
+    trustPillar2Body: "সহজ পরিবর্তন সুবিধা",
+    trustPillar3Title: "কোয়ালিটি নিশ্চিত",
     trustPillar3Body: "খাঁটি কোয়ালিটি নিশ্চিত",
     trustPolicyHeading: "রিটার্ন ও এক্সচেঞ্জ পলিসি:",
     trustContactHeading: "প্রয়োজনে সরাসরি যোগাযোগ করুন:",
@@ -333,6 +341,10 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     fieldTrxIdLabel: "Transaction ID (TrxID)",
     fieldTrxIdPlaceholder: "e.g. 8N7A6D5E",
     fieldTrxIdHint: "Enter the TrxID from your payment confirmation SMS",
+    fieldPaidFromLabel: "Paid From Mobile Number",
+    fieldPaidFromPlaceholder: "e.g. 017XXXXXXXX",
+    fieldPaidFromHint: "The mobile number used to make this payment",
+    exactAmountToSendLabel: "Total Amount to Send",
     copyNumberButtonText: "Copy Number",
     copiedNumberFeedback: "Copied!",
     accountTypePersonal: "Personal",
@@ -351,13 +363,13 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
 
     stickyBarOrderNow: "Order now",
 
-    trustReturnBadge: "7-Day Easy Return",
+    trustReturnBadge: "Easy Return Policy",
     trustHeading: "Shop with Confidence",
     trustPillar1Title: "Cash on Delivery",
     trustPillar1Body: "Pay upon inspecting parcel",
-    trustPillar2Title: "7-Day Easy Return",
+    trustPillar2Title: "Easy Return",
     trustPillar2Body: "Hassle-free return & exchange",
-    trustPillar3Title: "100% Premium Cotton",
+    trustPillar3Title: "Quality Guaranteed",
     trustPillar3Body: "Certified authentic quality",
     trustPolicyHeading: "Return & Exchange Policy:",
     trustContactHeading: "Need assistance? Contact us directly:",

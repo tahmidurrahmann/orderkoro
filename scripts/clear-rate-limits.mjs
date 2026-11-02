@@ -5,57 +5,43 @@
  *   npm run clear-rate-limits
  */
 
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { loadScriptEnv, requireEnvVars } from "./lib/load-env.mjs";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, "..");
+loadScriptEnv();
 
 if (process.env.MOCK_INTEGRATIONS === "1") {
   console.log("ℹ️  Running in MOCK_INTEGRATIONS=1 mode (in-memory rate limits reset on restart).");
   process.exit(0);
 }
 
-let redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-let redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-if (!redisUrl || !redisToken) {
-  const envPath = path.join(ROOT_DIR, ".env");
-  if (fs.existsSync(envPath)) {
-    const envText = fs.readFileSync(envPath, "utf8");
-    const urlMatch = envText.match(/UPSTASH_REDIS_REST_URL=["']?([^"'\r\n]+)/);
-    const tokenMatch = envText.match(/UPSTASH_REDIS_REST_TOKEN=["']?([^"'\r\n]+)/);
-    if (urlMatch) redisUrl = urlMatch[1].trim();
-    if (tokenMatch) redisToken = tokenMatch[1].trim();
-  }
-}
-
-if (!redisUrl || !redisToken) {
-  console.error("❌ Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN.");
-  process.exit(1);
-}
+requireEnvVars(["UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"]);
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 try {
-  const res = await fetch(`${redisUrl}/keys/rl:*`, {
+  const keysEndpoint = `${redisUrl}/keys/ratelimit:*`;
+  const res = await fetch(keysEndpoint, {
     headers: { Authorization: `Bearer ${redisToken}` },
   });
   const data = await res.json();
   const keys = data.result || [];
 
   if (keys.length === 0) {
-    console.log("✅ No active rate limit keys found in Redis.");
+    console.log("✅ No rate limit keys found in Redis.");
     process.exit(0);
   }
 
+  console.log(`Found ${keys.length} rate limit key(s) to delete:`);
   for (const k of keys) {
-    await fetch(`${redisUrl}/del/${encodeURIComponent(k)}`, {
+    const delRes = await fetch(`${redisUrl}/del/${k}`, {
       headers: { Authorization: `Bearer ${redisToken}` },
     });
+    const delData = await delRes.json();
+    console.log(` - Deleted ${k}: ${delData.result === 1 ? "OK" : "Already expired"}`);
   }
 
-  console.log(`✅ Successfully cleared ${keys.length} rate limit key(s) from Redis.`);
+  console.log("✅ Successfully cleared all rate limits.");
+  process.exit(0);
 } catch (err) {
   console.error("❌ Failed to clear rate limits:", err.message);
   process.exit(1);

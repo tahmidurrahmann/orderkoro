@@ -55,20 +55,68 @@ const ACTION_ALIASES: Record<string, OrderStatus> = {
   returned: "returned",
 };
 
+export type ParsedCallbackData =
+  | { type?: "status"; action: OrderStatus; orderNumber: string }
+  | { type: "payment"; paymentAction: "verified" | "not_received"; orderNumber: string };
+
 export function parseCallbackData(
   data: string
-): { action: OrderStatus; orderNumber: string } | null {
+): ParsedCallbackData | null {
   const parts = data.split(":");
-  if (parts.length < 3 || parts[0] !== "s") {
+  if (parts.length < 3) {
     return null;
   }
-  const rawAction = parts[1].toLowerCase();
-  const action = ACTION_ALIASES[rawAction];
-  const orderNumber = parts.slice(2).join(":");
-  if (!action || !VALID_STATUSES.includes(action) || action === "new" || !orderNumber) {
+
+  if (parts[0] === "pay") {
+    const act = parts[1].toLowerCase();
+    const orderNumber = parts.slice(2).join(":");
+    if (!orderNumber) return null;
+    if (act === "v" || act === "verified") {
+      return { type: "payment", paymentAction: "verified", orderNumber };
+    }
+    if (act === "nr" || act === "not_received") {
+      return { type: "payment", paymentAction: "not_received", orderNumber };
+    }
     return null;
   }
-  return { action, orderNumber };
+
+  if (parts[0] === "s") {
+    const rawAction = parts[1].toLowerCase();
+    const action = ACTION_ALIASES[rawAction];
+    const orderNumber = parts.slice(2).join(":");
+    if (!action || !VALID_STATUSES.includes(action) || action === "new" || !orderNumber) {
+      return null;
+    }
+    return { action, orderNumber };
+  }
+
+  return null;
+}
+
+export function buildMobilePaymentInlineKeyboard(
+  paymentStatus: "Unverified" | "Not received",
+  orderNumber: string
+): TelegramInlineKeyboard {
+  if (paymentStatus === "Not received") {
+    return {
+      inline_keyboard: [
+        [
+          { text: "Payment verified", callback_data: `pay:v:${orderNumber}` },
+          { text: "Cancelled", callback_data: buildCallbackData("cancelled", orderNumber) },
+        ],
+      ],
+    };
+  }
+
+  return {
+    inline_keyboard: [
+      [
+        { text: "Payment verified", callback_data: `pay:v:${orderNumber}` },
+        { text: "Payment not received", callback_data: `pay:nr:${orderNumber}` },
+        { text: "Cancelled", callback_data: buildCallbackData("cancelled", orderNumber) },
+      ],
+    ],
+  };
 }
 
 export interface TelegramInlineButton {

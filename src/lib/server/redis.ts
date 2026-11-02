@@ -269,27 +269,139 @@ export async function nextOrderNumber(
 }
 
 // ---------------------------------------------------------------------
-// Idempotency: SET NX on idem:<key> (24h TTL)
+// Idempotency: SET NX on idem:<key> (60s pending, 24h completed TTL)
 // ---------------------------------------------------------------------
-export interface IdempotencyRecord {
-  status: "pending" | "completed";
+export type PendingIdempotencyRecord = {
+  status: "pending";
+  payloadHash?: string;
+  orderNumber?: string;
+  eventId?: string;
+  sheetDone?: boolean;
+  telegramDone?: boolean;
+  rowRef?: string;
+  telegramMessageId?: number;
+  createdAt?: number;
+  summary?: unknown;
+};
+
+export type CompletedIdempotencyRecord = {
+  status: "completed";
+  payloadHash?: string;
   orderNumber: string;
   eventId?: string;
   summary?: unknown;
+};
+
+export type IdempotencyRecord = PendingIdempotencyRecord | CompletedIdempotencyRecord;
+
+export function computeOrderPayloadHash(payload: {
+  slug: string;
+  name: string;
+  phone: string;
+  address: string;
+  district: string;
+  zone: string;
+  color: string;
+  size: string;
+  quantity: number;
+  paymentMethod?: string;
+  transactionId?: string;
+  paidFrom?: string;
+  note?: string;
+}): string {
+  const canonical = [
+    payload.slug.trim().toLowerCase(),
+    payload.name.trim().toLowerCase(),
+    payload.phone.trim().replace(/\D/g, ""),
+    payload.address.trim().toLowerCase(),
+    payload.district.trim().toLowerCase(),
+    payload.zone.trim().toLowerCase(),
+    payload.color.trim().toLowerCase(),
+    payload.size.trim().toLowerCase(),
+    String(payload.quantity),
+    (payload.paymentMethod || "cod").trim().toLowerCase(),
+    (payload.transactionId || "").trim().toUpperCase(),
+    (payload.paidFrom || "").trim().replace(/\D/g, ""),
+    (payload.note || "").trim().toLowerCase(),
+  ].join("|");
+
+  return crypto.createHash("sha256").update(canonical).digest("hex");
 }
 
 export async function acquireIdempotencyKey(
   key: string,
   data: IdempotencyRecord,
-  driver: RedisDriver = getRedisDriver()
+  ttlOrDriver?: number | RedisDriver,
+  maybeDriver?: RedisDriver
 ): Promise<{ acquired: boolean; existing?: IdempotencyRecord }> {
+  let ttlSeconds = 60;
+  let driver: RedisDriver = getRedisDriver();
+
+  if (typeof ttlOrDriver === "number") {
+    ttlSeconds = ttlOrDriver;
+    if (maybeDriver) driver = maybeDriver;
+  } else if (typeof ttlOrDriver === "object" && ttlOrDriver !== null) {
+    driver = ttlOrDriver;
+  }
+
   const redisKey = `idem:${key}`;
-  const setRes = await driver.set(redisKey, data, { nx: true, ex: 86400 });
+  const lockKey = `lock:idem:${key}`;
+
+  const existing = await driver.get<IdempotencyRecord>(redisKey);
+  if (existing) {
+    if (existing.status === "completed") {
+      return { acquired: false, existing };
+    }
+    // Pending record exists. Check if execution lock is available for crash recovery.
+    const lockAcquired = await driver.set(lockKey, "1", { nx: true, ex: 15 });
+    if (lockAcquired === "OK") {
+      return { acquired: true, existing };
+    }
+    return { acquired: false, existing };
+  }
+
+  const setRes = await driver.set(redisKey, data, { nx: true, ex: ttlSeconds });
   if (setRes === "OK") {
+    await driver.set(lockKey, "1", { nx: true, ex: 15 });
     return { acquired: true };
   }
+
+  const racedExisting = await driver.get<IdempotencyRecord>(redisKey);
+  return { acquired: false, existing: racedExisting || undefined };
+}
+
+export async function getIdempotencyRecord(
+  key: string,
+  driver: RedisDriver = getRedisDriver()
+): Promise<IdempotencyRecord | null> {
+  const redisKey = `idem:${key}`;
+  return driver.get<IdempotencyRecord>(redisKey);
+}
+
+export async function updatePendingIdempotencyKey(
+  key: string,
+  updates: Partial<PendingIdempotencyRecord>,
+  driver: RedisDriver = getRedisDriver()
+): Promise<void> {
+  const redisKey = `idem:${key}`;
   const existing = await driver.get<IdempotencyRecord>(redisKey);
-  return { acquired: false, existing: existing || undefined };
+  if (!existing || existing.status !== "pending") return;
+  const merged: PendingIdempotencyRecord = {
+    ...existing,
+    ...updates,
+    status: "pending",
+  };
+  const currentTtl = await driver.ttl(redisKey);
+  const ttlToKeep = currentTtl > 0 ? currentTtl : 60;
+  await driver.set(redisKey, merged, { ex: ttlToKeep });
+}
+
+export async function releaseIdempotencyLock(
+  key: string,
+  driver: RedisDriver = getRedisDriver()
+): Promise<void> {
+  const lockKey = `lock:idem:${key}`;
+  await driver.del(lockKey);
 }
 
 export async function finalizeIdempotencyKey(
@@ -298,7 +410,9 @@ export async function finalizeIdempotencyKey(
   driver: RedisDriver = getRedisDriver()
 ): Promise<void> {
   const redisKey = `idem:${key}`;
+  const lockKey = `lock:idem:${key}`;
   await driver.set(redisKey, data, { ex: 86400 });
+  await driver.del(lockKey);
 }
 
 export async function releaseIdempotencyKey(
@@ -306,7 +420,66 @@ export async function releaseIdempotencyKey(
   driver: RedisDriver = getRedisDriver()
 ): Promise<void> {
   const redisKey = `idem:${key}`;
+  const lockKey = `lock:idem:${key}`;
   await driver.del(redisKey);
+  await driver.del(lockKey);
+}
+
+// ---------------------------------------------------------------------
+// Transaction ID Reservation: trx:<slug>:<TRXID> (180d TTL)
+// ---------------------------------------------------------------------
+export async function reserveTrxId(
+  slug: string,
+  trxId: string,
+  ttlOrIdemOrDriver?: number | string | RedisDriver,
+  driverOrIdem?: RedisDriver | string,
+  maybeDriver?: RedisDriver
+): Promise<boolean> {
+  let ttlSeconds = 15552000;
+  let idempotencyKey: string | undefined;
+  let redis: RedisDriver = getRedisDriver();
+
+  if (typeof ttlOrIdemOrDriver === "number") {
+    ttlSeconds = ttlOrIdemOrDriver;
+    if (typeof driverOrIdem === "string") {
+      idempotencyKey = driverOrIdem;
+      if (maybeDriver) redis = maybeDriver;
+    } else if (typeof driverOrIdem === "object" && driverOrIdem !== null) {
+      redis = driverOrIdem;
+    }
+  } else if (typeof ttlOrIdemOrDriver === "string") {
+    idempotencyKey = ttlOrIdemOrDriver;
+    if (typeof driverOrIdem === "object" && driverOrIdem !== null) {
+      redis = driverOrIdem;
+    }
+  } else if (typeof ttlOrIdemOrDriver === "object" && ttlOrIdemOrDriver !== null) {
+    redis = ttlOrIdemOrDriver;
+  }
+
+  const clean = trxId.trim().toUpperCase();
+  const key = `trx:${slug}:${clean}`;
+  const ownerValue = idempotencyKey ? `idem:${idempotencyKey}` : "1";
+
+  const existing = await redis.get<string>(key);
+  if (existing !== null) {
+    if (idempotencyKey && (existing === ownerValue || existing === idempotencyKey)) {
+      return true;
+    }
+    return false;
+  }
+
+  const res = await redis.set(key, ownerValue, { nx: true, ex: ttlSeconds });
+  return res === "OK";
+}
+
+export async function releaseTrxId(
+  slug: string,
+  trxId: string,
+  driver: RedisDriver = getRedisDriver()
+): Promise<void> {
+  const clean = trxId.trim().toUpperCase();
+  const key = `trx:${slug}:${clean}`;
+  await driver.del(key);
 }
 
 // ---------------------------------------------------------------------
@@ -402,6 +575,10 @@ export interface OrderMetaRecord {
   telegramMessageId?: number;
   phone?: string;
   sheetSynced?: boolean;
+  paymentMethod?: string;
+  paymentStatus?: "COD" | "Unverified" | "Verified" | "Not received";
+  trxId?: string;
+  paidFrom?: string;
 }
 
 export async function storeOrderMeta(
@@ -433,6 +610,18 @@ export async function updateOrderMetaStatus(
     if (typeof sheetSynced === "boolean") {
       meta.sheetSynced = sheetSynced;
     }
+    await storeOrderMeta(orderNumber, meta, driver);
+  }
+}
+
+export async function updateOrderMetaPaymentStatus(
+  orderNumber: string,
+  newPaymentStatus: "COD" | "Unverified" | "Verified" | "Not received",
+  driver: RedisDriver = getRedisDriver()
+): Promise<void> {
+  const meta = await getOrderMeta(orderNumber, driver);
+  if (meta) {
+    meta.paymentStatus = newPaymentStatus;
     await storeOrderMeta(orderNumber, meta, driver);
   }
 }

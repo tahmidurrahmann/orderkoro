@@ -60,8 +60,46 @@ const nextConfig: NextConfig = {
       ...(isDev
         ? []
         : [
+            // 1. Sensible cache for logos, icons, and favicon (1 day + 7 days SWR)
             {
-              source: "/_next/static/:path*",
+              source: "/:slug/logo:ext(.svg|.png)",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=86400, stale-while-revalidate=604800",
+                },
+              ],
+            },
+            {
+              source: "/:slug/logo-bn:ext(.svg|.png)",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=86400, stale-while-revalidate=604800",
+                },
+              ],
+            },
+            {
+              source: "/favicon.ico",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=86400, stale-while-revalidate=604800",
+                },
+              ],
+            },
+            {
+              source: "/icon:ext(.png|.ico|.svg)",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=86400, stale-while-revalidate=604800",
+                },
+              ],
+            },
+            // 2. Long immutable cache for /<slug>/ image files and content-hashed assets
+            {
+              source: "/:slug/:file*.(webp|jpg|jpeg|png|avif)",
               headers: [
                 {
                   key: "Cache-Control",
@@ -70,7 +108,7 @@ const nextConfig: NextConfig = {
               ],
             },
             {
-              source: "/:path*.(svg|jpg|jpeg|png|webp|avif|ico|woff|woff2)",
+              source: "/og/:path*",
               headers: [
                 {
                   key: "Cache-Control",

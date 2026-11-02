@@ -21,6 +21,7 @@ export interface SafeOrderSummary {
   total: number;
   confirmationMode: "call" | "tap";
   language: SupportedLocale;
+  paymentMethod?: "cod" | "bkash" | "nagad" | "rocket";
   eventId: string;
   createdAtIso: string;
 }

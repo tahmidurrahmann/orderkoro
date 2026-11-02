@@ -21,7 +21,7 @@ interface CachedToken {
 let cachedToken: CachedToken | null = null;
 
 export async function getGoogleSheetsAccessToken(): Promise<string> {
-  if (process.env.MOCK_INTEGRATIONS === "1") {
+  if (process.env.MOCK_INTEGRATIONS === "1" || process.env.TEST_SHEETS_REAL_FLOW === "1") {
     return "mock-google-token";
   }
 
@@ -126,19 +126,101 @@ export async function findOrderRowInSheet(
   return null;
 }
 
+export function isGridLimitsError(errMessage: string): boolean {
+  const lower = errMessage.toLowerCase();
+  return (
+    lower.includes("grid limit") ||
+    lower.includes("exceeds grid") ||
+    lower.includes("out of bounds") ||
+    lower.includes("end of the sheet") ||
+    lower.includes("sheet limits")
+  );
+}
+
+export async function widenSheetColumns(
+  sheetId: string,
+  minColumns = 30,
+  token?: string
+): Promise<void> {
+  if (process.env.MOCK_INTEGRATIONS === "1") {
+    return;
+  }
+  const authToken = token || (await getGoogleSheetsAccessToken());
+  let numericSheetId = 0;
+  try {
+    const metaRes = await fetchWithRetry(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?fields=sheets.properties`,
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      }
+    );
+    if (metaRes.ok) {
+      const meta = (await metaRes.json()) as {
+        sheets?: Array<{
+          properties?: {
+            sheetId?: number;
+            gridProperties?: { columnCount?: number };
+          };
+        }>;
+      };
+      const firstSheet = meta.sheets?.[0]?.properties;
+      if (firstSheet?.sheetId !== undefined) {
+        numericSheetId = firstSheet.sheetId;
+      }
+      if (
+        firstSheet?.gridProperties?.columnCount &&
+        firstSheet.gridProperties.columnCount >= minColumns
+      ) {
+        return;
+      }
+    }
+  } catch {
+    // Default to sheetId 0
+  }
+
+  const batchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`;
+  const res = await fetchWithRetry(batchUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      requests: [
+        {
+          updateSheetProperties: {
+            properties: {
+              sheetId: numericSheetId,
+              gridProperties: {
+                columnCount: Math.max(minColumns, 30),
+              },
+            },
+            fields: "gridProperties.columnCount",
+          },
+        },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to widen sheet columns (${res.status}): ${errText}`);
+  }
+}
+
 export async function appendOrderRow(
   sheetId: string,
   rowValues: unknown[]
 ): Promise<AppendRowResult> {
-  if (process.env.MOCK_INTEGRATIONS === "1") {
+  if (process.env.MOCK_INTEGRATIONS === "1" && process.env.TEST_SHEETS_REAL_FLOW !== "1") {
     if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
       throw new Error("MOCK_INTEGRATIONS=1 is forbidden when NODE_ENV=production or VERCEL_ENV=production");
     }
-    return { updatedRange: "Sheet1!A2:Y2" };
+    return { updatedRange: "Sheet1!A2:AC2" };
   }
 
   const token = await getGoogleSheetsAccessToken();
-  const range = "A:Y:append";
+  const range = "A:AC:append";
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?valueInputOption=RAW`;
 
   const res = await fetchWithRetry(url, {
@@ -154,6 +236,29 @@ export async function appendOrderRow(
 
   if (!res.ok) {
     const err = await res.text();
+    if (isGridLimitsError(err)) {
+      await widenSheetColumns(sheetId, 30, token);
+      const retryRes = await fetchWithRetry(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          values: [rowValues],
+        }),
+      });
+      if (retryRes.ok) {
+        const retryData = (await retryRes.json()) as {
+          updates?: { updatedRange?: string };
+        };
+        return {
+          updatedRange: retryData.updates?.updatedRange || "Sheet1!A2:AC2",
+        };
+      }
+      const retryErr = await retryRes.text();
+      throw new Error(`Google Sheets append failed after widening (${retryRes.status}): ${retryErr}`);
+    }
     throw new Error(`Google Sheets append failed (${res.status}): ${err}`);
   }
 
@@ -162,7 +267,7 @@ export async function appendOrderRow(
   };
 
   return {
-    updatedRange: data.updates?.updatedRange || "Sheet1!A2:Y2",
+    updatedRange: data.updates?.updatedRange || "Sheet1!A2:AC2",
   };
 }
 
@@ -181,7 +286,7 @@ export async function appendOrderRowWithRetry(
         const existingRow = await checker(sheetId, orderNumber);
         if (existingRow) {
           return {
-            updatedRange: `Sheet1!A${existingRow}:Y${existingRow}`,
+            updatedRange: `Sheet1!A${existingRow}:AC${existingRow}`,
           };
         }
       } catch {
@@ -297,4 +402,101 @@ export async function updateSheetOrderStatusWithRetry(
     }
   }
   throw lastErr || new Error(`Failed to update status in Google Sheet after retries: ${orderNumber}`);
+}
+
+export async function updateSheetPaymentStatus(
+  sheetId: string,
+  rowRef: string,
+  orderNumber: string,
+  newPaymentStatus: string
+): Promise<void> {
+  if (process.env.MOCK_INTEGRATIONS === "1") {
+    return;
+  }
+
+  const token = await getGoogleSheetsAccessToken();
+
+  // Extract row number from rowRef (e.g. "Sheet1!A15:AC15" -> 15)
+  const match = rowRef.match(/(\d+):[A-Z]+(\d+)/) || rowRef.match(/[A-Z]+(\d+)/);
+  let targetRow = match ? parseInt(match[1], 10) : null;
+
+  // Verify Column A matches orderNumber
+  if (targetRow) {
+    const checkUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A${targetRow}`;
+    const checkRes = await fetchWithRetry(checkUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (checkRes.ok) {
+      const checkData = (await checkRes.json()) as { values?: string[][] };
+      const valA = checkData.values?.[0]?.[0];
+      if (valA !== orderNumber) {
+        targetRow = null; // Mismatch, trigger fallback scan
+      }
+    } else {
+      targetRow = null;
+    }
+  }
+
+  // Fallback: Scan column A to find matching orderNumber
+  if (!targetRow) {
+    const scanUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A:A`;
+    const scanRes = await fetchWithRetry(scanUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!scanRes.ok) {
+      throw new Error(`Failed to scan Sheet column A (${scanRes.status})`);
+    }
+    const scanData = (await scanRes.json()) as { values?: string[][] };
+    const rows = scanData.values || [];
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i]?.[0] === orderNumber) {
+        targetRow = i + 1;
+        break;
+      }
+    }
+  }
+
+  if (!targetRow) {
+    throw new Error(`Order ${orderNumber} not found in Google Sheet`);
+  }
+
+  // Update Payment Status in Column AA (Column 27)
+  const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/AA${targetRow}?valueInputOption=RAW`;
+  const updateRes = await fetchWithRetry(updateUrl, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      values: [[newPaymentStatus]],
+    }),
+  });
+
+  if (!updateRes.ok) {
+    const err = await updateRes.text();
+    throw new Error(`Failed to update payment status in Google Sheet (${updateRes.status}): ${err}`);
+  }
+}
+
+export async function updateSheetPaymentStatusWithRetry(
+  sheetId: string,
+  rowRef: string,
+  orderNumber: string,
+  newPaymentStatus: string,
+  maxRetries = 2
+): Promise<void> {
+  let lastErr: Error | null = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await updateSheetPaymentStatus(sheetId, rowRef, orderNumber, newPaymentStatus);
+    } catch (err) {
+      lastErr = err as Error;
+      if (attempt < maxRetries) {
+        const delayMs = attempt === 0 ? 500 : 1200;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  throw lastErr || new Error(`Failed to update payment status in Google Sheet after retries: ${orderNumber}`);
 }

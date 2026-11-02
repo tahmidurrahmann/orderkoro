@@ -13,6 +13,7 @@ import {
 } from "@/lib/format";
 import { getClientCopy, resolveLocalizedText } from "@/lib/i18n";
 import { getSavedLocale, saveLocalePreference } from "@/lib/locale-preference";
+import { getThankYouReassurance } from "@/lib/policy-text";
 import {
   hasFiredPurchaseForOrder,
   markPurchaseFiredForOrder,
@@ -48,6 +49,7 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
   const lang = customLang ?? initialLang;
   const isLoaded = isHydrated;
   const [copiedOrderNo, setCopiedOrderNo] = useState<boolean>(false);
+  const thankYouReassurance = getThankYouReassurance(config.returnPolicy, lang);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -217,6 +219,18 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
                 <p className="mt-1.5 text-sm font-medium text-[#065F46]/90">
                   {confirmationMessage}
                 </p>
+                {orderSummary.paymentMethod && orderSummary.paymentMethod !== "cod" && (
+                  <p className="mt-1.5 text-sm font-medium text-[#065F46]/90">
+                    {lang === "bn"
+                      ? "ডেলিভারি পাঠানোর পূর্বে বিক্রেতা আপনার পেমেন্ট যাচাই করবেন।"
+                      : "The seller will verify your payment before dispatching your delivery."}
+                  </p>
+                )}
+                {thankYouReassurance && (
+                  <p className="mt-1.5 text-xs sm:text-sm font-medium text-[#065F46]/90">
+                    {thankYouReassurance}
+                  </p>
+                )}
 
                 {/* Order Number Pill + Copy Button */}
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[#A7F3D0] bg-white px-3.5 py-2.5">

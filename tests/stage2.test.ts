@@ -187,8 +187,8 @@ describe("OrderPage Stage 2 Unit Tests", () => {
       expect(sanitizeSpreadsheetCell("House 12, Road 5")).toBe("House 12, Road 5");
     });
 
-    it("builds the exact 25-column row in order and preserves leading 0 on phone", () => {
-      expect(SHEET_HEADERS).toHaveLength(25);
+    it("builds the exact 29-column row in order and preserves leading 0 on phone", () => {
+      expect(SHEET_HEADERS).toHaveLength(29);
       const record: OrderRecordForSheet = {
         orderNumber: "BNN-0001",
         createdAtDhakaIso: "2026-11-01T13:05:00+06:00",
@@ -220,7 +220,7 @@ describe("OrderPage Stage 2 Unit Tests", () => {
       };
 
       const row = buildSheetRow(record);
-      expect(row).toHaveLength(25);
+      expect(row).toHaveLength(29);
       expect(row[0]).toBe("BNN-0001"); // Order No
       expect(row[1]).toBe("2026-11-01T13:05:00+06:00"); // Created At
       expect(row[2]).toBe("new"); // Status

@@ -30,3 +30,6 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# incoming seller photos (processed into public/<slug>/)
+/incoming/

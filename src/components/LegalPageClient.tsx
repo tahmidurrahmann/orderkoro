@@ -4,9 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { PublicClientConfig } from "@/lib/config-schema";
-import { formatPrice, type SupportedLocale } from "@/lib/format";
+import type { SupportedLocale } from "@/lib/format";
 import { getClientCopy, resolveLocalizedText } from "@/lib/i18n";
 import { getSavedLocale, saveLocalePreference } from "@/lib/locale-preference";
+import {
+  getLegalFooterText,
+  getPolicyLastUpdatedDate,
+  getPrivacyPageSections,
+  getTermsPageSections,
+} from "@/lib/policy-text";
 
 export type LegalPageType = "privacy" | "terms";
 
@@ -42,8 +48,9 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
   const copy = useMemo(() => getClientCopy(lang, config.copy), [lang, config.copy]);
 
   const brandName = resolveLocalizedText(config.brand.name, lang);
-  const businessAddress = resolveLocalizedText(config.contact.businessAddress, lang);
-  const returnPolicy = resolveLocalizedText(config.returnPolicyText, lang);
+  const businessAddress = config.contact.businessAddress
+    ? resolveLocalizedText(config.contact.businessAddress, lang)
+    : "";
 
   const activeLogoUrl =
     typeof config.brand.logoUrl === "string"
@@ -60,6 +67,19 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
     : lang === "bn"
     ? "শর্তাবলী, ডেলিভারি ও রিটার্ন পলিসি (Terms & Returns)"
     : "Terms, Delivery & Return Policy";
+
+  const lastUpdatedText = getPolicyLastUpdatedDate(config.policyUpdatedAt, lang);
+  const sections = isPrivacy
+    ? getPrivacyPageSections(config, lang)
+    : getTermsPageSections(config, lang);
+
+  const footerText = getLegalFooterText(brandName, lang);
+
+  const hasMessenger =
+    Boolean(config.contact.messengerPageUsername) &&
+    !config.contact.messengerPageUsername.startsWith("TODO");
+
+  const tradeLicense = config.contact.tradeLicenseNumber?.trim();
 
   return (
     <div
@@ -141,69 +161,106 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
               {pageTitle}
             </h1>
             <p className="mt-1 text-xs text-[var(--text-muted)]">
-              {lang === "bn"
-                ? `সর্বশেষ আপডেট: ${new Date().getFullYear()}`
-                : `Last updated: ${new Date().getFullYear()}`}
+              {lastUpdatedText}
             </p>
           </div>
 
-          {isPrivacy ? (
-            /* Privacy Policy Body */
-            <div className="space-y-6 text-sm text-[var(--text-secondary)] leading-relaxed">
-              <section className="space-y-2">
+          {/* Dynamic Content Sections */}
+          <div className="space-y-6 text-sm text-[var(--text-secondary)] leading-relaxed">
+            {sections.map((section) => (
+              <section key={section.id} className="space-y-2.5">
                 <h2 className="text-base font-bold text-[var(--text-primary)]">
-                  {lang === "bn" ? "১. তথ্য সংগ্রহ ও ব্যবহার" : "1. Information We Collect"}
+                  {section.title}
                 </h2>
-                <p>
-                  {lang === "bn"
-                    ? `${brandName} এ আপনার গোপনীয়তা আমাদের কাছে অত্যন্ত গুরুত্বপূর্ণ। ক্যাশ অন ডেলিভারি (COD) অর্ডার সফলভাবে সরবরাহ করার উদ্দেশ্যে আমরা কেবল আপনার নাম, মোবাইল নম্বর এবং সম্পূর্ণ ডেলিভারি ঠিকানা সংগ্রহ করি।`
-                    : `At ${brandName}, your privacy is of utmost importance. To successfully deliver your Cash on Delivery (COD) orders, we collect only your full name, phone number, and delivery address.`}
-                </p>
-              </section>
 
-              <section className="space-y-2">
-                <h2 className="text-base font-bold text-[var(--text-primary)]">
-                  {lang === "bn" ? "২. তথ্য সংরক্ষণ ও সুরক্ষা" : "2. How We Protect Your Data"}
-                </h2>
-                <p>
-                  {lang === "bn"
-                    ? "আপনার তথ্যের নিরাপত্তা নিশ্চিত করতে আমরা আধুনিক এনক্রিপশন ও সীমিত অ্যাক্সেস প্রোটোকল ব্যবহার করি। পার্সেল ডেলিভারি ব্যতীত কোনো তৃতীয় পক্ষের কাছে আপনার ব্যক্তিগত তথ্য বিক্রি, হস্তান্তর বা প্রকাশ করা হয় না।"
-                    : "We use modern encryption protocols and restricted access controls to keep your data safe. We never sell, rent, or disclose your personal contact information to any third parties other than authorized courier partners for order delivery."}
-                </p>
-              </section>
+                {section.paragraphs.map((p, idx) => (
+                  <p key={idx}>{p}</p>
+                ))}
 
-              <section className="space-y-2">
-                <h2 className="text-base font-bold text-[var(--text-primary)]">
-                  {lang === "bn" ? "৩. যোগাযোগ ও সহায়তা" : "3. Contact & Business Information"}
-                </h2>
+                {section.listItems && section.listItems.length > 0 && (
+                  <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
+                    {section.listItems.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                )}
+
+                {section.table && (
+                  <div className="overflow-x-auto pt-1">
+                    <table className="w-full text-left text-xs sm:text-sm border-collapse">
+                      <thead>
+                        <tr className="border-b border-[var(--border-subtle)] text-[var(--text-muted)]">
+                          {section.table.headers.map((h, idx) => (
+                            <th key={idx} className="py-2 pr-3">
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-subtle)]">
+                        {section.table.rows.map((row, idx) => (
+                          <tr key={idx}>
+                            <td className="py-2.5 pr-3 font-medium text-[var(--text-primary)]">
+                              {row.zone}
+                            </td>
+                            <td className="py-2.5 pr-3 text-[var(--brand-primary)] font-bold">
+                              {row.charge}
+                            </td>
+                            <td className="py-2.5 text-[var(--text-secondary)]">
+                              {row.duration}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {section.note && (
+                  <p className="text-xs text-emerald-700 font-semibold pt-1">
+                    {section.note}
+                  </p>
+                )}
+              </section>
+            ))}
+
+            {/* Responsible Business Contact Card (Always Present on Both Pages) */}
+            <section className="space-y-2 pt-2 border-t border-[var(--border-subtle)]">
+              <h2 className="text-base font-bold text-[var(--text-primary)]">
+                {lang === "bn" ? "দায়িত্বশীল প্রতিষ্ঠান ও যোগাযোগ" : "Responsible Business & Contact"}
+              </h2>
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-4 space-y-1.5 text-xs sm:text-sm">
                 <p>
-                  {lang === "bn"
-                    ? `যেকোনো গোপনীয়তা সংক্রান্ত প্রশ্ন বা তথ্যের জন্য আমাদের সাথে সরাসরি যোগাযোগ করুন:`
-                    : `For any privacy-related queries or information, please reach out to us:`}
+                  <strong className="text-[var(--text-primary)]">
+                    {lang === "bn" ? "ব্যবসা/ব্র্যান্ড:" : "Business/Brand:"}
+                  </strong>{" "}
+                  {brandName}
                 </p>
-                <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-4 space-y-1.5 text-xs sm:text-sm">
+                {businessAddress && (
                   <p>
                     <strong className="text-[var(--text-primary)]">
-                      {lang === "bn" ? "প্রতিষ্ঠান:" : "Brand:"}
+                      {lang === "bn" ? "ঠিকানা:" : "Address:"}
                     </strong>{" "}
-                    {brandName}
+                    {businessAddress}
                   </p>
-                  {businessAddress && (
-                    <p>
-                      <strong className="text-[var(--text-primary)]">
-                        {lang === "bn" ? "ঠিকানা:" : "Address:"}
-                      </strong>{" "}
-                      {businessAddress}
-                    </p>
-                  )}
+                )}
+                {tradeLicense && (
                   <p>
                     <strong className="text-[var(--text-primary)]">
-                      {lang === "bn" ? "ফোন:" : "Phone:"}
+                      {lang === "bn" ? "ট্রেড লাইসেন্স:" : "Trade License:"}
                     </strong>{" "}
-                    <a href={`tel:${config.contact.phone}`} className="text-[var(--brand-primary)] hover:underline">
-                      {config.contact.phone}
-                    </a>
+                    {tradeLicense}
                   </p>
+                )}
+                <p>
+                  <strong className="text-[var(--text-primary)]">
+                    {lang === "bn" ? "ফোন:" : "Phone:"}
+                  </strong>{" "}
+                  <a href={`tel:${config.contact.phone}`} className="text-[var(--brand-primary)] hover:underline">
+                    {config.contact.phone}
+                  </a>
+                </p>
+                {hasMessenger && (
                   <p>
                     <strong className="text-[var(--text-primary)]">
                       {lang === "bn" ? "মেসেঞ্জার:" : "Messenger:"}
@@ -217,85 +274,10 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
                       m.me/{config.contact.messengerPageUsername}
                     </a>
                   </p>
-                </div>
-              </section>
-            </div>
-          ) : (
-            /* Terms, Delivery & Return Policy Body */
-            <div className="space-y-6 text-sm text-[var(--text-secondary)] leading-relaxed">
-              <section className="space-y-2">
-                <h2 className="text-base font-bold text-[var(--text-primary)]">
-                  {lang === "bn" ? "১. ক্যাশ অন ডেলিভারি (COD) নীতি" : "1. Cash on Delivery (COD) Policy"}
-                </h2>
-                <p>
-                  {lang === "bn"
-                    ? "আমাদের সমস্ত পণ্যে ক্যাশ অন ডেলিভারি প্রযোজ্য। কোনো অগ্রিম পেমেন্ট ছাড়াই অর্ডার করুন। পার্সেল ডেলিভারি ম্যানের সামনে খুলে দেখে রঙ ও সাইজ সঠিক থাকলে মূল্য পরিশোধ করুন।"
-                    : "All our products are shipped with Cash on Delivery (COD). No advance payment is needed. Please inspect the parcel and confirm the color and size in front of the rider before paying."}
-                </p>
-              </section>
-
-              <section className="space-y-2">
-                <h2 className="text-base font-bold text-[var(--text-primary)]">
-                  {lang === "bn" ? "২. রিটার্ন ও এক্সচেঞ্জ পলিসি" : "2. Return & Exchange Policy"}
-                </h2>
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-emerald-950 font-medium">
-                  {returnPolicy}
-                </div>
-              </section>
-
-              <section className="space-y-2">
-                <h2 className="text-base font-bold text-[var(--text-primary)]">
-                  {lang === "bn" ? "৩. ডেলিভারি চার্জ ও সময়সীমা" : "3. Delivery Charges & Timelines"}
-                </h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs sm:text-sm border-collapse">
-                    <thead>
-                      <tr className="border-b border-[var(--border-subtle)] text-[var(--text-muted)]">
-                        <th className="py-2 pr-3">{lang === "bn" ? "এলাকা" : "Zone"}</th>
-                        <th className="py-2 pr-3">{lang === "bn" ? "চার্জ" : "Charge"}</th>
-                        <th className="py-2">{lang === "bn" ? "সময়সীমা" : "Duration"}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--border-subtle)]">
-                      {config.delivery.zones.map((z) => (
-                        <tr key={z.id}>
-                          <td className="py-2.5 pr-3 font-medium text-[var(--text-primary)]">
-                            {resolveLocalizedText(z.label, lang)}
-                          </td>
-                          <td className="py-2.5 pr-3 text-[var(--brand-primary)] font-bold">
-                            {formatPrice(z.charge, lang)}
-                          </td>
-                          <td className="py-2.5 text-[var(--text-secondary)]">
-                            {lang === "bn"
-                              ? `${z.daysMin}-${z.daysMax} কর্মদিবস`
-                              : `${z.daysMin}-${z.daysMax} business days`}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {config.delivery.freeDeliveryAbove && (
-                  <p className="text-xs text-emerald-700 font-semibold pt-1">
-                    {lang === "bn"
-                      ? `* ${formatPrice(config.delivery.freeDeliveryAbove, lang)} টাকার বেশি অর্ডারে সারা দেশে ডেলিভারি সম্পূর্ণ ফ্রি!`
-                      : `* Free delivery nationwide on orders above ${formatPrice(config.delivery.freeDeliveryAbove, lang)}!`}
-                  </p>
                 )}
-              </section>
-
-              <section className="space-y-2">
-                <h2 className="text-base font-bold text-[var(--text-primary)]">
-                  {lang === "bn" ? "৪. যোগাযোগ" : "4. Contact Us"}
-                </h2>
-                <p>
-                  {lang === "bn"
-                    ? `যেকোনো এক্সচেঞ্জ বা প্রশ্নের জন্য যোগাযোগ করুন: ${config.contact.phone} অথবা মেসেঞ্জারে m.me/${config.contact.messengerPageUsername}`
-                    : `For any exchange requests or questions, please contact us at ${config.contact.phone} or on Messenger at m.me/${config.contact.messengerPageUsername}`}
-                </p>
-              </section>
-            </div>
-          )}
+              </div>
+            </section>
+          </div>
 
           <div className="pt-4 border-t border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-3 text-xs">
             <Link
@@ -322,11 +304,9 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-4 py-4 text-center text-xs text-[var(--text-muted)]">
-        <p>© {new Date().getFullYear()} {brandName}. {copy.footerRightsReserved}</p>
-        {config.showPoweredBy && (
-          <p className="mt-1 text-[11px] opacity-75">{copy.poweredByText}</p>
-        )}
+      <footer className="border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-4 py-4 text-center text-xs text-[var(--text-muted)] space-y-1">
+        <p>{footerText.copyright}</p>
+        <p className="text-[11px] opacity-75">{footerText.poweredBy}</p>
       </footer>
     </div>
   );
