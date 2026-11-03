@@ -152,6 +152,7 @@ export const ClientConfigSchema = z
     brand: z.object({
       name: LocalizedStringSchema,
       logoUrl: LocalizedStringSchema,
+      faviconUrl: LocalizedStringSchema.optional(),
       primaryColor: HexColorSchema,
       accentColor: HexColorSchema.optional(),
     }),

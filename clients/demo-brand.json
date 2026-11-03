@@ -10,6 +10,7 @@
       "bn": "/demo-brand/logo-bn.svg",
       "en": "/demo-brand/logo.svg"
     },
+    "faviconUrl": "/demo-brand/favicon.svg",
     "primaryColor": "#1E3A5F",
     "accentColor": "#B45309"
   },

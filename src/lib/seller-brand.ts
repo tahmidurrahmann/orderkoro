@@ -2,14 +2,28 @@ import type { PublicClientConfig } from "@/lib/config-schema";
 
 /**
  * Returns the favicon URL for a seller storefront.
- * - Uses seller's own logo if configured.
- * - If the seller has no logo, generates a letter tile (first letter of brand name,
+ * - Uses seller's own faviconUrl if configured.
+ * - Else uses seller's logoUrl if configured.
+ * - If the seller has no logo or favicon, generates a letter tile (first letter of brand name,
  *   seller primary colour background, white letter) as an inline SVG data URI.
  * - Never falls back to the OrderKoro platform favicon.
  */
 export function getSellerFavicon(config: PublicClientConfig): string {
   const defaultLang = config.language?.default || "bn";
 
+  // 1. Explicit faviconUrl
+  const favicon =
+    typeof (config.brand as any).faviconUrl === "string"
+      ? (config.brand as any).faviconUrl
+      : (config.brand as any).faviconUrl?.[defaultLang] ||
+        (config.brand as any).faviconUrl?.en ||
+        (config.brand as any).faviconUrl?.bn;
+
+  if (favicon && favicon.trim()) {
+    return favicon.trim();
+  }
+
+  // 2. Logo URL if provided
   const logo =
     typeof config.brand.logoUrl === "string"
       ? config.brand.logoUrl
@@ -21,6 +35,7 @@ export function getSellerFavicon(config: PublicClientConfig): string {
     return logo.trim();
   }
 
+  // 3. Fallback: Dynamic Letter Tile SVG
   const brandName =
     typeof config.brand.name === "string"
       ? config.brand.name
