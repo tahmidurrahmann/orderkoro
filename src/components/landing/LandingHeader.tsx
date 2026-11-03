@@ -11,6 +11,14 @@ export function LandingWordmark() {
       className="inline-flex items-center gap-2 hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ok-green)] rounded-xs"
       aria-label={`${BRAND_WORDMARK_TEXT} Home`}
     >
+      <Image
+        src="/brand/logo/logo-mark.svg"
+        alt="OrderKoro"
+        width={32}
+        height={32}
+        className="h-8 w-auto shrink-0"
+        priority
+      />
       <span
         className="text-xl tracking-tight text-[var(--ok-green)]"
         style={{

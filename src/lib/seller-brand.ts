@@ -12,12 +12,15 @@ export function getSellerFavicon(config: PublicClientConfig): string {
   const defaultLang = config.language?.default || "bn";
 
   // 1. Explicit faviconUrl
+  const rawFavicon = config.brand.faviconUrl;
   const favicon =
-    typeof (config.brand as any).faviconUrl === "string"
-      ? (config.brand as any).faviconUrl
-      : (config.brand as any).faviconUrl?.[defaultLang] ||
-        (config.brand as any).faviconUrl?.en ||
-        (config.brand as any).faviconUrl?.bn;
+    typeof rawFavicon === "string"
+      ? rawFavicon
+      : rawFavicon
+        ? defaultLang === "en"
+          ? rawFavicon.en || rawFavicon.bn
+          : rawFavicon.bn || rawFavicon.en
+        : undefined;
 
   if (favicon && favicon.trim()) {
     return favicon.trim();

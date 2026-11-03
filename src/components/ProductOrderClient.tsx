@@ -39,6 +39,7 @@ import { getEnabledPaymentMethods, type PaymentMethodId } from "@/lib/payments";
 import ProductGallery from "./product/ProductGallery";
 import ProductSelectors from "./product/ProductSelectors";
 import PoweredByOrderKoro from "./PoweredByOrderKoro";
+import { clampGalleryIndex, resolveGalleryImages } from "@/lib/gallery-selection";
 import DeliveryBlock from "./product/DeliveryBlock";
 import OrderForm, { type FormErrors } from "./product/OrderForm";
 import StickyOrderBar from "./product/StickyOrderBar";
@@ -93,7 +94,7 @@ export default function ProductOrderClient({
     [lang, config.copy],
   );
 
-  // 2. Product variant & gallery state
+  // 2. Product variant & gallery state (Single source of truth)
   const [selectedColorIdx, setSelectedColorIdx] = useState<number>(0);
   const firstAvailableSize = useMemo(
     () => config.sizes.find((s) => s.available)?.name ?? "",
@@ -101,16 +102,16 @@ export default function ProductOrderClient({
   );
   const [selectedSize, setSelectedSize] = useState<string>(firstAvailableSize);
   const [quantity, setQuantity] = useState<number>(1);
-  const [activeSlide, setActiveSlide] = useState<number>(0);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [isSizeChartOpen, setIsSizeChartOpen] = useState<boolean>(false);
 
-  const activeColor = config.colors[selectedColorIdx] ?? config.colors[0];
+  const activeColor = config.colors?.[selectedColorIdx] ?? config.colors?.[0];
   const galleryImages = useMemo(() => {
-    if (activeColor && activeColor.images.length > 0) {
-      return activeColor.images;
-    }
-    return config.product.images;
-  }, [activeColor, config.product.images]);
+    return resolveGalleryImages(activeColor?.images, config.product.images);
+  }, [activeColor?.images, config.product.images]);
+
+  // Ensure selectedIndex is always strictly clamped within current galleryImages
+  const safeSelectedIndex = clampGalleryIndex(selectedIndex, galleryImages.length);
 
   // 3. Order Form state
   const [customerName, setCustomerName] = useState<string>("");
@@ -213,7 +214,7 @@ export default function ProductOrderClient({
 
   function handleSelectColor(index: number) {
     setSelectedColorIdx(index);
-    setActiveSlide(0);
+    setSelectedIndex(0);
   }
 
   const savings = useMemo(
@@ -816,11 +817,13 @@ export default function ProductOrderClient({
           <div className="col-span-7 space-y-6">
             <ProductGallery
               galleryImages={galleryImages}
-              activeSlide={activeSlide}
-              setActiveSlide={setActiveSlide}
+              selectedIndex={safeSelectedIndex}
+              onIndexChange={setSelectedIndex}
+              activeSlide={safeSelectedIndex}
+              setActiveSlide={setSelectedIndex}
               productTitleText={productTitleText}
               activeColorName={activeColorName}
-              activeColorHex={activeColor.hex}
+              activeColorHex={activeColor?.hex ?? "#000000"}
               soldOut={isSoldOut}
               copy={copy}
               lang={lang}
@@ -956,11 +959,13 @@ export default function ProductOrderClient({
         {/* 2. Gallery */}
         <ProductGallery
           galleryImages={galleryImages}
-          activeSlide={activeSlide}
-          setActiveSlide={setActiveSlide}
+          selectedIndex={safeSelectedIndex}
+          onIndexChange={setSelectedIndex}
+          activeSlide={safeSelectedIndex}
+          setActiveSlide={setSelectedIndex}
           productTitleText={productTitleText}
           activeColorName={activeColorName}
-          activeColorHex={activeColor.hex}
+          activeColorHex={activeColor?.hex ?? "#000000"}
           soldOut={isSoldOut}
           copy={copy}
           lang={lang}

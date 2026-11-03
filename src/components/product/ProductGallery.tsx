@@ -9,8 +9,10 @@ import StorefrontImage, { type ImagesManifest } from "@/components/ui/Storefront
 
 export interface ProductGalleryProps {
   galleryImages: string[];
-  activeSlide: number;
-  setActiveSlide: React.Dispatch<React.SetStateAction<number>>;
+  selectedIndex?: number;
+  onIndexChange?: (index: number) => void;
+  activeSlide?: number;
+  setActiveSlide?: React.Dispatch<React.SetStateAction<number>> | ((index: number) => void);
   productTitleText: string;
   activeColorName: string;
   activeColorHex: string;
@@ -24,6 +26,8 @@ const emptySubscribe = () => () => {};
 
 export default function ProductGallery({
   galleryImages,
+  selectedIndex,
+  onIndexChange,
   activeSlide,
   setActiveSlide,
   productTitleText,
@@ -37,12 +41,32 @@ export default function ProductGallery({
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const lightboxFrameRef = useRef<HTMLDivElement | null>(null);
 
+  // Single source of truth index resolution
+  const currentIndex = Math.max(
+    0,
+    Math.min(galleryImages.length - 1, selectedIndex ?? activeSlide ?? 0)
+  );
+
+  const updateIndex = useCallback(
+    (newIndex: number | ((prev: number) => number)) => {
+      const resolved = typeof newIndex === "function" ? newIndex(currentIndex) : newIndex;
+      const bounded = Math.max(0, Math.min(galleryImages.length - 1, resolved));
+      if (onIndexChange) {
+        onIndexChange(bounded);
+      } else if (setActiveSlide) {
+        setActiveSlide(bounded);
+      }
+    },
+    [currentIndex, galleryImages.length, onIndexChange, setActiveSlide]
+  );
+
   // Lightbox & Zoom state
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isZoomAnimating, setIsZoomAnimating] = useState<boolean>(false);
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const pinchDistRef = useRef<number>(0);
   const initialPinchScaleRef = useRef<number>(1.0);
@@ -71,21 +95,24 @@ export default function ProductGallery({
   }, []);
 
   const resetZoom = useCallback(() => {
+    setIsZoomAnimating(false);
     setZoomScale(1.0);
     setPanOffset({ x: 0, y: 0 });
     setIsDragging(false);
     pinchDistRef.current = 0;
-  }, []);
+  }, [setIsZoomAnimating]);
 
   const handleZoomIn = useCallback(() => {
+    setIsZoomAnimating(true);
     setZoomScale((prev) => {
       const next = Math.min(MAX_ZOOM, Number((prev + ZOOM_STEP).toFixed(2)));
       setPanOffset((currentPan) => clampPan(currentPan.x, currentPan.y, next));
       return next;
     });
-  }, [MAX_ZOOM, ZOOM_STEP, clampPan]);
+  }, [MAX_ZOOM, ZOOM_STEP, clampPan, setIsZoomAnimating]);
 
   const handleZoomOut = useCallback(() => {
+    setIsZoomAnimating(true);
     setZoomScale((prev) => {
       const next = Math.max(MIN_ZOOM, Number((prev - ZOOM_STEP).toFixed(2)));
       if (next <= 1.02) {
@@ -95,9 +122,10 @@ export default function ProductGallery({
       setPanOffset((currentPan) => clampPan(currentPan.x, currentPan.y, next));
       return next;
     });
-  }, [MIN_ZOOM, ZOOM_STEP, clampPan]);
+  }, [MIN_ZOOM, ZOOM_STEP, clampPan, setIsZoomAnimating]);
 
   const handleToggleTargetZoom = useCallback(() => {
+    setIsZoomAnimating(true);
     setZoomScale((prev) => {
       if (prev > 1.05) {
         setPanOffset({ x: 0, y: 0 });
@@ -106,7 +134,7 @@ export default function ProductGallery({
       setPanOffset({ x: 0, y: 0 });
       return MAX_ZOOM;
     });
-  }, [MAX_ZOOM, MIN_ZOOM]);
+  }, [MAX_ZOOM, MIN_ZOOM, setIsZoomAnimating]);
 
   const setZoomClamped = useCallback(
     (newScale: number) => {
@@ -123,35 +151,103 @@ export default function ProductGallery({
     [MAX_ZOOM, MIN_ZOOM, clampPan]
   );
 
+  const isProgrammaticScrollRef = useRef<boolean>(false);
+  const programmaticScrollTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   function scrollToSlide(index: number) {
     const bounded = Math.max(0, Math.min(galleryImages.length - 1, index));
-    setActiveSlide(bounded);
-    if (carouselRef.current) {
-      const slideWidth = carouselRef.current.clientWidth;
+    isProgrammaticScrollRef.current = true;
+    updateIndex(bounded);
+    if (carouselRef.current && carouselRef.current.clientWidth > 0) {
       carouselRef.current.scrollTo({
-        left: slideWidth * bounded,
-        behavior: "smooth",
+        left: carouselRef.current.clientWidth * bounded,
+        behavior: "auto",
       });
     }
+    if (programmaticScrollTimerRef.current) clearTimeout(programmaticScrollTimerRef.current);
+    programmaticScrollTimerRef.current = setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 120);
   }
 
   function handleCarouselScroll() {
+    if (isProgrammaticScrollRef.current) return;
     if (!carouselRef.current) return;
     const { scrollLeft, clientWidth } = carouselRef.current;
     if (clientWidth > 0) {
       const idx = Math.round(scrollLeft / clientWidth);
-      if (idx !== activeSlide && idx >= 0 && idx < galleryImages.length) {
-        setActiveSlide(idx);
+      if (idx !== currentIndex && idx >= 0 && idx < galleryImages.length) {
+        updateIndex(idx);
       }
     }
   }
+
+  // Keep carousel DOM scrollLeft in sync with currentIndex whenever currentIndex or image list changes
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel || carousel.clientWidth === 0) return;
+
+    const targetLeft = carousel.clientWidth * currentIndex;
+    if (Math.abs(carousel.scrollLeft - targetLeft) > 5) {
+      isProgrammaticScrollRef.current = true;
+      carousel.scrollTo({
+        left: targetLeft,
+        behavior: "auto",
+      });
+      if (programmaticScrollTimerRef.current) clearTimeout(programmaticScrollTimerRef.current);
+      programmaticScrollTimerRef.current = setTimeout(() => {
+        isProgrammaticScrollRef.current = false;
+      }, 120);
+    }
+  }, [currentIndex, isLightboxOpen, galleryImages, activeColorHex]);
+
+  // Unified close handler for Lightbox: ensures carousel syncs immediately and pops history if needed
+  const closeGallery = useCallback(() => {
+    setIsLightboxOpen(false);
+    resetZoom();
+
+    const carousel = carouselRef.current;
+    if (carousel && carousel.clientWidth > 0) {
+      carousel.scrollTo({
+        left: carousel.clientWidth * currentIndex,
+        behavior: "auto",
+      });
+    }
+
+    if (typeof window !== "undefined" && window.history.state?.galleryOpen) {
+      window.history.back();
+    }
+  }, [currentIndex, resetZoom]);
+
+  // Handle browser/phone Back button navigation for Lightbox
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+
+    window.history.pushState({ galleryOpen: true }, "");
+
+    function handlePopState() {
+      setIsLightboxOpen(false);
+      resetZoom();
+      const carousel = carouselRef.current;
+      if (carousel && carousel.clientWidth > 0) {
+        carousel.scrollTo({
+          left: carousel.clientWidth * currentIndex,
+          behavior: "auto",
+        });
+      }
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [isLightboxOpen, currentIndex, resetZoom]);
 
   // Keyboard navigation for Lightbox
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        setIsLightboxOpen(false);
-        resetZoom();
+        closeGallery();
       } else if (isLightboxOpen) {
         if ([" ", "Space", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) {
           e.preventDefault();
@@ -167,18 +263,18 @@ export default function ProductGallery({
           resetZoom();
         } else if (e.key === "ArrowLeft") {
           e.preventDefault();
-          setActiveSlide((s) => Math.max(0, s - 1));
+          updateIndex((s) => Math.max(0, s - 1));
           resetZoom();
         } else if (e.key === "ArrowRight") {
           e.preventDefault();
-          setActiveSlide((s) => Math.min(galleryImages.length - 1, s + 1));
+          updateIndex((s) => Math.min(galleryImages.length - 1, s + 1));
           resetZoom();
         }
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isLightboxOpen, galleryImages.length, handleZoomIn, handleZoomOut, resetZoom, setActiveSlide]);
+  }, [isLightboxOpen, galleryImages.length, handleZoomIn, handleZoomOut, resetZoom, updateIndex, closeGallery]);
 
   // Lock body scroll and prevent background scrolling while Lightbox is open
   useEffect(() => {
@@ -240,19 +336,31 @@ export default function ProductGallery({
     };
   }, [isLightboxOpen, MAX_ZOOM, MIN_ZOOM, ZOOM_STEP, clampPan]);
 
+  const swipeStartXRef = useRef<number | null>(null);
+  const swipeStartYRef = useRef<number | null>(null);
+
   function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
     if (e.touches.length === 2) {
       const t1 = e.touches[0];
       const t2 = e.touches[1];
       pinchDistRef.current = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
       initialPinchScaleRef.current = zoomScale;
-    } else if (e.touches.length === 1 && zoomScale > 1.05) {
+      swipeStartXRef.current = null;
+      swipeStartYRef.current = null;
+    } else if (e.touches.length === 1) {
       const t = e.touches[0];
-      setIsDragging(true);
-      dragStartRef.current = {
-        x: t.clientX - panOffset.x,
-        y: t.clientY - panOffset.y,
-      };
+      if (zoomScale > 1.05) {
+        setIsDragging(true);
+        dragStartRef.current = {
+          x: t.clientX - panOffset.x,
+          y: t.clientY - panOffset.y,
+        };
+        swipeStartXRef.current = null;
+        swipeStartYRef.current = null;
+      } else {
+        swipeStartXRef.current = t.clientX;
+        swipeStartYRef.current = t.clientY;
+      }
     }
   }
 
@@ -286,6 +394,25 @@ export default function ProductGallery({
     }
     if (e.touches.length === 0) {
       setIsDragging(false);
+
+      if (swipeStartXRef.current !== null && swipeStartYRef.current !== null && zoomScale <= 1.05) {
+        const touch = e.changedTouches[0];
+        if (touch) {
+          const diffX = touch.clientX - swipeStartXRef.current;
+          const diffY = touch.clientY - swipeStartYRef.current;
+          if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
+            if (diffX < 0) {
+              updateIndex((idx) => Math.min(galleryImages.length - 1, idx + 1));
+              resetZoom();
+            } else {
+              updateIndex((idx) => Math.max(0, idx - 1));
+              resetZoom();
+            }
+          }
+        }
+        swipeStartXRef.current = null;
+        swipeStartYRef.current = null;
+      }
     }
   }
 
@@ -329,7 +456,13 @@ export default function ProductGallery({
         <div
           ref={carouselRef}
           onScroll={handleCarouselScroll}
-          className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto scroll-smooth"
+          onTouchStart={() => {
+            isProgrammaticScrollRef.current = false;
+          }}
+          onMouseDown={() => {
+            isProgrammaticScrollRef.current = false;
+          }}
+          className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto"
         >
           {galleryImages.map((imgSrc, idx) => (
             <div
@@ -339,7 +472,7 @@ export default function ProductGallery({
               <button
                 type="button"
                 onClick={() => {
-                  setActiveSlide(idx);
+                  updateIndex(idx);
                   resetZoom();
                   setIsLightboxOpen(true);
                 }}
@@ -381,7 +514,7 @@ export default function ProductGallery({
         {galleryImages.length > 1 && (
           <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] overflow-x-auto no-scrollbar">
             {galleryImages.map((thumbSrc, idx) => {
-              const isCurrent = idx === activeSlide;
+              const isCurrent = idx === currentIndex;
               return (
                 <button
                   key={`gallery-thumb-${thumbSrc}-${idx}`}
@@ -433,20 +566,14 @@ export default function ProductGallery({
           {/* Backdrop dismiss on tap outside */}
           <div
             className="absolute inset-0 top-0 left-0 w-full h-full -z-10 cursor-pointer"
-            onClick={() => {
-              setIsLightboxOpen(false);
-              resetZoom();
-            }}
+            onClick={closeGallery}
             aria-hidden="true"
           />
 
           {/* Top-Right Close Button (thin outlined circle with X, matching production) */}
           <button
             type="button"
-            onClick={() => {
-              setIsLightboxOpen(false);
-              resetZoom();
-            }}
+            onClick={closeGallery}
             aria-label={copy.galleryCloseZoom}
             className="absolute top-4 right-4 sm:top-5 sm:right-6 z-[100002] flex h-11 w-11 items-center justify-center rounded-full text-white transition-all duration-200 cursor-pointer active:scale-95"
             style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
@@ -510,15 +637,16 @@ export default function ProductGallery({
                   style={{
                     transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`,
                     transformOrigin: "center center",
-                    transition: isDragging
-                      ? "none"
-                      : "transform 0.15s ease-out",
+                    transition: isZoomAnimating && !isDragging
+                      ? "transform 0.15s ease-out"
+                      : "none",
                   }}
+                  onTransitionEnd={() => setIsZoomAnimating(false)}
                   className="relative h-full w-full flex items-center justify-center will-change-transform bg-white select-none"
                 >
                   <StorefrontImage
-                    src={galleryImages[activeSlide]}
-                    alt={`${productTitleText} (${activeColorName}) (${activeSlide + 1})`}
+                    src={galleryImages[currentIndex]}
+                    alt={`${productTitleText} (${activeColorName}) (${currentIndex + 1})`}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 740px, 800px"
                     className="object-contain pointer-events-none select-none rounded-none"
@@ -572,7 +700,7 @@ export default function ProductGallery({
                       lineHeight: 1.3,
                     }}
                   >
-                    {activeColorName} ({activeSlide + 1}/
+                    {activeColorName} ({currentIndex + 1}/
                     {galleryImages.length})
                   </p>
                 </div>
@@ -583,14 +711,14 @@ export default function ProductGallery({
             {galleryImages.length > 1 && (
               <div className="mt-3 sm:mt-3.5 flex items-center justify-center gap-2 max-w-[min(600px,calc(100vw-24px))] overflow-x-auto no-scrollbar touch-pan-x z-30 pointer-events-auto">
                 {galleryImages.map((thumbSrc, thumbIdx) => {
-                  const isCurrent = thumbIdx === activeSlide;
+                  const isCurrent = thumbIdx === currentIndex;
                   return (
                     <button
                       key={`lightbox-thumb-${thumbSrc}-${thumbIdx}`}
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setActiveSlide(thumbIdx);
+                        updateIndex(thumbIdx);
                         resetZoom();
                       }}
                       aria-label={`${copy.galleryImageCount} ${thumbIdx + 1}`}
