@@ -9,6 +9,7 @@ import type { LocalizedText } from "@/lib/i18n";
 import { getClientCopy, resolveLocalizedText } from "@/lib/i18n";
 import { darkenHex } from "@/lib/contrast";
 import { formatDhakaDateTime } from "@/lib/receipt";
+import PoweredByOrderKoro from "./PoweredByOrderKoro";
 
 export interface OrderStatusClientProps {
   slug: string;
@@ -655,8 +656,8 @@ export default function OrderStatusClient({
 
         {/* Footer */}
         {showPoweredBy && (
-          <footer className="mt-8 text-center text-[11px] text-[var(--text-muted)]">
-            Powered by OrderKoro
+          <footer className="mt-8 text-center">
+            <PoweredByOrderKoro slug={slug} lang={lang} />
           </footer>
         )}
       </div>

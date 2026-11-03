@@ -13,6 +13,7 @@ import {
   getPrivacyPageSections,
   getTermsPageSections,
 } from "@/lib/policy-text";
+import PoweredByOrderKoro from "./PoweredByOrderKoro";
 
 export type LegalPageType = "privacy" | "terms";
 
@@ -306,7 +307,11 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
       {/* Footer */}
       <footer className="border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-4 py-4 text-center text-xs text-[var(--text-muted)] space-y-1">
         <p>{footerText.copyright}</p>
-        <p className="text-[11px] opacity-75">{footerText.poweredBy}</p>
+        {config.showPoweredBy !== false && (
+          <div>
+            <PoweredByOrderKoro slug={config.slug} lang={lang} />
+          </div>
+        )}
       </footer>
     </div>
   );

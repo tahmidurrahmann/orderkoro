@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { LandingLanguageSwitch } from "./LandingLanguageSwitch";
 
 export const BRAND_WORDMARK_TEXT = "OrderKoro";
@@ -7,11 +8,18 @@ export function LandingWordmark() {
   return (
     <Link
       href="/"
-      className="inline-flex items-center text-lg font-extrabold tracking-tight text-[var(--text-primary)] hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-primary)] rounded-xs"
+      className="inline-flex items-center gap-2 hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ok-green)] rounded-xs"
       aria-label={`${BRAND_WORDMARK_TEXT} Home`}
     >
-      <span>Order</span>
-      <span className="text-[var(--brand-primary)]">Koro</span>
+      <span
+        className="text-xl tracking-tight text-[var(--ok-green)]"
+        style={{
+          fontFamily: "var(--font-anek-bangla), sans-serif",
+          fontWeight: 800,
+        }}
+      >
+        OrderKoro
+      </span>
     </Link>
   );
 }

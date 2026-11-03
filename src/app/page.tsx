@@ -3,8 +3,8 @@ import { LANDING_COPY } from "@/lib/landing-copy";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingBody } from "@/components/landing/LandingBody";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-const landingTitle = "OrderKoro · ফেসবুক সেলারদের জন্য এক পণ্যের অর্ডার পেজ";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
+const landingTitle = "OrderKoro";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og/orderkoro.jpg",
+        url: "/brand/og-orderkoro-v1.jpg",
         width: 1200,
         height: 630,
         alt: "OrderKoro",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: landingTitle,
     description: LANDING_COPY.meta.description,
-    images: ["/og/orderkoro.jpg"],
+    images: ["/brand/og-orderkoro-v1.jpg"],
   },
 };
 

@@ -11,6 +11,8 @@ import {
 } from "@/lib/server/redis";
 import OrderStatusClient from "@/components/OrderStatusClient";
 import type { SupportedLocale } from "@/lib/format";
+import { resolveLocalizedText } from "@/lib/i18n";
+import { getSellerFavicon } from "@/lib/seller-brand";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -22,9 +24,20 @@ interface OrderStatusPageProps {
   }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
+
+export async function generateMetadata({
+  params,
+}: OrderStatusPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const config = getPublicClientBySlug(slug);
+  const brandName = config ? resolveLocalizedText(config.brand.name, config.language.default) : "Store";
+  const ogImage = config ? (config.ogImage || config.product.images[0]) : undefined;
+
   return {
-    title: "Order Status | OrderKoro",
+    metadataBase: new URL(siteUrl),
+    title: config ? `Order Status | ${brandName}` : "Order Status",
+    icons: config ? [{ url: getSellerFavicon(config) }] : undefined,
     robots: {
       index: false,
       follow: false,
@@ -33,6 +46,15 @@ export async function generateMetadata(): Promise<Metadata> {
         index: false,
         follow: false,
       },
+    },
+    openGraph: {
+      title: config ? `Order Status | ${brandName}` : "Order Status",
+      images: ogImage ? [{ url: ogImage }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: config ? `Order Status | ${brandName}` : "Order Status",
+      images: ogImage ? [ogImage] : [],
     },
   };
 }

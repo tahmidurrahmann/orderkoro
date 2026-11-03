@@ -5,13 +5,14 @@ import ThankYouClient from "@/components/ThankYouClient";
 import { getPublicClientBySlug } from "@/lib/clients";
 import { getServerClientSecrets } from "@/lib/server-clients";
 import { resolveLocalizedText } from "@/lib/i18n";
+import { getSellerFavicon } from "@/lib/seller-brand";
 
 interface ThankYouPageProps {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<{ preview?: string }>;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
 
 export const dynamicParams = true;
 
@@ -48,6 +49,7 @@ export async function generateMetadata({
 
   const lang = config.language.default;
   const brandName = resolveLocalizedText(config.brand.name, lang);
+  const ogImage = config.ogImage || config.product.images[0];
 
   return {
     metadataBase: new URL(siteUrl),
@@ -55,9 +57,25 @@ export async function generateMetadata({
       lang === "bn"
         ? `অর্ডার সম্পন্ন | ${brandName}`
         : `Order Received | ${brandName}`,
+    icons: [{ url: getSellerFavicon(config) }],
     robots: {
       index: false,
       follow: false,
+    },
+    openGraph: {
+      title:
+        lang === "bn"
+          ? `অর্ডার সম্পন্ন | ${brandName}`
+          : `Order Received | ${brandName}`,
+      images: ogImage ? [{ url: ogImage }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title:
+        lang === "bn"
+          ? `অর্ডার সম্পন্ন | ${brandName}`
+          : `Order Received | ${brandName}`,
+      images: ogImage ? [ogImage] : [],
     },
   };
 }

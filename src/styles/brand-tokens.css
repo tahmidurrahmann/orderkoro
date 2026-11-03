@@ -1,0 +1,10 @@
+/* OrderKoro brand tokens. Platform chrome only (landing, header, footer badge, legal pages).
+   Seller order pages keep their own per-seller theme. */
+:root {
+  --ok-green: #0A694B;
+  --ok-orange: #F78E10;
+  --ok-cream: #F5F4F0;
+  --ok-ink: #1B1B18;
+  --ok-muted: #5C5A52;
+  --ok-line: #DDD9CF;
+}

@@ -9,13 +9,14 @@ import { getPublicClientBySlug } from "@/lib/clients";
 import { getServerClientSecrets } from "@/lib/server-clients";
 import { formatPrice } from "@/lib/format";
 import { resolveLocalizedText } from "@/lib/i18n";
+import { getSellerFavicon } from "@/lib/seller-brand";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ preview?: string }>;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
 
 function getClientImagesManifest(slug: string): ImagesManifest | undefined {
   try {
@@ -74,6 +75,7 @@ export async function generateMetadata({
     metadataBase: new URL(siteUrl),
     title: `${title} | ${formattedPrice} | ${brandName}`,
     description,
+    icons: [{ url: getSellerFavicon(config) }],
     robots: shouldIndex
       ? { index: true, follow: true }
       : { index: false, follow: false },

@@ -25,6 +25,7 @@ import {
   type StoredReceipt,
 } from "@/lib/receipt";
 import { trackPurchase } from "@/lib/tracking";
+import PoweredByOrderKoro from "./PoweredByOrderKoro";
 
 interface ThankYouClientProps {
   config: PublicClientConfig;
@@ -801,7 +802,9 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
             © {new Date().getFullYear()} {brandNameText}. {copy.footerRightsReserved}
           </p>
           {config.showPoweredBy !== false && (
-            <p className="mt-1 text-[11px]">{copy.poweredByText}</p>
+            <div className="mt-1">
+              <PoweredByOrderKoro slug={config.slug} lang={lang} />
+            </div>
           )}
         </footer>
       </div>

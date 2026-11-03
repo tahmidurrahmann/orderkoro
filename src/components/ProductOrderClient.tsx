@@ -38,6 +38,7 @@ import { getEnabledPaymentMethods, type PaymentMethodId } from "@/lib/payments";
 
 import ProductGallery from "./product/ProductGallery";
 import ProductSelectors from "./product/ProductSelectors";
+import PoweredByOrderKoro from "./PoweredByOrderKoro";
 import DeliveryBlock from "./product/DeliveryBlock";
 import OrderForm, { type FormErrors } from "./product/OrderForm";
 import StickyOrderBar from "./product/StickyOrderBar";
@@ -1138,8 +1139,10 @@ export default function ProductOrderClient({
             © {new Date().getFullYear()} {brandNameText}.{" "}
             {copy.footerRightsReserved}
           </p>
-          {config.showPoweredBy && (
-            <p className="mt-1 text-[11px] opacity-75">{copy.poweredByText}</p>
+          {config.showPoweredBy !== false && (
+            <div className="mt-1">
+              <PoweredByOrderKoro slug={config.slug} lang={lang} />
+            </div>
           )}
         </footer>
       </main>
@@ -1166,8 +1169,8 @@ export default function ProductOrderClient({
             © {new Date().getFullYear()} {brandNameText}.{" "}
             {copy.footerRightsReserved}
           </p>
-          {config.showPoweredBy && (
-            <p className="text-[11px] opacity-75">{copy.poweredByText}</p>
+          {config.showPoweredBy !== false && (
+            <PoweredByOrderKoro slug={config.slug} lang={lang} />
           )}
         </div>
       </footer>

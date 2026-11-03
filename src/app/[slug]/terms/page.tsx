@@ -4,13 +4,14 @@ import LegalPageClient from "@/components/LegalPageClient";
 import { getPublicClientBySlug } from "@/lib/clients";
 import { getServerClientSecrets } from "@/lib/server-clients";
 import { resolveLocalizedText } from "@/lib/i18n";
+import { getSellerFavicon } from "@/lib/seller-brand";
 
 interface LegalPageProps {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<{ preview?: string }>;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
 
 export const dynamicParams = true;
 
@@ -48,20 +49,35 @@ export async function generateMetadata({
   const lang = config.language.default;
   const brandName = resolveLocalizedText(config.brand.name, lang);
   const isDraft = config.status === "draft";
+  const ogImage = config.ogImage || config.product.images[0];
+  const pageTitle =
+    lang === "bn"
+      ? `শর্তাবলী, ডেলিভারি ও রিটার্ন পলিসি | ${brandName}`
+      : `Terms, Delivery & Return Policy | ${brandName}`;
+  const pageDescription =
+    lang === "bn"
+      ? `${brandName} এর ক্যাশ অন ডেলিভারি, ডেলিভারি চার্জ এবং সহজ রিটার্ন পলিসি।`
+      : `Cash on Delivery terms, delivery rates, and easy returns policy for ${brandName}.`;
 
   return {
     metadataBase: new URL(siteUrl),
-    title:
-      lang === "bn"
-        ? `শর্তাবলী, ডেলিভারি ও রিটার্ন পলিসি | ${brandName}`
-        : `Terms, Delivery & Return Policy | ${brandName}`,
-    description:
-      lang === "bn"
-        ? `${brandName} এর ক্যাশ অন ডেলিভারি, ডেলিভারি চার্জ এবং সহজ রিটার্ন পলিসি।`
-        : `Cash on Delivery terms, delivery rates, and easy returns policy for ${brandName}.`,
+    title: pageTitle,
+    description: pageDescription,
+    icons: [{ url: getSellerFavicon(config) }],
     robots: {
       index: !isDraft,
       follow: !isDraft,
+    },
+    openGraph: {
+      title: pageTitle,
+      description: pageDescription,
+      images: ogImage ? [{ url: ogImage }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: pageTitle,
+      description: pageDescription,
+      images: ogImage ? [ogImage] : [],
     },
   };
 }

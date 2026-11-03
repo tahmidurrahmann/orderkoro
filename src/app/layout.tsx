@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Anek_Bangla } from "next/font/google";
 import "./globals.css";
+import "@/styles/brand-tokens.css";
 
 const anekBangla = Anek_Bangla({
   subsets: ["bengali", "latin"],
@@ -9,13 +10,44 @@ const anekBangla = Anek_Bangla({
   variable: "--font-anek-bangla",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "OrderKoro | Single-Product Cash on Delivery Storefront",
+  title: "OrderKoro",
   description:
-    "Fast, mobile-first Bangla & English Cash on Delivery order page for Bangladeshi Facebook sellers.",
+    "ফেসবুক সেলারদের জন্য এক পণ্যের অর্ডার পেজ। কাস্টমার সাইজ ও কালার বেছে অর্ডার করে। অর্ডার সাথে সাথে আপনার টেলিগ্রামে আসে এবং নিজের গুগল শিটে জমা হয়।",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/brand/icons/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/brand/icons/apple-touch-icon.png" }],
+  },
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "OrderKoro",
+    description:
+      "ফেসবুক সেলারদের জন্য এক পণ্যের অর্ডার পেজ। কাস্টমার সাইজ ও কালার বেছে অর্ডার করে। অর্ডার সাথে সাথে আপনার টেলিগ্রামে আসে এবং নিজের গুগল শিটে জমা হয়।",
+    url: "/",
+    siteName: "OrderKoro",
+    type: "website",
+    images: [
+      {
+        url: "/brand/og-orderkoro-v1.jpg",
+        width: 1200,
+        height: 630,
+        alt: "OrderKoro",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OrderKoro",
+    description:
+      "ফেসবুক সেলারদের জন্য এক পণ্যের অর্ডার পেজ। কাস্টমার সাইজ ও কালার বেছে অর্ডার করে। অর্ডার সাথে সাথে আপনার টেলিগ্রামে আসে এবং নিজের গুগল শিটে জমা হয়।",
+    images: ["/brand/og-orderkoro-v1.jpg"],
+  },
   other: {
     google: "notranslate",
   },
