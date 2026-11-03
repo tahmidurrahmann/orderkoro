@@ -275,6 +275,7 @@ export type PendingIdempotencyRecord = {
   status: "pending";
   payloadHash?: string;
   orderNumber?: string;
+  token?: string;
   eventId?: string;
   sheetDone?: boolean;
   telegramDone?: boolean;
@@ -288,6 +289,7 @@ export type CompletedIdempotencyRecord = {
   status: "completed";
   payloadHash?: string;
   orderNumber: string;
+  token?: string;
   eventId?: string;
   summary?: unknown;
 };
@@ -506,17 +508,20 @@ export function computeCartDedupeHash(
 // ---------------------------------------------------------------------
 export async function checkIpRateLimit(
   ip: string,
-  driver: RedisDriver = getRedisDriver()
+  driver: RedisDriver = getRedisDriver(),
+  limit = 5,
+  windowSeconds = 600,
+  action?: string
 ): Promise<{ allowed: boolean; count: number }> {
-  const key = `rl:ip:${ip}`;
+  const key = action ? `rl:ip:${action}:${ip}` : `rl:ip:${ip}`;
   const pipe = driver.pipeline();
   pipe.incr(key);
-  pipe.expire(key, 600); // 10 minutes
+  pipe.expire(key, windowSeconds);
   const results = await pipe.exec();
   const count = Number(results[0] || 1);
 
   return {
-    allowed: count <= 5,
+    allowed: count <= limit,
     count,
   };
 }
@@ -569,8 +574,11 @@ export async function pushDeadLetterOrder(
 // ---------------------------------------------------------------------
 export interface OrderMetaRecord {
   slug: string;
+  orderNumber?: string;
+  token?: string;
   rowRef: string;
   status: string;
+  customerConfirmed?: boolean;
   telegramChatId?: string;
   telegramMessageId?: number;
   phone?: string;
@@ -579,6 +587,21 @@ export interface OrderMetaRecord {
   paymentStatus?: "COD" | "Unverified" | "Verified" | "Not received";
   trxId?: string;
   paidFrom?: string;
+  productTitle?: string;
+  color?: string;
+  size?: string;
+  quantity?: number;
+  unitPrice?: number;
+  deliveryFee?: number;
+  total?: number;
+  district?: string;
+  zone?: string;
+  zoneLabel?: string;
+  daysMin?: number;
+  daysMax?: number;
+  createdAtDhakaIso?: string;
+  repeatPhoneFlag?: boolean;
+  confirmationMode?: "call" | "tap";
 }
 
 export async function storeOrderMeta(
@@ -602,9 +625,18 @@ export async function updateOrderMetaStatus(
   orderNumber: string,
   newStatus: string,
   sheetSynced?: boolean,
-  driver: RedisDriver = getRedisDriver()
+  driver: RedisDriver = getRedisDriver(),
+  slugFallback?: string
 ): Promise<void> {
-  const meta = await getOrderMeta(orderNumber, driver);
+  let meta = await getOrderMeta(orderNumber, driver);
+  if (!meta && slugFallback) {
+    meta = {
+      slug: slugFallback,
+      orderNumber,
+      rowRef: "",
+      status: newStatus,
+    };
+  }
   if (meta) {
     meta.status = newStatus;
     if (typeof sheetSynced === "boolean") {
@@ -624,6 +656,54 @@ export async function updateOrderMetaPaymentStatus(
     meta.paymentStatus = newPaymentStatus;
     await storeOrderMeta(orderNumber, meta, driver);
   }
+}
+
+export async function updateOrderMetaCustomerConfirmed(
+  orderNumber: string,
+  driver: RedisDriver = getRedisDriver()
+): Promise<boolean> {
+  const meta = await getOrderMeta(orderNumber, driver);
+  if (meta) {
+    meta.customerConfirmed = true;
+    await storeOrderMeta(orderNumber, meta, driver);
+    return true;
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------
+// Order Token Storage: ordtoken:<token> -> { slug, orderNumber } (90d TTL)
+// ---------------------------------------------------------------------
+export interface OrderTokenRecord {
+  slug: string;
+  orderNumber: string;
+}
+
+/**
+ * Generates a cryptographically random, base64url token with 192 bits of entropy (>= 128 bits).
+ */
+export function generateOrderToken(): string {
+  return crypto.randomBytes(24).toString("base64url");
+}
+
+export async function storeOrderToken(
+  token: string,
+  record: OrderTokenRecord,
+  driver: RedisDriver = getRedisDriver()
+): Promise<void> {
+  const key = `ordtoken:${token}`;
+  await driver.set(key, record, { ex: 7776000 }); // 90 days TTL (7,776,000s)
+}
+
+export async function getOrderToken(
+  token: string,
+  driver: RedisDriver = getRedisDriver()
+): Promise<OrderTokenRecord | null> {
+  if (!token || typeof token !== "string" || token.length < 8) {
+    return null;
+  }
+  const key = `ordtoken:${token}`;
+  return driver.get<OrderTokenRecord>(key);
 }
 
 // ---------------------------------------------------------------------

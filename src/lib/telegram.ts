@@ -57,22 +57,36 @@ export function getStatusInlineButtons(
     case "new":
       return [
         [
-          { text: "✅ Confirm", callback_data: `s:confirm:${orderNumber}` },
-          { text: "❌ Cancel", callback_data: `s:cancel:${orderNumber}` },
+          { text: "✅ Confirm", callback_data: `s:confirmed:${orderNumber}` },
+          { text: "📵 No answer", callback_data: `s:no_answer:${orderNumber}` },
+        ],
+        [
+          { text: "❌ Cancel", callback_data: `s:cancelled:${orderNumber}` },
         ],
       ];
     case "confirmed":
       return [
         [
           { text: "🚚 Shipped", callback_data: `s:shipped:${orderNumber}` },
-          { text: "❌ Cancel", callback_data: `s:cancel:${orderNumber}` },
+        ],
+        [
+          { text: "❌ Cancel", callback_data: `s:cancelled:${orderNumber}` },
         ],
       ];
     case "shipped":
       return [
         [
-          { text: "🎉 Delivered", callback_data: `s:delivered:${orderNumber}` },
+          { text: "📦 Delivered", callback_data: `s:delivered:${orderNumber}` },
           { text: "↩️ Returned", callback_data: `s:returned:${orderNumber}` },
+        ],
+      ];
+    case "no_answer":
+      return [
+        [
+          { text: "✅ Confirm", callback_data: `s:confirmed:${orderNumber}` },
+        ],
+        [
+          { text: "❌ Cancel", callback_data: `s:cancelled:${orderNumber}` },
         ],
       ];
     case "delivered":

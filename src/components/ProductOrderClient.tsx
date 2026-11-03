@@ -31,6 +31,7 @@ import {
 } from "@/lib/i18n";
 import { getSavedLocale, saveLocalePreference } from "@/lib/locale-preference";
 import { saveOrderSummaryToSession } from "@/lib/order-session";
+import { saveReceiptToStorage } from "@/lib/receipt";
 import { normalizeBdPhone, validateBdPhone } from "@/lib/phone";
 import { trackInitiateCheckout, trackViewContent } from "@/lib/tracking";
 import { getEnabledPaymentMethods, type PaymentMethodId } from "@/lib/payments";
@@ -614,6 +615,34 @@ export default function ProductOrderClient({
         language: lang,
         paymentMethod: paymentMethod,
         eventId: data.eventId || data.orderNumber,
+        createdAtIso: data.summary?.createdAtIso || new Date().toISOString(),
+      });
+
+      saveReceiptToStorage({
+        orderNumber: data.orderNumber || data.summary?.orderNumber,
+        token: data.token || (data.summary as Record<string, unknown> | undefined)?.token as string | undefined,
+        slug: config.slug,
+        productTitle: config.product.title,
+        colorName: activeColor.name,
+        sizeName: selectedSize,
+        quantity: orderTotals.quantity,
+        unitPrice: orderTotals.unitPrice,
+        subtotal: orderTotals.unitPrice * orderTotals.quantity,
+        deliveryCharge:
+          data.summary?.deliveryFee ??
+          orderTotals.delivery?.effectiveCharge ??
+          0,
+        deliveryZoneLabel: deliveryQuote
+          ? deliveryQuote.label
+          : config.delivery.zones[0].label,
+        daysMin: deliveryQuote ? deliveryQuote.daysMin : 2,
+        daysMax: deliveryQuote ? deliveryQuote.daysMax : 4,
+        total: data.summary?.total ?? orderTotals.total,
+        deliveryAddress: customerAddress.trim(),
+        confirmationMode: config.confirmationMode || "call",
+        language: lang,
+        paymentMethod: paymentMethod,
+        transactionId: transactionId.trim() || undefined,
         createdAtIso: data.summary?.createdAtIso || new Date().toISOString(),
       });
 

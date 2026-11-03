@@ -256,6 +256,9 @@ export function validateSingleClientConfig(cfg, fileName = "config.json") {
   if (cfg.confirmationMode !== "call" && cfg.confirmationMode !== "tap") {
     errors.push(`confirmationMode: must be "call" or "tap"`);
   }
+  if (cfg.customerConfirm !== undefined && cfg.customerConfirm !== "off" && cfg.customerConfirm !== "tap") {
+    errors.push(`customerConfirm: must be "off" or "tap" when specified`);
+  }
 
   // Payments validation (canonical shape only)
   if (cfg.paymentNumbers !== undefined) {

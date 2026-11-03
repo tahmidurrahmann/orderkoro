@@ -73,6 +73,9 @@ This guide explains how a seller prepares their Google Sheet, Telegram notificat
    - Any extra conditions (e.g. tag intact, video unboxing).
 8. **Business Address & Trade License (Optional):** Physical business address and trade license number for legal pages.
 9. **Quality Claim Badge (Optional):** Custom badge title and subtitle (e.g. 100% Genuine Cotton / Handcrafted).
+10. **Order Confirmation & Customer Confirmation Policy:**
+    - Confirmation mode: `call` (you will call every customer) or `tap` (you tap Confirm directly in Telegram).
+    - Customer self-confirm button: `off` (default) or `tap` (customer can tap "Confirm my order" on their tracking page). High-value or repeat orders always require a phone call.
 
 ---
 
@@ -113,3 +116,6 @@ This guide explains how a seller prepares their Google Sheet, Telegram notificat
    - বিশেষ কোনো শর্ত থাকলে তা উল্লেখ করুন।
 ৮. **ব্যবসার ঠিকানা ও ট্রেড লাইসেন্স (ঐচ্ছিক):** শোরুম বা অফিসের ঠিকানা এবং ট্রেড লাইসেন্স নম্বর (টার্মস ও প্রাইভেসি পেজের জন্য)।
 ৯. **কোয়ালিটি ব্যাজ (ঐচ্ছিক):** বিশেষ কোনো কোয়ালিটি বা কারুশিল্প দাবি থাকলে তার শিরোনাম ও বিবরণ।
+১০. **অর্ডার কনফার্মেশন ও ট্র্যাকিং পলিসি:**
+    - কনফার্মেশন মোড: `call` (প্রতিটি কাস্টমারকে ফোন করে নিশ্চিত করবেন) নাকি `tap` (টেলিগ্রাম থেকে সরাসরি কনফার্ম করবেন)।
+    - কাস্টমার সেলফ-কনফার্ম: `off` নাকি `tap` (কাস্টমার তার ট্র্যাকিং পেজ থেকে "অর্ডার নিশ্চিত করুন" বাটনে চাপ দিতে পারবে)। বড় অঙ্কের বা সন্দেহজনক অর্ডারে সবসময় ফোনের মাধ্যমে কনফার্মেশন আবশ্যক।

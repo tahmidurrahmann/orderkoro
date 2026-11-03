@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { LocalizedText } from "@/lib/i18n";
+import { resolveLocalizedText } from "@/lib/i18n";
 import {
   buildMobilePaymentInlineKeyboard,
   buildStatusInlineKeyboard,
@@ -16,6 +18,7 @@ export interface TelegramOrderPayload {
   address: string;
   district: string;
   zone: string;
+  zoneLabel?: string;
   productTitle: string;
   color: string;
   size: string;
@@ -29,6 +32,7 @@ export interface TelegramOrderPayload {
   paidFrom?: string;
   note?: string;
   confirmationMode: string;
+  statusUrl?: string;
 }
 
 export function escapeTelegramHtml(text: string): string {
@@ -40,10 +44,25 @@ export function escapeTelegramHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
+export function getDeliveryZoneLabel(
+  zoneIdOrLabel: string,
+  zones?: Array<{ id: string; label: LocalizedText }>,
+  sellerLanguage: string = "bn"
+): string {
+  if (!zones || zones.length === 0) return zoneIdOrLabel;
+  const match = zones.find((z) => z.id === zoneIdOrLabel);
+  if (match) {
+    return resolveLocalizedText(match.label, sellerLanguage === "en" ? "en" : "bn");
+  }
+  return zoneIdOrLabel;
+}
+
 export function formatTelegramOrderHtml(
   order: TelegramOrderPayload,
   status: OrderStatus = "new",
-  repeatPhoneFlag = false
+  repeatPhoneFlag = false,
+  zones?: Array<{ id: string; label: LocalizedText }>,
+  sellerLanguage: string = "bn"
 ): string {
   const lines: string[] = [];
 
@@ -54,10 +73,14 @@ export function formatTelegramOrderHtml(
     lines.push(`⚠️ <b>REPEAT PHONE</b> (3rd order in 24h)`);
   }
 
+  const zoneDisplay =
+    order.zoneLabel ||
+    getDeliveryZoneLabel(order.zone, zones, sellerLanguage);
+
   lines.push("");
   lines.push(`👤 <b>Customer:</b> ${escapeTelegramHtml(order.name)}`);
   lines.push(`📞 <b>Phone:</b> <a href="tel:${escapeTelegramHtml(order.phone)}">${escapeTelegramHtml(order.phone)}</a>`);
-  lines.push(`📍 <b>Address:</b> ${escapeTelegramHtml(order.address)}, ${escapeTelegramHtml(order.district)} (${escapeTelegramHtml(order.zone)})`);
+  lines.push(`📍 <b>Address:</b> ${escapeTelegramHtml(order.address)}, ${escapeTelegramHtml(order.district)} (${escapeTelegramHtml(zoneDisplay)})`);
   lines.push("");
   lines.push(`🛍️ <b>Item:</b> ${escapeTelegramHtml(order.productTitle)}`);
   lines.push(`🎨 <b>Color:</b> ${escapeTelegramHtml(order.color)}`);
@@ -108,6 +131,9 @@ export function formatTelegramOrderHtml(
   if (order.confirmationMode) {
     lines.push(`📞 <b>Confirmation Mode:</b> ${escapeTelegramHtml(order.confirmationMode)}`);
   }
+  if (order.statusUrl) {
+    lines.push(`🔗 <b>Status Link:</b> <code>${escapeTelegramHtml(order.statusUrl)}</code>`);
+  }
 
   return lines.join("\n");
 }
@@ -130,7 +156,9 @@ async function fetchWithRetry(url: string, options: RequestInit, timeoutMs = 800
 export async function sendTelegramOrderMessage(
   chatId: string | number,
   order: TelegramOrderPayload,
-  repeatPhoneFlag = false
+  repeatPhoneFlag = false,
+  zones?: Array<{ id: string; label: LocalizedText }>,
+  sellerLanguage: string = "bn"
 ): Promise<{ messageId: number }> {
   if (process.env.MOCK_INTEGRATIONS === "1") {
     return { messageId: 1001 };
@@ -141,7 +169,7 @@ export async function sendTelegramOrderMessage(
     throw new Error("Missing TELEGRAM_BOT_TOKEN");
   }
 
-  const rawText = formatTelegramOrderHtml(order, "new", repeatPhoneFlag);
+  const rawText = formatTelegramOrderHtml(order, "new", repeatPhoneFlag, zones, sellerLanguage);
   const text = rawText.length > 4000 ? rawText.slice(0, 3950) + "\n...[truncated]" : rawText;
   const isMobile = Boolean(order.paymentMethod && order.paymentMethod !== "cod");
   const replyMarkup = isMobile && order.paymentStatus !== "Verified"

@@ -69,6 +69,7 @@ function createMockConfig(overrides?: Partial<PublicClientConfig>): PublicClient
       businessAddress: { bn: "মিরপুর, ঢাকা", en: "Mirpur, Dhaka" },
     },
     confirmationMode: "tap",
+    customerConfirm: "off",
     payments: {
       cod: { enabled: true },
     },

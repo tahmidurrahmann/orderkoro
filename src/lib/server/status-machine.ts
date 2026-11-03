@@ -101,8 +101,10 @@ export function buildMobilePaymentInlineKeyboard(
     return {
       inline_keyboard: [
         [
-          { text: "Payment verified", callback_data: `pay:v:${orderNumber}` },
-          { text: "Cancelled", callback_data: buildCallbackData("cancelled", orderNumber) },
+          { text: "✅ Payment verified", callback_data: `pay:v:${orderNumber}` },
+        ],
+        [
+          { text: "❌ Cancel", callback_data: buildCallbackData("cancelled", orderNumber) },
         ],
       ],
     };
@@ -111,9 +113,11 @@ export function buildMobilePaymentInlineKeyboard(
   return {
     inline_keyboard: [
       [
-        { text: "Payment verified", callback_data: `pay:v:${orderNumber}` },
-        { text: "Payment not received", callback_data: `pay:nr:${orderNumber}` },
-        { text: "Cancelled", callback_data: buildCallbackData("cancelled", orderNumber) },
+        { text: "✅ Payment verified", callback_data: `pay:v:${orderNumber}` },
+      ],
+      [
+        { text: "⏳ Not received", callback_data: `pay:nr:${orderNumber}` },
+        { text: "❌ Cancel", callback_data: buildCallbackData("cancelled", orderNumber) },
       ],
     ],
   };
@@ -128,31 +132,60 @@ export interface TelegramInlineKeyboard {
   inline_keyboard: TelegramInlineButton[][];
 }
 
-const STATUS_BUTTON_LABELS: Record<OrderStatus, { en: string; bn: string }> = {
-  new: { en: "New", bn: "নতুন" },
-  confirmed: { en: "✅ Confirm", bn: "✅ নিশ্চিত" },
-  no_answer: { en: "📵 No Answer", bn: "📵 ফোন ধরেননি" },
-  cancelled: { en: "❌ Cancel", bn: "❌ বাতিল" },
-  shipped: { en: "🚚 Shipped", bn: "🚚 কুরিয়ারে দেওয়া হয়েছে" },
-  delivered: { en: "📦 Delivered", bn: "📦 ডেলিভার্ড" },
-  returned: { en: "↩️ Returned", bn: "↩️ রিটার্ন" },
-};
-
 export function buildStatusInlineKeyboard(
   status: OrderStatus,
   orderNumber: string
 ): TelegramInlineKeyboard {
-  const nextActions = VALID_TRANSITIONS[status] || [];
-  if (nextActions.length === 0) {
-    return { inline_keyboard: [] };
+  switch (status) {
+    case "new":
+      return {
+        inline_keyboard: [
+          [
+            { text: "✅ Confirm", callback_data: buildCallbackData("confirmed", orderNumber) },
+            { text: "📵 No answer", callback_data: buildCallbackData("no_answer", orderNumber) },
+          ],
+          [
+            { text: "❌ Cancel", callback_data: buildCallbackData("cancelled", orderNumber) },
+          ],
+        ],
+      };
+    case "confirmed":
+      return {
+        inline_keyboard: [
+          [
+            { text: "🚚 Shipped", callback_data: buildCallbackData("shipped", orderNumber) },
+          ],
+          [
+            { text: "❌ Cancel", callback_data: buildCallbackData("cancelled", orderNumber) },
+          ],
+        ],
+      };
+    case "shipped":
+      return {
+        inline_keyboard: [
+          [
+            { text: "📦 Delivered", callback_data: buildCallbackData("delivered", orderNumber) },
+            { text: "↩️ Returned", callback_data: buildCallbackData("returned", orderNumber) },
+          ],
+        ],
+      };
+    case "no_answer":
+      return {
+        inline_keyboard: [
+          [
+            { text: "✅ Confirm", callback_data: buildCallbackData("confirmed", orderNumber) },
+          ],
+          [
+            { text: "❌ Cancel", callback_data: buildCallbackData("cancelled", orderNumber) },
+          ],
+        ],
+      };
+    case "cancelled":
+    case "delivered":
+    case "returned":
+    default:
+      return {
+        inline_keyboard: [],
+      };
   }
-
-  const buttons: TelegramInlineButton[] = nextActions.map((action) => ({
-    text: STATUS_BUTTON_LABELS[action].en,
-    callback_data: buildCallbackData(action, orderNumber),
-  }));
-
-  return {
-    inline_keyboard: [buttons],
-  };
 }

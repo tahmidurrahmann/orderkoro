@@ -287,6 +287,7 @@ async function main() {
     telegramChatId,
     ...(pixelId ? { pixelId } : {}),
     confirmationMode: "call",
+    customerConfirm: "off",
     status,
     ...(previewToken ? { previewToken } : {}),
     seo: {

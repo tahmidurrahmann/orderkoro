@@ -247,24 +247,28 @@ describe("Manual Mobile Payments End-to-End Tests", () => {
 
     it("builds correct mobile payment inline keyboard for Unverified status", () => {
       const keyboard = buildMobilePaymentInlineKeyboard("Unverified", "BNN-0042");
-      const buttons = keyboard.inline_keyboard[0];
-      expect(buttons).toHaveLength(3);
-      expect(buttons[0].text).toBe("Payment verified");
-      expect(buttons[0].callback_data).toBe("pay:v:BNN-0042");
-      expect(buttons[1].text).toBe("Payment not received");
-      expect(buttons[1].callback_data).toBe("pay:nr:BNN-0042");
-      expect(buttons[2].text).toBe("Cancelled");
-      expect(buttons[2].callback_data).toBe("s:cancelled:BNN-0042");
+      expect(keyboard.inline_keyboard).toHaveLength(2);
+      expect(keyboard.inline_keyboard[0]).toHaveLength(1);
+      expect(keyboard.inline_keyboard[0][0].text).toBe("✅ Payment verified");
+      expect(keyboard.inline_keyboard[0][0].callback_data).toBe("pay:v:BNN-0042");
+
+      expect(keyboard.inline_keyboard[1]).toHaveLength(2);
+      expect(keyboard.inline_keyboard[1][0].text).toBe("⏳ Not received");
+      expect(keyboard.inline_keyboard[1][0].callback_data).toBe("pay:nr:BNN-0042");
+      expect(keyboard.inline_keyboard[1][1].text).toBe("❌ Cancel");
+      expect(keyboard.inline_keyboard[1][1].callback_data).toBe("s:cancelled:BNN-0042");
     });
 
     it("builds correct mobile payment inline keyboard for Not received status", () => {
       const keyboard = buildMobilePaymentInlineKeyboard("Not received", "BNN-0042");
-      const buttons = keyboard.inline_keyboard[0];
-      expect(buttons).toHaveLength(2);
-      expect(buttons[0].text).toBe("Payment verified");
-      expect(buttons[0].callback_data).toBe("pay:v:BNN-0042");
-      expect(buttons[1].text).toBe("Cancelled");
-      expect(buttons[1].callback_data).toBe("s:cancelled:BNN-0042");
+      expect(keyboard.inline_keyboard).toHaveLength(2);
+      expect(keyboard.inline_keyboard[0]).toHaveLength(1);
+      expect(keyboard.inline_keyboard[0][0].text).toBe("✅ Payment verified");
+      expect(keyboard.inline_keyboard[0][0].callback_data).toBe("pay:v:BNN-0042");
+
+      expect(keyboard.inline_keyboard[1]).toHaveLength(1);
+      expect(keyboard.inline_keyboard[1][0].text).toBe("❌ Cancel");
+      expect(keyboard.inline_keyboard[1][0].callback_data).toBe("s:cancelled:BNN-0042");
     });
 
     it("supports late 'Payment verified' transition after 'Payment not received'", async () => {
@@ -294,8 +298,10 @@ describe("Manual Mobile Payments End-to-End Tests", () => {
         meta?.paymentStatus as "Not received",
         orderNumber
       );
-      expect(notReceivedKeyboard.inline_keyboard[0]).toHaveLength(2);
-      expect(notReceivedKeyboard.inline_keyboard[0][0].text).toBe("Payment verified");
+      expect(notReceivedKeyboard.inline_keyboard[0]).toHaveLength(1);
+      expect(notReceivedKeyboard.inline_keyboard[0][0].text).toBe("✅ Payment verified");
+      expect(notReceivedKeyboard.inline_keyboard[1]).toHaveLength(1);
+      expect(notReceivedKeyboard.inline_keyboard[1][0].text).toBe("❌ Cancel");
 
       await updateOrderMetaPaymentStatus(orderNumber, "Verified", redis);
       meta = await getOrderMeta(orderNumber, redis);

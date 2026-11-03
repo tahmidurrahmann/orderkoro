@@ -184,9 +184,23 @@
       "en": "House 12, Road 5, Dhanmondi, Dhaka 1205"
     }
   },
+
   "payments": {
-    "cod": {
-      "enabled": true
+    "cod": { "enabled": true },
+    "bkash": {
+      "enabled": true,
+      "number": "01900000000",
+      "type": "personal"
+    },
+    "nagad": {
+      "enabled": true,
+      "number": "01900000000",
+      "type": "agent"
+    },
+    "rocket": {
+      "enabled": true,
+      "number": "01900000000",
+      "type": "merchant"
     }
   },
   "status": "active",
@@ -197,6 +211,7 @@
   "telegramChatId": "-5233056020",
   "pixelId": "109283746501928",
   "confirmationMode": "call",
+  "customerConfirm": "tap",
   "highValueThreshold": 3500,
   "ogImage": "/demo-brand/og.jpg",
   "showPoweredBy": true

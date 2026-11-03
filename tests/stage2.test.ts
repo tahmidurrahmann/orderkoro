@@ -292,6 +292,8 @@ describe("OrderPage Stage 2 Unit Tests", () => {
       expect(kbNew.inline_keyboard[0]?.map((b) => b.callback_data)).toEqual([
         "s:confirmed:BNN-0001",
         "s:no_answer:BNN-0001",
+      ]);
+      expect(kbNew.inline_keyboard[1]?.map((b) => b.callback_data)).toEqual([
         "s:cancelled:BNN-0001",
       ]);
     });

@@ -500,3 +500,111 @@ export async function updateSheetPaymentStatusWithRetry(
   }
   throw lastErr || new Error(`Failed to update payment status in Google Sheet after retries: ${orderNumber}`);
 }
+
+export async function updateSheetCustomerConfirmed(
+  sheetId: string,
+  rowRef: string,
+  orderNumber: string
+): Promise<void> {
+  if (process.env.MOCK_INTEGRATIONS === "1") {
+    return;
+  }
+
+  const token = await getGoogleSheetsAccessToken();
+
+  // Extract row number from rowRef (e.g. "Sheet1!A15:Y15" -> 15)
+  const match = rowRef.match(/(\d+):[A-Z]+(\d+)/) || rowRef.match(/[A-Z]+(\d+)/);
+  let targetRow = match ? parseInt(match[1], 10) : null;
+
+  // Verify Column A matches orderNumber
+  if (targetRow) {
+    const checkUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A${targetRow}`;
+    const checkRes = await fetchWithRetry(checkUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (checkRes.ok) {
+      const checkData = (await checkRes.json()) as { values?: string[][] };
+      const valA = checkData.values?.[0]?.[0];
+      if (valA !== orderNumber) {
+        targetRow = null; // Mismatch, trigger fallback scan
+      }
+    } else {
+      targetRow = null;
+    }
+  }
+
+  // Fallback: Scan column A to find matching orderNumber
+  if (!targetRow) {
+    const scanUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A:A`;
+    const scanRes = await fetchWithRetry(scanUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!scanRes.ok) {
+      throw new Error(`Failed to scan Sheet column A (${scanRes.status})`);
+    }
+    const scanData = (await scanRes.json()) as { values?: string[][] };
+    const rows = scanData.values || [];
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i]?.[0] === orderNumber) {
+        targetRow = i + 1;
+        break;
+      }
+    }
+  }
+
+  if (!targetRow) {
+    throw new Error(`Order ${orderNumber} not found in Google Sheet`);
+  }
+
+  // Read current Note in Column P (Column 16)
+  const noteUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/P${targetRow}`;
+  const noteRes = await fetchWithRetry(noteUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  let currentNote = "";
+  if (noteRes.ok) {
+    const noteData = (await noteRes.json()) as { values?: string[][] };
+    currentNote = noteData.values?.[0]?.[0] || "";
+  }
+
+  if (!currentNote.includes("[Customer Confirmed]")) {
+    const updatedNote = currentNote ? `${currentNote} [Customer Confirmed]` : "[Customer Confirmed]";
+    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/P${targetRow}?valueInputOption=RAW`;
+    const updateRes = await fetchWithRetry(updateUrl, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        values: [[updatedNote]],
+      }),
+    });
+
+    if (!updateRes.ok) {
+      const err = await updateRes.text();
+      throw new Error(`Failed to update customer confirmation in Google Sheet (${updateRes.status}): ${err}`);
+    }
+  }
+}
+
+export async function updateSheetCustomerConfirmedWithRetry(
+  sheetId: string,
+  rowRef: string,
+  orderNumber: string,
+  maxRetries = 2
+): Promise<void> {
+  let lastErr: Error | null = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await updateSheetCustomerConfirmed(sheetId, rowRef, orderNumber);
+    } catch (err) {
+      lastErr = err as Error;
+      if (attempt < maxRetries) {
+        const delayMs = attempt === 0 ? 500 : 1200;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  throw lastErr || new Error(`Failed to update customer confirmation in Google Sheet after retries: ${orderNumber}`);
+}

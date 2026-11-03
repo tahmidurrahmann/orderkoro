@@ -12,6 +12,7 @@ import {
   computeCartDedupeHash,
   computeOrderPayloadHash,
   finalizeIdempotencyKey,
+  generateOrderToken,
   getIdempotencyRecord,
   getRedisDriver,
   nextOrderNumber,
@@ -21,6 +22,7 @@ import {
   releaseTrxId,
   reserveTrxId,
   storeOrderMeta,
+  storeOrderToken,
   updatePendingIdempotencyKey,
   type PendingIdempotencyRecord,
 } from "@/lib/server/redis";
@@ -318,9 +320,12 @@ export async function POST(req: NextRequest) {
       note: payload.note,
     });
 
+    const generatedToken = generateOrderToken();
+
     const initialPending: PendingIdempotencyRecord = {
       status: "pending",
       payloadHash,
+      token: generatedToken,
       createdAt: Date.now(),
     };
 
@@ -354,12 +359,15 @@ export async function POST(req: NextRequest) {
           idempotencyKey: payload.idempotencyKey,
           orderNumber: existing.orderNumber,
         });
+        const completedToken = existing.token || (existing.summary as Record<string, unknown> | undefined)?.token;
         return NextResponse.json({
           ok: true,
           orderNumber: existing.orderNumber,
           eventId: existing.eventId || existing.orderNumber,
+          token: completedToken,
           summary: existing.summary || {
             orderNumber: existing.orderNumber,
+            token: completedToken,
             productTitle,
             color: colorName,
             size: sizeName,
@@ -376,10 +384,12 @@ export async function POST(req: NextRequest) {
           await new Promise((resolve) => setTimeout(resolve, 300));
           const currentRecord = await getIdempotencyRecord(payload.idempotencyKey, redis);
           if (currentRecord?.status === "completed") {
+            const currentToken = currentRecord.token || (currentRecord.summary as Record<string, unknown> | undefined)?.token;
             return NextResponse.json({
               ok: true,
               orderNumber: currentRecord.orderNumber,
               eventId: currentRecord.eventId || currentRecord.orderNumber,
+              token: currentToken,
               summary: currentRecord.summary,
             });
           }
@@ -522,12 +532,13 @@ export async function POST(req: NextRequest) {
 
       // 10b. Order Number Allocation: Reuse from pending record on crash retry, or allocate once
       const existingPending = idempotency.existing?.status === "pending" ? idempotency.existing : undefined;
+      const orderToken = existingPending?.token || generatedToken;
       let orderNumber = existingPending?.orderNumber;
       if (!orderNumber) {
         orderNumber = await nextOrderNumber(payload.slug, config.orderPrefix, redis);
         await updatePendingIdempotencyKey(
           payload.idempotencyKey,
-          { orderNumber },
+          { orderNumber, token: orderToken },
           redis
         );
       }
@@ -567,6 +578,18 @@ export async function POST(req: NextRequest) {
         paidFrom: paidFromPhone,
       };
 
+      const sellerLang = config.language.default || "bn";
+      const matchedZone =
+        config.delivery.zones.find((z) => z.id === payload.zone) ||
+        config.delivery.zones.find((z) => z.id === config.delivery.defaultZoneId) ||
+        config.delivery.zones[0];
+      const zoneLabel = matchedZone
+        ? resolveLocalizedText(matchedZone.label, sellerLang)
+        : payload.zone;
+
+      const origin = req.nextUrl.origin || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+      const statusUrl = `${origin}/${payload.slug}/order/${orderToken}`;
+
       const telegramOrderPayload: TelegramOrderPayload = {
         orderNumber,
         createdAtDhakaIso,
@@ -575,7 +598,8 @@ export async function POST(req: NextRequest) {
         phone: phoneRes.normalized,
         address: payload.address,
         district: payload.district,
-        zone: payload.zone,
+        zone: zoneLabel,
+        zoneLabel: zoneLabel,
         productTitle,
         color: colorName,
         size: sizeName,
@@ -589,6 +613,7 @@ export async function POST(req: NextRequest) {
         paidFrom: paidFromPhone,
         note: payload.note,
         confirmationMode: config.confirmationMode || "call",
+        statusUrl,
       };
 
       // 11. External Channels with Step Skipping on Retries
@@ -601,7 +626,13 @@ export async function POST(req: NextRequest) {
 
       const telegramPromise = alreadyTelegramDone
         ? Promise.resolve({ messageId: existingPending?.telegramMessageId || 0 })
-        : sendTelegramOrderMessage(config.telegramChatId, telegramOrderPayload, phoneLimit.repeatPhoneFlag);
+        : sendTelegramOrderMessage(
+            config.telegramChatId,
+            telegramOrderPayload,
+            phoneLimit.repeatPhoneFlag,
+            config.delivery.zones,
+            sellerLang
+          );
 
       const [sheetResult, telegramResult] = await Promise.allSettled([
         sheetPromise,
@@ -692,8 +723,11 @@ export async function POST(req: NextRequest) {
         orderNumber,
         {
           slug: payload.slug,
+          orderNumber,
+          token: orderToken,
           rowRef: updatedRowRef,
           status: "new",
+          customerConfirmed: false,
           telegramChatId: config.telegramChatId,
           telegramMessageId,
           phone: phoneRes.normalized,
@@ -702,9 +736,27 @@ export async function POST(req: NextRequest) {
           paymentStatus: payload.paymentMethod === "cod" ? "COD" : "Unverified",
           trxId: normalizedTrxId,
           paidFrom: paidFromPhone,
+          productTitle,
+          color: colorName,
+          size: sizeName,
+          quantity,
+          unitPrice,
+          deliveryFee,
+          total: codTotal,
+          district: payload.district,
+          zone: payload.zone,
+          zoneLabel,
+          daysMin: matchedZone?.daysMin ?? 2,
+          daysMax: matchedZone?.daysMax ?? 4,
+          createdAtDhakaIso,
+          repeatPhoneFlag: phoneLimit.repeatPhoneFlag,
+          confirmationMode: (config.confirmationMode || "call") as "call" | "tap",
         },
         redis
       );
+
+      // Store ordtoken:<token> -> { slug, orderNumber } with 90-day TTL
+      await storeOrderToken(orderToken, { slug: payload.slug, orderNumber }, redis);
 
       const failedChannels: string[] = [];
       if (!isSheetSuccess) failedChannels.push("sheets");
@@ -771,6 +823,7 @@ export async function POST(req: NextRequest) {
 
       const orderSummary = {
         orderNumber,
+        token: orderToken,
         productTitle,
         color: colorName,
         size: sizeName,
@@ -794,6 +847,7 @@ export async function POST(req: NextRequest) {
           status: "completed",
           payloadHash,
           orderNumber,
+          token: orderToken,
           eventId: orderNumber,
           summary: orderSummary,
         },
@@ -820,6 +874,7 @@ export async function POST(req: NextRequest) {
         ok: true,
         orderNumber,
         eventId: orderNumber,
+        token: orderToken,
         summary: orderSummary,
       });
     } catch (innerError) {

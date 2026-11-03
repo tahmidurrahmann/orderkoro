@@ -140,6 +140,7 @@
   "telegramChatId": "-5233056020",
   "pixelId": "109283746501928",
   "confirmationMode": "call",
+  "customerConfirm": "off",
   "ogImage": "/demo-brand/og.jpg",
   "showPoweredBy": true
 }

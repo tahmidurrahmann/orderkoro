@@ -272,6 +272,7 @@ export const ClientConfigSchema = z
       .regex(/^\d{8,20}$/, { error: "pixelId must be a numeric Meta Pixel ID" })
       .optional(),
     confirmationMode: z.enum(["call", "tap"]),
+    customerConfirm: z.enum(["off", "tap"]).default("off"),
     highValueThreshold: z.number().int().positive().optional(),
     ogImage: z
       .string()

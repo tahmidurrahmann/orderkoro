@@ -129,7 +129,7 @@ export interface CopyDictionary {
   footerRightsReserved: string;
   poweredByText: string;
 
-  // Thank-You Page
+  // Thank-You Page & Receipt
   thanksHeading: string;
   thanksOrderNumberLabel: string;
   thanksCopyOrderNo: string;
@@ -142,6 +142,48 @@ export interface CopyDictionary {
   thanksBackToProduct: string;
   thanksGenericHeading: string;
   thanksGenericBody: string;
+  thanksReceiptHeading: string;
+  thanksDateTimeLabel: string;
+  thanksDeliveryAddressLabel: string;
+  thanksDeliveryZoneLabel: string;
+  thanksPaymentMethodLabel: string;
+  thanksPaymentStatusLabel: string;
+  thanksPaymentPendingVerification: string;
+  thanksPaymentCodNote: string;
+  thanksTrxIdLabel: string;
+  thanksUnitPriceLabel: string;
+  thanksNextStepsHeading: string;
+  thanksNextStepCall: string;
+  thanksNextStepTap: string;
+  thanksDeliveryEstimateNote: string;
+  thanksCopyDetailsButton: string;
+  thanksCopiedDetailsFeedback: string;
+  thanksSaveImageButton: string;
+  thanksSavingImageButton: string;
+  thanksScreenshotHint: string;
+  thanksScreenshotFallbackMessage: string;
+  thanksSellerContactHeading: string;
+  thanksStatusLinkLabel: string;
+  thanksCopyStatusLinkButton: string;
+  thanksCopiedStatusLinkFeedback: string;
+  thanksStatusLinkHint: string;
+  orderStatusHeading: string;
+  orderStatusTimelineHeading: string;
+  orderStatusDetailsHeading: string;
+  orderStatusProgressReceived: string;
+  orderStatusProgressConfirmed: string;
+  orderStatusProgressShipped: string;
+  orderStatusProgressDelivered: string;
+  orderStatusProgressCancelled: string;
+  orderStatusProgressReturned: string;
+  orderStatusConfirmButton: string;
+  orderStatusConfirmingButton: string;
+  orderStatusConfirmedBadge: string;
+  orderStatusSellerWillCall: string;
+  orderStatusAreaLabel: string;
+  orderStatusPhoneLabel: string;
+  orderStatusItemLabel: string;
+  orderStatusTotalLabel: string;
 }
 
 export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
@@ -274,6 +316,48 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     thanksBackToProduct: "পণ্যের পাতায় ফিরে যান",
     thanksGenericHeading: "ধন্যবাদ!",
     thanksGenericBody: "এই মুহূর্তে কোনো নতুন অর্ডারের তথ্য পাওয়া যায়নি। আপনার অর্ডার সম্পর্কে জানতে আমাদের কল করুন অথবা মেসেঞ্জারে মেসেজ দিন।",
+    thanksReceiptHeading: "অর্ডার রসিদ",
+    thanksDateTimeLabel: "তারিখ ও সময়",
+    thanksDeliveryAddressLabel: "ডেলিভারি ঠিকানা",
+    thanksDeliveryZoneLabel: "ডেলিভারি এলাকা",
+    thanksPaymentMethodLabel: "পেমেন্ট মাধ্যম",
+    thanksPaymentStatusLabel: "পেমেন্ট স্ট্যাটাস",
+    thanksPaymentPendingVerification: "বিক্রেতা কর্তৃক যাচাই প্রক্রিয়াধীন",
+    thanksPaymentCodNote: "ক্যাশ অন ডেলিভারি (পণ্য হাতে পেয়ে পরিশোধ)",
+    thanksTrxIdLabel: "ট্রানজেকশন আইডি (TrxID)",
+    thanksUnitPriceLabel: "একক মূল্য",
+    thanksNextStepsHeading: "পরবর্তী ধাপ",
+    thanksNextStepCall: "ডেলিভারির পূর্বে বিক্রেতা আপনাকে ফোন করে অর্ডারটি নিশ্চিত করবেন।",
+    thanksNextStepTap: "বিক্রেতা সরাসরি আপনার অর্ডারটি প্রসেস করবেন এবং দ্রুত কুরিয়ারে পাঠাবেন।",
+    thanksDeliveryEstimateNote: "আনুমানিক ডেলিভারি সময়সীমা: {daysMin} থেকে {daysMax} কার্যদিবস।",
+    thanksCopyDetailsButton: "অর্ডার বিবরণ কপি করুন",
+    thanksCopiedDetailsFeedback: "অর্ডার বিবরণ কপি হয়েছে!",
+    thanksSaveImageButton: "রসিদ ছবি হিসেবে সেভ করুন",
+    thanksSavingImageButton: "ছবি তৈরি হচ্ছে...",
+    thanksScreenshotHint: "রসিদটি সংরক্ষণ করতে একটি স্ক্রিনশট নিয়ে রাখতে পারেন।",
+    thanksScreenshotFallbackMessage: "ছবি ডাউনলোড সম্ভব না হলে একটি স্ক্রিনশট নিয়ে রাখুন।",
+    thanksSellerContactHeading: "বিক্রেতার সাথে যোগাযোগ",
+    thanksStatusLinkLabel: "অর্ডার ট্র্যাকিং লিংক",
+    thanksCopyStatusLinkButton: "লিংক কপি করুন",
+    thanksCopiedStatusLinkFeedback: "লিংক কপি হয়েছে!",
+    thanksStatusLinkHint: "আপনার অর্ডারের বর্তমান অবস্থা দেখতে এই লিংকটি সেভ করে রাখুন",
+    orderStatusHeading: "অর্ডার স্ট্যাটাস",
+    orderStatusTimelineHeading: "অর্ডারের অগ্রগতি",
+    orderStatusDetailsHeading: "অর্ডারের বিবরণ",
+    orderStatusProgressReceived: "অর্ডার গ্রহণ",
+    orderStatusProgressConfirmed: "নিশ্চিতকৃত",
+    orderStatusProgressShipped: "ডেলিভারিতে প্রেরিত",
+    orderStatusProgressDelivered: "ডেলিভারি সম্পন্ন",
+    orderStatusProgressCancelled: "অর্ডার বাতিল",
+    orderStatusProgressReturned: "পণ্য ফেরত",
+    orderStatusConfirmButton: "অর্ডার নিশ্চিত করুন",
+    orderStatusConfirmingButton: "নিশ্চিত করা হচ্ছে...",
+    orderStatusConfirmedBadge: "আপনি অর্ডারটি নিশ্চিত করেছেন",
+    orderStatusSellerWillCall: "অর্ডারটি নিশ্চিত করতে বিক্রেতা আপনার সাথে ফোনে যোগাযোগ করবেন।",
+    orderStatusAreaLabel: "এলাকা",
+    orderStatusPhoneLabel: "ফোন নম্বর",
+    orderStatusItemLabel: "পণ্য",
+    orderStatusTotalLabel: "সর্বমোট",
   },
   en: {
     langToggleBn: "বাং",
@@ -404,6 +488,48 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     thanksBackToProduct: "Back to the product",
     thanksGenericHeading: "Thank You",
     thanksGenericBody: "No recent order details were found in this session. If you placed an order or have a question, please call or message us.",
+    thanksReceiptHeading: "Order Receipt",
+    thanksDateTimeLabel: "Date & Time",
+    thanksDeliveryAddressLabel: "Delivery Address",
+    thanksDeliveryZoneLabel: "Delivery Zone",
+    thanksPaymentMethodLabel: "Payment Method",
+    thanksPaymentStatusLabel: "Payment Status",
+    thanksPaymentPendingVerification: "Payment being verified by seller",
+    thanksPaymentCodNote: "Cash on Delivery (Pay upon delivery)",
+    thanksTrxIdLabel: "Transaction ID (TrxID)",
+    thanksUnitPriceLabel: "Unit Price",
+    thanksNextStepsHeading: "What Happens Next",
+    thanksNextStepCall: "The seller will call you to confirm your order before dispatch.",
+    thanksNextStepTap: "The seller will process and dispatch your order directly.",
+    thanksDeliveryEstimateNote: "Estimated delivery: {daysMin} to {daysMax} business days.",
+    thanksCopyDetailsButton: "Copy order details",
+    thanksCopiedDetailsFeedback: "Order details copied!",
+    thanksSaveImageButton: "Save as image",
+    thanksSavingImageButton: "Generating image...",
+    thanksScreenshotHint: "Take a screenshot to keep your receipt.",
+    thanksScreenshotFallbackMessage: "If saving image is not supported, please take a screenshot.",
+    thanksSellerContactHeading: "Seller Contact",
+    thanksStatusLinkLabel: "Order Tracking Link",
+    thanksCopyStatusLinkButton: "Copy Link",
+    thanksCopiedStatusLinkFeedback: "Link copied!",
+    thanksStatusLinkHint: "Save this link to check your order status",
+    orderStatusHeading: "Order Status",
+    orderStatusTimelineHeading: "Order Progress",
+    orderStatusDetailsHeading: "Order Details",
+    orderStatusProgressReceived: "Order Received",
+    orderStatusProgressConfirmed: "Confirmed",
+    orderStatusProgressShipped: "Shipped",
+    orderStatusProgressDelivered: "Delivered",
+    orderStatusProgressCancelled: "Cancelled",
+    orderStatusProgressReturned: "Returned",
+    orderStatusConfirmButton: "Confirm my order",
+    orderStatusConfirmingButton: "Confirming...",
+    orderStatusConfirmedBadge: "Confirmed by you",
+    orderStatusSellerWillCall: "The seller will call you to confirm your order.",
+    orderStatusAreaLabel: "Area",
+    orderStatusPhoneLabel: "Phone Number",
+    orderStatusItemLabel: "Item",
+    orderStatusTotalLabel: "Total",
   },
 };
 

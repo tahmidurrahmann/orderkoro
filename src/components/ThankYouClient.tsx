@@ -17,9 +17,13 @@ import { getThankYouReassurance } from "@/lib/policy-text";
 import {
   hasFiredPurchaseForOrder,
   markPurchaseFiredForOrder,
-  readOrderSummaryFromSession,
-  type SafeOrderSummary,
 } from "@/lib/order-session";
+import {
+  buildReceiptPlainText,
+  formatDhakaDateTime,
+  readReceiptFromStorage,
+  type StoredReceipt,
+} from "@/lib/receipt";
 import { trackPurchase } from "@/lib/tracking";
 
 interface ThankYouClientProps {
@@ -35,20 +39,27 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
     () => false
   );
 
-  const orderSummary = useSyncExternalStore(
+  // Read stored receipt from sessionStorage or 30-day localStorage
+  const receipt = useSyncExternalStore(
     emptySubscribe,
-    () => readOrderSummaryFromSession(config.slug),
-    () => null as SafeOrderSummary | null
+    () => readReceiptFromStorage(config.slug),
+    () => null as StoredReceipt | null
   );
 
   const initialLang =
-    orderSummary?.language ||
+    receipt?.language ||
     (isHydrated ? getSavedLocale(config.language.default) : config.language.default);
 
   const [customLang, setCustomLang] = useState<SupportedLocale | null>(null);
   const lang = customLang ?? initialLang;
   const isLoaded = isHydrated;
+
   const [copiedOrderNo, setCopiedOrderNo] = useState<boolean>(false);
+  const [copiedStatusLink, setCopiedStatusLink] = useState<boolean>(false);
+  const [copiedDetails, setCopiedDetails] = useState<boolean>(false);
+  const [isSavingImage, setIsSavingImage] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+
   const thankYouReassurance = getThankYouReassurance(config.returnPolicy, lang);
 
   useEffect(() => {
@@ -58,11 +69,11 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
   }, [lang]);
 
   useEffect(() => {
-    if (orderSummary?.orderNumber && !hasFiredPurchaseForOrder(orderSummary.orderNumber)) {
-      markPurchaseFiredForOrder(orderSummary.orderNumber);
-      trackPurchase(orderSummary.orderNumber, orderSummary.total);
+    if (receipt?.orderNumber && !hasFiredPurchaseForOrder(receipt.orderNumber)) {
+      markPurchaseFiredForOrder(receipt.orderNumber);
+      trackPurchase(receipt.orderNumber, receipt.total);
     }
-  }, [orderSummary]);
+  }, [receipt]);
 
   function handleLanguageChange(newLang: SupportedLocale) {
     setCustomLang(newLang);
@@ -85,13 +96,13 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
   const primaryHover = darkenHex(primaryColor, 0.84);
 
   async function handleCopyOrderNumber() {
-    if (!orderSummary) return;
+    if (!receipt) return;
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(orderSummary.orderNumber);
+        await navigator.clipboard.writeText(receipt.orderNumber);
       } else {
         const temp = document.createElement("textarea");
-        temp.value = orderSummary.orderNumber;
+        temp.value = receipt.orderNumber;
         temp.style.position = "fixed";
         temp.style.opacity = "0";
         document.body.appendChild(temp);
@@ -106,27 +117,138 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
     }
   }
 
+  async function handleCopyStatusLink() {
+    if (!receipt?.token) return;
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const statusUrl = `${origin}/${receipt.slug}/order/${receipt.token}`;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(statusUrl);
+      } else {
+        const temp = document.createElement("textarea");
+        temp.value = statusUrl;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+      }
+      setCopiedStatusLink(true);
+      window.setTimeout(() => setCopiedStatusLink(false), 2200);
+    } catch {
+      setCopiedStatusLink(false);
+    }
+  }
+
+  async function handleCopyDetails() {
+    if (!receipt) return;
+    const plainText = buildReceiptPlainText({
+      receipt,
+      brandName: brandNameText,
+      lang,
+      reassurance: thankYouReassurance,
+      phone: config.contact.phone,
+      messengerUsername: config.contact.messengerPageUsername,
+    });
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(plainText);
+      } else {
+        const temp = document.createElement("textarea");
+        temp.value = plainText;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+      }
+      setCopiedDetails(true);
+      window.setTimeout(() => setCopiedDetails(false), 2500);
+    } catch {
+      setCopiedDetails(false);
+    }
+  }
+
+  async function handleSaveImage() {
+    if (!receipt || isSavingImage) return;
+    setIsSavingImage(true);
+    setImageError(null);
+    try {
+      // Lazy load canvas generator strictly on demand so initial JS bundle does not increase
+      const { saveReceiptAsImage } = await import("@/lib/client/receipt-image");
+      const res = await saveReceiptAsImage({
+        receipt,
+        brandName: brandNameText,
+        lang,
+        reassurance: thankYouReassurance,
+        phone: config.contact.phone,
+        messengerUsername: config.contact.messengerPageUsername,
+      });
+      if (!res.success && res.method !== "cancelled") {
+        setImageError(copy.thanksScreenshotFallbackMessage);
+      }
+    } catch {
+      setImageError(copy.thanksScreenshotFallbackMessage);
+    } finally {
+      setIsSavingImage(false);
+    }
+  }
+
   // Exact confirmationMode message ("call" vs "tap"): never says "confirmed" or promises a date
   const confirmationMessage =
-    config.confirmationMode === "call"
+    receipt?.confirmationMode === "call" || config.confirmationMode === "call"
       ? copy.thanksMessageCallMode
       : copy.thanksMessageTapMode;
+
+  const nextStepLine =
+    receipt?.confirmationMode === "call" || config.confirmationMode === "call"
+      ? copy.thanksNextStepCall
+      : copy.thanksNextStepTap;
+
+  const estimateLine = copy.thanksDeliveryEstimateNote
+    .replace("{daysMin}", formatNumber(receipt?.daysMin ?? 2, lang))
+    .replace("{daysMax}", formatNumber(receipt?.daysMax ?? 4, lang));
+
+  const paymentMethodLabel = (() => {
+    switch (receipt?.paymentMethod) {
+      case "bkash":
+        return lang === "bn" ? "বিকাশ (bKash)" : "bKash";
+      case "nagad":
+        return lang === "bn" ? "নগদ (Nagad)" : "Nagad";
+      case "rocket":
+        return lang === "bn" ? "রকেট (Rocket)" : "Rocket";
+      case "cod":
+      default:
+        return copy.thanksPaymentCodNote;
+    }
+  })();
+
+  const hasPhone = Boolean(config.contact.phone && !config.contact.phone.startsWith("TODO"));
+  const hasMessenger = Boolean(
+    config.contact.messengerPageUsername &&
+      !config.contact.messengerPageUsername.startsWith("TODO")
+  );
 
   return (
     <div
       data-lang={lang}
-      data-purchase-eligible={Boolean(orderSummary)}
+      data-purchase-eligible={Boolean(receipt)}
       style={
         {
           "--brand-primary": primaryColor,
           "--brand-primary-hover": primaryHover,
         } as React.CSSProperties
       }
-      className="min-h-screen-safe bg-[var(--bg-canvas)] text-[var(--text-primary)] sm:py-6 lg:py-10"
+      className="min-h-screen-safe bg-[var(--bg-canvas)] text-[var(--text-primary)] sm:py-6 lg:py-10 print:min-h-0 print:py-0 print:bg-white"
     >
-      <div className="mx-auto flex min-h-screen-safe w-full max-w-xl flex-col justify-between bg-[var(--bg-surface)] shadow-[var(--shadow-card)] sm:min-h-0 sm:rounded-2xl sm:border sm:border-[var(--border-subtle)] overflow-hidden">
-        {/* Header */}
-        <header suppressHydrationWarning className="flex min-h-12 items-center justify-between border-b border-[var(--border-subtle)] px-3 min-[360px]:px-4 py-2.5 sm:px-6">
+      <div className="mx-auto flex min-h-screen-safe w-full max-w-xl flex-col justify-between bg-[var(--bg-surface)] shadow-[var(--shadow-card)] sm:min-h-0 sm:rounded-2xl sm:border sm:border-[var(--border-subtle)] overflow-hidden print:max-w-none print:min-h-0 print:border-none print:shadow-none print:rounded-none">
+        {/* Header (hidden in print) */}
+        <header
+          suppressHydrationWarning
+          className="flex min-h-12 items-center justify-between border-b border-[var(--border-subtle)] px-3 min-[360px]:px-4 py-2.5 sm:px-6 print:hidden"
+        >
           <div suppressHydrationWarning className="flex items-center gap-2">
             <Link
               href={`/${config.slug}`}
@@ -188,18 +310,19 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
           )}
         </header>
 
-        <main className="flex-1 px-3 min-[360px]:px-4 py-6 sm:px-6">
+        <main className="flex-1 px-3 min-[360px]:px-4 py-6 sm:px-6 print:p-0">
           {!isLoaded ? (
             <div className="py-12 text-center text-sm text-[var(--text-muted)]">
               ...
             </div>
-          ) : orderSummary ? (
+          ) : receipt ? (
             /* =========================================================
-               ACTIVE ORDER THANK-YOU STATE (Read from sessionStorage)
+               ACTIVE ORDER THANK-YOU & RECEIPT
+               Persisted across sessions & tabs (30-day expiry)
                ========================================================= */
-            <div className="space-y-5">
-              {/* Calm Success Card */}
-              <div className="rounded-[var(--radius-lg)] border border-[#A7F3D0] bg-[var(--status-success-bg)] p-5 text-center">
+            <div className="space-y-5 print:space-y-4">
+              {/* Calm Success Card (hidden in print to keep printed receipt clean) */}
+              <div className="rounded-[var(--radius-lg)] border border-[#A7F3D0] bg-[var(--status-success-bg)] p-5 text-center print:hidden">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#065F46] text-white">
                   <svg
                     aria-hidden="true"
@@ -219,7 +342,7 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
                 <p className="mt-1.5 text-sm font-medium text-[#065F46]/90">
                   {confirmationMessage}
                 </p>
-                {orderSummary.paymentMethod && orderSummary.paymentMethod !== "cod" && (
+                {receipt.paymentMethod && receipt.paymentMethod !== "cod" && (
                   <p className="mt-1.5 text-sm font-medium text-[#065F46]/90">
                     {lang === "bn"
                       ? "ডেলিভারি পাঠানোর পূর্বে বিক্রেতা আপনার পেমেন্ট যাচাই করবেন।"
@@ -239,14 +362,14 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
                       {copy.thanksOrderNumberLabel}
                     </span>
                     <span className="font-mono text-base font-bold tracking-wide text-[var(--text-primary)] select-all">
-                      {orderSummary.orderNumber}
+                      {receipt.orderNumber}
                     </span>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleCopyOrderNumber}
-                    className="ml-auto inline-flex min-h-12 items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3.5 py-2 text-xs font-bold text-[var(--text-primary)] cursor-pointer transition hover:bg-[var(--border-subtle)]"
+                    className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3.5 py-2 text-xs font-bold text-[var(--text-primary)] cursor-pointer transition hover:bg-[var(--border-subtle)]"
                   >
                     <svg
                       aria-hidden="true"
@@ -266,22 +389,114 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
                     </span>
                   </button>
                 </div>
+
+                {/* Order Status Link Card */}
+                {receipt.token && (
+                  <div className="mt-3 rounded-[var(--radius-md)] border border-[#A7F3D0] bg-white p-3 text-left">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <span className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                          {copy.thanksStatusLinkLabel}
+                        </span>
+                        <a
+                          href={`/${receipt.slug}/order/${receipt.token}`}
+                          className="block font-mono text-xs font-semibold text-[var(--brand-primary)] hover:underline truncate"
+                        >
+                          {typeof window !== "undefined" ? window.location.origin : ""}/{receipt.slug}/order/{receipt.token}
+                        </a>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyStatusLink}
+                        className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3.5 py-2 text-xs font-bold text-[var(--text-primary)] cursor-pointer transition hover:bg-[var(--border-subtle)]"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                        <span aria-live="polite">
+                          {copiedStatusLink
+                            ? copy.thanksCopiedStatusLinkFeedback
+                            : copy.thanksCopyStatusLinkButton}
+                        </span>
+                      </button>
+                    </div>
+                    <p className="mt-1.5 text-[11px] font-medium text-[var(--text-secondary)]">
+                      {copy.thanksStatusLinkHint}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Safe Summary Card */}
-              <div className="rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-4">
-                <h2 className="text-sm font-bold text-[var(--text-primary)]">
-                  {copy.thanksSummaryHeading}
-                </h2>
+              {/* What Happens Next Card */}
+              <div className="rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-4 print:border-neutral-300 print:bg-white">
+                <div className="flex items-center gap-2 text-sm font-bold text-[var(--text-primary)]">
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4 text-[var(--brand-primary)] shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span>{copy.thanksNextStepsHeading}</span>
+                </div>
+                <p className="mt-2 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {nextStepLine} {estimateLine}
+                </p>
+              </div>
 
+              {/* Comprehensive Customer Receipt Block */}
+              <div
+                id="order-receipt-card"
+                className="rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-4 sm:p-5 print:rounded-none print:border print:border-neutral-300 print:bg-white print:p-6"
+              >
+                {/* Print-only Header */}
+                <div className="hidden print:block border-b border-neutral-300 pb-4 mb-4 text-center">
+                  <h2 className="text-xl font-bold text-black">{brandNameText}</h2>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600 mt-1">
+                    {copy.thanksReceiptHeading}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border-subtle)] pb-3 print:border-neutral-300">
+                  <div>
+                    <h2 className="text-sm font-bold text-[var(--text-primary)]">
+                      {copy.thanksReceiptHeading}
+                    </h2>
+                    <p className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
+                      #{receipt.orderNumber}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                      {copy.thanksDateTimeLabel}
+                    </span>
+                    <span className="text-xs font-medium text-[var(--text-secondary)]">
+                      {formatDhakaDateTime(receipt.createdAtIso, lang)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Line Items Breakdown */}
                 <dl className="mt-3 space-y-2 text-sm">
                   <div className="flex items-start justify-between gap-3">
                     <dt className="text-[var(--text-secondary)]">
                       {copy.summaryProductRow}
                     </dt>
                     <dd className="text-right font-semibold text-[var(--text-primary)]">
-                      {resolveLocalizedText(orderSummary.productTitle, lang)} ×{" "}
-                      {formatNumber(orderSummary.quantity, lang)}
+                      {resolveLocalizedText(receipt.productTitle, lang)}
                     </dd>
                   </div>
 
@@ -290,50 +505,198 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
                       {copy.summaryVariantRow}
                     </dt>
                     <dd className="text-right font-medium text-[var(--text-primary)]">
-                      {resolveLocalizedText(orderSummary.colorName, lang)} •{" "}
-                      {localizeDigits(orderSummary.sizeName, lang)}
-                    </dd>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] pt-2">
-                    <dt className="text-[var(--text-secondary)]">
-                      {copy.summarySubtotalRow}
-                    </dt>
-                    <dd className="font-semibold text-[var(--text-primary)]">
-                      {formatPrice(orderSummary.subtotal, lang)}
+                      {resolveLocalizedText(receipt.colorName, lang)} •{" "}
+                      {localizeDigits(receipt.sizeName, lang)}
                     </dd>
                   </div>
 
                   <div className="flex items-center justify-between gap-3">
                     <dt className="text-[var(--text-secondary)]">
-                      {copy.summaryDeliveryRow} (
-                      {resolveLocalizedText(orderSummary.deliveryZoneLabel, lang)}
-                      ,{" "}
-                      {lang === "bn"
-                        ? `${formatNumber(orderSummary.daysMin, lang)} থেকে ${formatNumber(orderSummary.daysMax, lang)} কার্যদিবস`
-                        : `${orderSummary.daysMin} to ${orderSummary.daysMax} days`}
-                      )
+                      {copy.quantityLabel}
                     </dt>
-                    <dd className="font-semibold text-[var(--text-primary)]">
-                      {orderSummary.deliveryCharge === 0
-                        ? `${copy.deliveryFreeBadge} (${formatPrice(0, lang)})`
-                        : formatPrice(orderSummary.deliveryCharge, lang)}
+                    <dd className="text-right font-medium text-[var(--text-primary)]">
+                      {formatNumber(receipt.quantity, lang)}
                     </dd>
                   </div>
 
-                  <div className="flex items-baseline justify-between gap-3 border-t border-[var(--border-strong)] pt-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-[var(--text-secondary)]">
+                      {copy.thanksUnitPriceLabel}
+                    </dt>
+                    <dd className="text-right font-medium text-[var(--text-primary)]">
+                      {formatPrice(receipt.unitPrice, lang)}
+                    </dd>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] pt-2 print:border-neutral-300">
+                    <dt className="text-[var(--text-secondary)]">
+                      {copy.summarySubtotalRow}
+                    </dt>
+                    <dd className="font-semibold text-[var(--text-primary)]">
+                      {formatPrice(receipt.subtotal, lang)}
+                    </dd>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-[var(--text-secondary)]">
+                      {copy.summaryDeliveryRow}
+                    </dt>
+                    <dd className="font-semibold text-[var(--text-primary)]">
+                      {receipt.deliveryCharge === 0
+                        ? `${copy.deliveryFreeBadge} (${formatPrice(0, lang)})`
+                        : formatPrice(receipt.deliveryCharge, lang)}
+                    </dd>
+                  </div>
+
+                  <div className="flex items-baseline justify-between gap-3 border-t border-[var(--border-strong)] pt-2.5 print:border-neutral-400">
                     <dt className="text-base font-bold text-[var(--text-primary)]">
                       {copy.summaryTotalRow}
                     </dt>
-                    <dd className="text-xl font-bold text-[var(--brand-primary)]">
-                      {formatPrice(orderSummary.total, lang)}
+                    <dd className="text-xl font-bold text-[var(--brand-primary)] print:text-black">
+                      {formatPrice(receipt.total, lang)}
                     </dd>
                   </div>
                 </dl>
 
-                <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-[var(--border-subtle)]">
-                  {copy.summaryPaymentMethod}
+                {/* Delivery & Payment Details */}
+                <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] space-y-2 text-xs sm:text-sm print:border-neutral-300">
+                  {receipt.deliveryAddress && receipt.deliveryAddress.trim() && (
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1">
+                      <span className="font-semibold text-[var(--text-secondary)]">
+                        {copy.thanksDeliveryAddressLabel}:
+                      </span>
+                      <span className="sm:text-right font-medium text-[var(--text-primary)]">
+                        {receipt.deliveryAddress.trim()}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-[var(--text-secondary)]">
+                      {copy.thanksDeliveryZoneLabel}:
+                    </span>
+                    <span className="font-medium text-[var(--text-primary)]">
+                      {resolveLocalizedText(receipt.deliveryZoneLabel, lang)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-[var(--text-secondary)]">
+                      {copy.thanksPaymentMethodLabel}:
+                    </span>
+                    <span className="font-medium text-[var(--text-primary)]">
+                      {paymentMethodLabel}
+                    </span>
+                  </div>
+
+                  {receipt.paymentMethod && receipt.paymentMethod !== "cod" && (
+                    <>
+                      {receipt.transactionId && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-[var(--text-secondary)]">
+                            {copy.thanksTrxIdLabel}:
+                          </span>
+                          <code className="font-mono bg-white px-2 py-0.5 rounded border border-[var(--border-subtle)] text-[var(--text-primary)] print:border-neutral-300">
+                            {receipt.transactionId}
+                          </code>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-[var(--text-secondary)]">
+                          {copy.thanksPaymentStatusLabel}:
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-amber-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          {copy.thanksPaymentPendingVerification}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Seller contact in receipt */}
+                {(hasPhone || hasMessenger) && (
+                  <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] text-xs text-[var(--text-muted)] space-y-1 print:border-neutral-300">
+                    <span className="block font-semibold text-[var(--text-secondary)]">
+                      {copy.thanksSellerContactHeading}:
+                    </span>
+                    {hasPhone && (
+                      <p>
+                        {lang === "bn" ? "ফোন" : "Phone"}: {config.contact.phone}
+                      </p>
+                    )}
+                    {hasMessenger && (
+                      <p>Messenger: m.me/{config.contact.messengerPageUsername}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Receipt Buttons: Copy Order Details + Save as Image (hidden in print) */}
+              <div className="space-y-2.5 print:hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Copy Order Details Button */}
+                  <button
+                    type="button"
+                    onClick={handleCopyDetails}
+                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white px-4 py-3 text-xs sm:text-sm font-bold text-[var(--text-primary)] cursor-pointer transition hover:bg-[var(--bg-subtle)]"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      className="h-4 w-4 text-[var(--text-secondary)] shrink-0"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>
+                      {copiedDetails
+                        ? copy.thanksCopiedDetailsFeedback
+                        : copy.thanksCopyDetailsButton}
+                    </span>
+                  </button>
+
+                  {/* Save as Image Button (lazy-loaded) */}
+                  <button
+                    type="button"
+                    onClick={handleSaveImage}
+                    disabled={isSavingImage}
+                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-white px-4 py-3 text-xs sm:text-sm font-bold text-[var(--text-primary)] cursor-pointer transition hover:bg-[var(--bg-subtle)] disabled:opacity-60"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      className="h-4 w-4 text-[var(--text-secondary)] shrink-0"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>
+                      {isSavingImage
+                        ? copy.thanksSavingImageButton
+                        : copy.thanksSaveImageButton}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Screenshot Hint */}
+                <p className="text-center text-[11px] sm:text-xs text-[var(--text-muted)]">
+                  💡 {copy.thanksScreenshotHint}
                 </p>
+
+                {/* Image Error Alert (if browser blocked canvas/download) */}
+                {imageError && (
+                  <p className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-center text-xs font-semibold text-amber-800">
+                    {imageError}
+                  </p>
+                )}
               </div>
             </div>
           ) : (
@@ -364,45 +727,49 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
             </div>
           )}
 
-          {/* Action Buttons: Call us, Message us on Messenger, Back to the product */}
-          <div className="mt-6 space-y-2.5">
-            <a
-              href={`tel:${config.contact.phone}`}
-              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--brand-primary)] px-4 py-3 text-sm font-bold text-white cursor-pointer transition hover:bg-[var(--brand-primary-hover)]"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
+          {/* Action Buttons: Call us, Message us on Messenger, Back to the product (hidden in print) */}
+          <div className="mt-6 space-y-2.5 print:hidden">
+            {hasPhone && (
+              <a
+                href={`tel:${config.contact.phone}`}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--brand-primary)] px-4 py-3 text-sm font-bold text-white cursor-pointer transition hover:bg-[var(--brand-primary-hover)]"
               >
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-              </svg>
-              <span>
-                {copy.thanksCallUsButton} ({config.contact.phone})
-              </span>
-            </a>
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                >
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                <span>
+                  {copy.thanksCallUsButton} ({config.contact.phone})
+                </span>
+              </a>
+            )}
 
-            <a
-              href={`https://m.me/${encodeURIComponent(
-                config.contact.messengerPageUsername
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-4 py-3 text-sm font-bold text-[var(--text-primary)] cursor-pointer transition hover:bg-[var(--border-subtle)]"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4 text-[#0084FF]"
-                viewBox="0 0 24 24"
-                fill="currentColor"
+            {hasMessenger && (
+              <a
+                href={`https://m.me/${encodeURIComponent(
+                  config.contact.messengerPageUsername!
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-4 py-3 text-sm font-bold text-[var(--text-primary)] cursor-pointer transition hover:bg-[var(--border-subtle)]"
               >
-                <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.13.26.35.27.57l.05 1.78c.04.57.61.94 1.13.71l1.98-.87c.17-.08.36-.1.55-.06.91.25 1.87.38 2.88.38 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm6 7.46-2.93 4.67c-.47.73-1.47.92-2.17.4l-2.33-1.75a.6.6 0 0 0-.72 0l-3.15 2.39c-.42.32-.97-.18-.69-.63l2.93-4.67c.47-.73 1.47-.92 2.17-.4l2.33 1.75a.6.6 0 0 0 .72 0l3.15-2.39c.42-.32.97.18.69.63z" />
-              </svg>
-              <span>{copy.thanksMessengerButton}</span>
-            </a>
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4 text-[#0084FF]"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.13.26.35.27.57l.05 1.78c.04.57.61.94 1.13.71l1.98-.87c.17-.08.36-.1.55-.06.91.25 1.87.38 2.88.38 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm6 7.46-2.93 4.67c-.47.73-1.47.92-2.17.4l-2.33-1.75a.6.6 0 0 0-.72 0l-3.15 2.39c-.42.32-.97-.18-.69-.63l2.93-4.67c.47-.73 1.47-.92 2.17-.4l2.33 1.75a.6.6 0 0 0 .72 0l3.15-2.39c.42-.32.97.18.69.63z" />
+                </svg>
+                <span>{copy.thanksMessengerButton}</span>
+              </a>
+            )}
 
             <Link
               href={`/${config.slug}`}
@@ -413,8 +780,8 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
           </div>
         </main>
 
-        {/* Footer */}
-        <footer className="border-t border-[var(--border-subtle)] px-4 py-4 text-center text-xs text-[var(--text-muted)] sm:px-5">
+        {/* Footer (hidden in print) */}
+        <footer className="border-t border-[var(--border-subtle)] px-4 py-4 text-center text-xs text-[var(--text-muted)] sm:px-5 print:hidden">
           <div className="mb-2 flex items-center justify-center gap-4 text-xs">
             <Link
               href={`/${config.slug}/privacy`}

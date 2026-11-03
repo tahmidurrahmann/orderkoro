@@ -45,7 +45,17 @@ Collect the following details from a Bangladeshi Facebook seller to create their
 - **Order Confirmation Mode (`confirmationMode`)**:
   - `"call"`: Seller calls every customer to confirm before dispatch.
   - `"tap"`: Seller processes orders directly via Telegram tap without calling first.
-- **High-Value Flag Threshold (`highValueThreshold`, optional)**: BDT total above which Telegram flags the order as high value.
+- **Customer Self-Confirmation Mode (`customerConfirm`)**:
+  - `"off"` (default): Customer self-confirmation button is disabled. Order confirmation depends entirely on the seller.
+  - `"tap"`: Shows a "Confirm my order" button on the customer's read-only order status page (`/[slug]/order/[token]`).
+    - When tapped, records `customerConfirmed: true` in order metadata, edits the seller's Telegram message to show "Customer confirmed via order page", and appends `[Customer Confirmed]` to the Google Sheet note.
+    - Fraud & High-Value Safeguard: Orders at or above `highValueThreshold` or flagged with repeat phone numbers (3rd order in 24 hours) bypass tap confirmation and require a direct seller call.
+- **Customer Order Status Tracking (`/[slug]/order/[token]`)**:
+  - Every order receives a secure, 192-bit cryptographic token with a 90-day validity.
+  - Customers can track progress (Received, Confirmed, Shipped, Delivered, or Cancelled/Returned) without creating an account.
+  - Privacy: The status page never exposes full addresses; it displays only the area (district and zone) and a masked phone number (first 3 and last 3 digits).
+  - Security: Protected with `noindex`, `no-referrer`, `no-store` headers, IP rate limiting, and zero third-party tracking scripts.
+- **High-Value Flag Threshold (`highValueThreshold`, optional)**: BDT total above which Telegram flags the order as high value and blocks automated customer confirmation.
 - **Google Sheet ID (`sheetId`)** & **Telegram Chat ID (`telegramChatId`)** (send `/start` to the shared bot to get the chat ID).
 - **Meta Pixel ID (`pixelId`, optional)**: Numeric Pixel ID if running Facebook conversion ads.
 
