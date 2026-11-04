@@ -268,6 +268,8 @@ export const ClientConfigSchema = z
       .default({ index: true }),
     sheetId: z.string().min(1, { error: "sheetId is required" }),
     telegramChatId: z.string().min(1, { error: "telegramChatId is required" }),
+    demoMode: z.boolean().optional().default(false),
+    sellerTelegramUserId: z.string().optional(),
     pixelId: z
       .string()
       .regex(/^\d{8,20}$/, { error: "pixelId must be a numeric Meta Pixel ID" })
@@ -333,7 +335,12 @@ export type ClientConfig = z.output<typeof ClientConfigSchema>;
  */
 export type PublicClientConfig = Omit<
   ClientConfig,
-  "sheetId" | "telegramChatId" | "highValueThreshold" | "previewToken"
+  | "sheetId"
+  | "telegramChatId"
+  | "highValueThreshold"
+  | "previewToken"
+  | "demoMode"
+  | "sellerTelegramUserId"
 >;
 
 export type ServerClientSecrets = {
@@ -341,35 +348,34 @@ export type ServerClientSecrets = {
   telegramChatId: string;
   highValueThreshold?: number;
   previewToken?: string;
+  demoMode?: boolean;
+  sellerTelegramUserId?: string;
 };
 
 /**
- * Strips server-only secrets (sheetId, telegramChatId, highValueThreshold, previewToken) from a ClientConfig,
- * producing a browser-safe PublicClientConfig.
+ * Strips server-only secrets (sheetId, telegramChatId, highValueThreshold, previewToken, demoMode, sellerTelegramUserId)
+ * from a ClientConfig, producing a browser-safe PublicClientConfig.
  */
 export function toPublicClientConfig(config: ClientConfig): PublicClientConfig {
-  const { sheetId, telegramChatId, highValueThreshold, previewToken, ...publicConfig } = config;
+  const {
+    sheetId,
+    telegramChatId,
+    highValueThreshold,
+    previewToken,
+    demoMode,
+    sellerTelegramUserId,
+    ...publicConfig
+  } = config;
   void sheetId;
   void telegramChatId;
   void highValueThreshold;
   void previewToken;
+  void demoMode;
+  void sellerTelegramUserId;
   return publicConfig;
 }
 
-/**
- * Checks whether a product is effectively sold out:
- * either explicitly marked soldOut: true, or all sizes are unavailable, or all colors are unavailable.
- */
-export function isEffectivelySoldOut(
-  config: Pick<ClientConfig, "soldOut" | "sizes"> & {
-    colors: Array<{ available?: boolean }>;
-  }
-): boolean {
-  if (config.soldOut) return true;
-  if (config.sizes.length > 0 && config.sizes.every((s) => !s.available)) return true;
-  if (config.colors.length > 0 && config.colors.every((c) => c.available === false)) return true;
-  return false;
-}
+export { isEffectivelySoldOut } from "./sold-out";
 
 /**
  * Validates a collection of client configs and ensures no duplicate `slug` or `orderPrefix` collisions exist.

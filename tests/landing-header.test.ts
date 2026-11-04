@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { BRAND_WORDMARK_TEXT } from "@/components/landing/LandingHeader";
+import { LANDING, LANDING_CLAIMS } from "@/lib/landing-config";
 import { LANDING_COPY, getPricingLine } from "@/lib/landing-copy";
 import {
   getSavedLocale,
@@ -7,7 +8,7 @@ import {
   subscribeLocale,
 } from "@/lib/locale-preference";
 
-describe("Landing Page Header, Language Switch, and Copy Unit Tests", () => {
+describe("Landing Page Header, Language Switch, Config, and Copy Unit Tests", () => {
   beforeEach(() => {
     if (typeof window !== "undefined") {
       try {
@@ -21,7 +22,7 @@ describe("Landing Page Header, Language Switch, and Copy Unit Tests", () => {
       expect(BRAND_WORDMARK_TEXT).toBe("OrderKoro");
     });
 
-    it("ensures eyebrow copy has no leading 'OrderKoro •'", () => {
+    it("ensures eyebrow copy has valid strings without leading 'OrderKoro •'", () => {
       expect(LANDING_COPY.eyebrow.bn).not.toMatch(/^OrderKoro\s*•/);
       expect(LANDING_COPY.eyebrow.en).not.toMatch(/^OrderKoro\s*•/);
       expect(LANDING_COPY.eyebrow.bn).toBe("ফেসবুক ও এফ-কমার্স সেলারদের জন্য");
@@ -30,47 +31,114 @@ describe("Landing Page Header, Language Switch, and Copy Unit Tests", () => {
   });
 
   describe("2. Single-Language Landing Copy Completeness", () => {
-    it("has valid bn and en strings for all hero, banner, pricing, and action elements", () => {
-      // Hero headline & subline
-      expect(LANDING_COPY.hero.headline.bn).toBeTruthy();
-      expect(LANDING_COPY.hero.headline.en).toBeTruthy();
-      expect(LANDING_COPY.hero.subline.bn).toBeTruthy();
-      expect(LANDING_COPY.hero.subline.en).toBeTruthy();
+    it("has non-empty bn and en strings for all hero, problem strip, how it works, what you get, demo, pricing, faq, and footer items", () => {
+      // Hero
+      expect(LANDING_COPY.hero.headline.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.headline.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.subline.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.subline.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.primaryCta.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.primaryCta.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.secondaryCta.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.secondaryCta.en.trim()).toBeTruthy();
 
-      // Banner title
-      expect(LANDING_COPY.banner.title.bn).toBeTruthy();
-      expect(LANDING_COPY.banner.title.en).toBeTruthy();
-
-      // Features
-      expect(LANDING_COPY.features.length).toBeGreaterThan(0);
-      for (const f of LANDING_COPY.features) {
-        expect(f.title.bn).toBeTruthy();
-        expect(f.title.en).toBeTruthy();
-        expect(f.body.bn).toBeTruthy();
-        expect(f.body.en).toBeTruthy();
+      // Problem strip
+      expect(LANDING_COPY.problemStrip.items.length).toBe(4);
+      for (const item of LANDING_COPY.problemStrip.items) {
+        expect(item.bn.trim()).toBeTruthy();
+        expect(item.en.trim()).toBeTruthy();
       }
 
-      // Pricing heading
-      expect(LANDING_COPY.pricing.heading.bn).toBe("প্যাকেজ");
-      expect(LANDING_COPY.pricing.heading.en).toBe("Pricing");
+      // How it works
+      expect(LANDING_COPY.howItWorks.steps.length).toBe(3);
+      for (const step of LANDING_COPY.howItWorks.steps) {
+        expect(step.title.bn.trim()).toBeTruthy();
+        expect(step.title.en.trim()).toBeTruthy();
+        expect(step.description.bn.trim()).toBeTruthy();
+        expect(step.description.en.trim()).toBeTruthy();
+      }
 
-      // Actions
-      expect(LANDING_COPY.actions.demoButton.bn).toBe("লাইভ ডেমো দেখুন");
-      expect(LANDING_COPY.actions.demoButton.en).toBe("View Live Demo");
+      // What you get
+      expect(LANDING_COPY.whatYouGet.items.length).toBeGreaterThan(0);
+      for (const item of LANDING_COPY.whatYouGet.items) {
+        expect(item.title.bn.trim()).toBeTruthy();
+        expect(item.title.en.trim()).toBeTruthy();
+        expect(item.description.bn.trim()).toBeTruthy();
+        expect(item.description.en.trim()).toBeTruthy();
+      }
+
+      // Demo block
+      expect(LANDING_COPY.demoBlock.warning.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.demoBlock.warning.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.demoBlock.channelButton.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.demoBlock.channelButton.en.trim()).toBeTruthy();
+
+      // Pricing
+      expect(LANDING_COPY.pricing.earlyCard.scopeText.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.pricing.earlyCard.scopeText.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.pricing.standardCard.features.length).toBeGreaterThan(0);
+      expect(LANDING_COPY.pricing.standardCard.extraCosts.length).toBeGreaterThan(0);
+
+      // FAQ
+      expect(LANDING_COPY.faq.items.length).toBe(6);
+      for (const faq of LANDING_COPY.faq.items) {
+        expect(faq.question.bn.trim()).toBeTruthy();
+        expect(faq.question.en.trim()).toBeTruthy();
+        expect(faq.answer.bn.trim()).toBeTruthy();
+        expect(faq.answer.en.trim()).toBeTruthy();
+      }
 
       // Footer
-      expect(LANDING_COPY.footer.bn).toBeTruthy();
-      expect(LANDING_COPY.footer.en).toBeTruthy();
+      expect(LANDING_COPY.footer.privacy.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.footer.privacy.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.footer.terms.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.footer.terms.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.footer.copyright.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.footer.copyright.en.trim()).toBeTruthy();
     });
 
-    it("computes pricing line for both bn and en correctly", () => {
-      const pricing = getPricingLine();
-      expect(pricing.bn).toContain("সেটআপ");
-      expect(pricing.en).toContain("Setup");
+    it("ensures zero em dashes or en dashes in any copy string", () => {
+      const allText = JSON.stringify(LANDING_COPY);
+      expect(allText).not.toContain("\u2014"); // em dash
+      expect(allText).not.toContain("\u2013"); // en dash
     });
   });
 
-  describe("3. Locale Preference and Storage Safety", () => {
+  describe("3. Honesty and Claim Flag Rules", () => {
+    it("hides Pixel/CAPI benefit card when pixelCapi is false", () => {
+      expect(LANDING_CLAIMS.pixelCapi).toBe(false);
+      const pixelBenefit = LANDING_COPY.whatYouGet.items.find((item) => item.id === "benefit-pixel");
+      expect(pixelBenefit).toBeUndefined();
+    });
+
+    it("displays 'শিগগিরই' in the Pixel FAQ when pixelCapi is false", () => {
+      const pixelFaq = LANDING_COPY.faq.items.find((item) => item.id === "faq-pixel");
+      expect(pixelFaq).toBeDefined();
+      expect(pixelFaq?.answer.bn).toContain("শিগগিরই");
+      expect(pixelFaq?.answer.en).toContain("Coming soon");
+    });
+
+    it("does not render any monthly price when monthly is null", () => {
+      expect(LANDING.monthly).toBeNull();
+      const pricingLine = getPricingLine();
+      expect(pricingLine.bn).not.toContain("মাসিক");
+      expect(pricingLine.en).not.toContain("Monthly");
+    });
+  });
+
+  describe("4. Pricing Early Offer Logic", () => {
+    it("evaluates earlyOfferRemaining correctly", () => {
+      expect(LANDING.earlyOfferRemaining).toBe(5);
+      expect(LANDING.earlyOfferTotal).toBe(5);
+
+      // Helper function simulating card visibility
+      const isEarlyOfferActive = (remaining: number) => remaining > 0;
+      expect(isEarlyOfferActive(5)).toBe(true);
+      expect(isEarlyOfferActive(0)).toBe(false);
+    });
+  });
+
+  describe("5. Locale Preference and Storage Safety", () => {
     it("defaults to 'bn' when no locale is saved", () => {
       expect(getSavedLocale("bn")).toBe("bn");
     });
@@ -97,7 +165,6 @@ describe("Landing Page Header, Language Switch, and Copy Unit Tests", () => {
     });
 
     it("gracefully operates when localStorage is blocked", () => {
-      // Simulate window with blocked localStorage
       const originalWindow = globalThis.window;
       try {
         const mockWindow = {
@@ -111,7 +178,6 @@ describe("Landing Page Header, Language Switch, and Copy Unit Tests", () => {
           value: mockWindow,
         });
 
-        // Does not throw when saving or getting locale
         expect(() => saveLocalePreference("en")).not.toThrow();
         expect(getSavedLocale("bn")).toBe("en");
       } finally {

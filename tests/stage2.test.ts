@@ -48,6 +48,7 @@ describe("OrderPage Stage 2 Unit Tests", () => {
       expect(pub.sheetId).toBeUndefined();
       expect(pub.telegramChatId).toBeUndefined();
       expect(pub.highValueThreshold).toBeUndefined();
+      expect(pub.demoMode).toBeUndefined();
     });
 
     it("throws at startup if MOCK_INTEGRATIONS=1 and NODE_ENV=production", () => {

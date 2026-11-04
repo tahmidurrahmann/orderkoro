@@ -31,17 +31,17 @@ describe("Hardening Unit Tests (Non-E2E)", () => {
       );
     });
 
-    it("throws when ADMIN_TELEGRAM_CHAT_ID equals seller group telegramChatId (-5233056020)", () => {
-      process.env.ADMIN_TELEGRAM_CHAT_ID = "-5233056020";
+    it("throws when ADMIN_TELEGRAM_CHAT_ID equals seller group telegramChatId (-1004447230623)", () => {
+      process.env.ADMIN_TELEGRAM_CHAT_ID = "-1004447230623";
       expect(() => validateAdminTelegramChatId()).toThrow(
-        /ADMIN_TELEGRAM_CHAT_ID \(-5233056020\) must not equal client "demo-brand" telegramChatId/
+        /ADMIN_TELEGRAM_CHAT_ID \(-1004447230623\) must not equal client "(?:demo-brand|test-template)" telegramChatId/
       );
     });
 
-    it("throws when ADMIN_TELEGRAM_CHAT_ID has -100 prefix matching seller group (-1005233056020)", () => {
-      process.env.ADMIN_TELEGRAM_CHAT_ID = "-1005233056020";
+    it("throws when ADMIN_TELEGRAM_CHAT_ID matches seller group without -100 prefix (-4447230623)", () => {
+      process.env.ADMIN_TELEGRAM_CHAT_ID = "-4447230623";
       expect(() => validateAdminTelegramChatId()).toThrow(
-        /ADMIN_TELEGRAM_CHAT_ID \(-1005233056020\) must not equal client "demo-brand" telegramChatId/
+        /ADMIN_TELEGRAM_CHAT_ID \(-4447230623\) must not equal client "(?:demo-brand|test-template)" telegramChatId/
       );
     });
 

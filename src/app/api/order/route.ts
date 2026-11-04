@@ -7,6 +7,8 @@ import { getEnabledPaymentMethods } from "@/lib/payments";
 import { verifyAndRecomputeOrderOnServer } from "@/lib/delivery";
 import {
   acquireIdempotencyKey,
+  checkDemoGlobalRateLimit,
+  checkDemoIpRateLimit,
   checkIpRateLimit,
   checkPhoneRateLimit,
   computeCartDedupeHash,
@@ -501,33 +503,58 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // 10. Rate Limiting: IP (5 per 10m) & Phone (3 per 24h)
-      const ipLimit = await checkIpRateLimit(clientIp, redis);
-      if (!ipLimit.allowed) {
-        logger.warn("IP rate limit exceeded", { clientIp, count: ipLimit.count });
-        return NextResponse.json(
-          {
-            ok: false,
-            error: payload.lang === "bn"
-              ? "অতিরিক্ত চেষ্টার কারণে সাময়িকভাবে ব্লক করা হয়েছে। কিছুক্ষণ পর চেষ্টা করুন।"
-              : "Too many orders from this IP. Please try again later.",
-          },
-          { status: 429 }
-        );
-      }
+      // 10. Rate Limiting: Demo Mode (5/hr per IP, 60/hr global) vs Real Store (5/10m IP, 3/24h Phone)
+      const isDemo = Boolean(config.demoMode);
+      let repeatPhoneFlag = false;
 
-      const phoneLimit = await checkPhoneRateLimit(phoneRes.normalized, redis);
-      if (!phoneLimit.allowed) {
-        logger.warn("Phone rate limit exceeded", { phone: phoneRes.normalized, count: phoneLimit.count });
-        return NextResponse.json(
-          {
-            ok: false,
-            error: payload.lang === "bn"
-              ? "এই নম্বরে আজকের সর্বোচ্চ অর্ডারের সীমা অতিক্রম করেছে।"
-              : "Daily order limit exceeded for this mobile number.",
-          },
-          { status: 429 }
-        );
+      if (isDemo) {
+        const [demoIpLimit, demoGlobalLimit] = await Promise.all([
+          checkDemoIpRateLimit(clientIp, redis),
+          checkDemoGlobalRateLimit(redis),
+        ]);
+        if (!demoIpLimit.allowed || !demoGlobalLimit.allowed) {
+          logger.warn("Demo order rate limit exceeded", {
+            clientIp,
+            ipCount: demoIpLimit.count,
+            globalCount: demoGlobalLimit.count,
+          });
+          return NextResponse.json(
+            {
+              ok: false,
+              error: "ডেমো এখন ব্যস্ত, একটু পরে চেষ্টা করুন",
+            },
+            { status: 429 }
+          );
+        }
+      } else {
+        const ipLimit = await checkIpRateLimit(clientIp, redis);
+        if (!ipLimit.allowed) {
+          logger.warn("IP rate limit exceeded", { clientIp, count: ipLimit.count });
+          return NextResponse.json(
+            {
+              ok: false,
+              error: payload.lang === "bn"
+                ? "অতিরিক্ত চেষ্টার কারণে সাময়িকভাবে ব্লক করা হয়েছে। কিছুক্ষণ পর চেষ্টা করুন।"
+                : "Too many orders from this IP. Please try again later.",
+            },
+            { status: 429 }
+          );
+        }
+
+        const phoneLimit = await checkPhoneRateLimit(phoneRes.normalized, redis);
+        if (!phoneLimit.allowed) {
+          logger.warn("Phone rate limit exceeded", { phone: phoneRes.normalized, count: phoneLimit.count });
+          return NextResponse.json(
+            {
+              ok: false,
+              error: payload.lang === "bn"
+                ? "এই নম্বরে আজকের সর্বোচ্চ অর্ডারের সীমা অতিক্রম করেছে।"
+                : "Daily order limit exceeded for this mobile number.",
+            },
+            { status: 429 }
+          );
+        }
+        repeatPhoneFlag = phoneLimit.repeatPhoneFlag;
       }
 
       // 10b. Order Number Allocation: Reuse from pending record on crash retry, or allocate once
@@ -549,8 +576,8 @@ export async function POST(req: NextRequest) {
         createdAtDhakaIso,
         status: "new",
         name: payload.name,
-        phone: phoneRes.normalized,
-        address: payload.address,
+        phone: isDemo ? "01XXX-XXX***" : phoneRes.normalized,
+        address: isDemo ? "***" : payload.address,
         district: payload.district,
         zone: payload.zone,
         productTitle,
@@ -575,7 +602,7 @@ export async function POST(req: NextRequest) {
         paymentMethod: payload.paymentMethod,
         paymentStatus: (payload.paymentMethod === "cod" ? "COD" : "Unverified") as "COD" | "Unverified",
         trxId: normalizedTrxId,
-        paidFrom: paidFromPhone,
+        paidFrom: isDemo && paidFromPhone ? "01XXX-XXX***" : paidFromPhone,
       };
 
       const sellerLang = config.language.default || "bn";
@@ -595,8 +622,8 @@ export async function POST(req: NextRequest) {
         createdAtDhakaIso,
         status: "new",
         name: payload.name,
-        phone: phoneRes.normalized,
-        address: payload.address,
+        phone: isDemo ? "01XXX-XXX***" : phoneRes.normalized,
+        address: isDemo ? "***" : payload.address,
         district: payload.district,
         zone: zoneLabel,
         zoneLabel: zoneLabel,
@@ -610,10 +637,11 @@ export async function POST(req: NextRequest) {
         paymentMethod: payload.paymentMethod,
         paymentStatus: (payload.paymentMethod === "cod" ? "COD" : "Unverified") as "COD" | "Unverified",
         transactionId: normalizedTrxId,
-        paidFrom: paidFromPhone,
+        paidFrom: isDemo && paidFromPhone ? "01XXX-XXX***" : paidFromPhone,
         note: payload.note,
         confirmationMode: config.confirmationMode || "call",
-        statusUrl,
+        statusUrl: isDemo ? undefined : statusUrl,
+        isDemo,
       };
 
       // 11. External Channels with Step Skipping on Retries
@@ -629,7 +657,7 @@ export async function POST(req: NextRequest) {
         : sendTelegramOrderMessage(
             config.telegramChatId,
             telegramOrderPayload,
-            phoneLimit.repeatPhoneFlag,
+            repeatPhoneFlag,
             config.delivery.zones,
             sellerLang
           );
@@ -730,12 +758,13 @@ export async function POST(req: NextRequest) {
           customerConfirmed: false,
           telegramChatId: config.telegramChatId,
           telegramMessageId,
-          phone: phoneRes.normalized,
+          phone: isDemo ? "01XXX-XXX***" : phoneRes.normalized,
+          address: isDemo ? "***" : payload.address,
           sheetSynced: isSheetSuccess,
           paymentMethod: payload.paymentMethod,
           paymentStatus: payload.paymentMethod === "cod" ? "COD" : "Unverified",
           trxId: normalizedTrxId,
-          paidFrom: paidFromPhone,
+          paidFrom: isDemo && paidFromPhone ? "01XXX-XXX***" : paidFromPhone,
           productTitle,
           color: colorName,
           size: sizeName,
@@ -749,14 +778,16 @@ export async function POST(req: NextRequest) {
           daysMin: matchedZone?.daysMin ?? 2,
           daysMax: matchedZone?.daysMax ?? 4,
           createdAtDhakaIso,
-          repeatPhoneFlag: phoneLimit.repeatPhoneFlag,
+          repeatPhoneFlag,
           confirmationMode: (config.confirmationMode || "call") as "call" | "tap",
+          isDemo,
+          sellerTelegramUserId: config.sellerTelegramUserId,
         },
         redis
       );
 
-      // Store ordtoken:<token> -> { slug, orderNumber } with 90-day TTL
-      await storeOrderToken(orderToken, { slug: payload.slug, orderNumber }, redis);
+      // Store ordtoken:<token> -> { slug, orderNumber } with 90-day TTL (24h for demo)
+      await storeOrderToken(orderToken, { slug: payload.slug, orderNumber }, redis, isDemo ? 86400 : 7776000);
 
       const failedChannels: string[] = [];
       if (!isSheetSuccess) failedChannels.push("sheets");

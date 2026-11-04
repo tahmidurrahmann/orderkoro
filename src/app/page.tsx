@@ -38,11 +38,12 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   const contactUrl = process.env.NEXT_PUBLIC_CONTACT_URL?.trim() || "";
+  const demoAlertsUrl = process.env.NEXT_PUBLIC_DEMO_ALERTS_URL?.trim() || "";
 
   return (
     <>
       <LandingHeader />
-      <LandingBody contactUrl={contactUrl} />
+      <LandingBody contactUrl={contactUrl} demoAlertsUrl={demoAlertsUrl} />
     </>
   );
 }

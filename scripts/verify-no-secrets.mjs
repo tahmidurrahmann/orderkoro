@@ -33,14 +33,28 @@ for (const file of clientFiles) {
   }
 
   // Simulate toPublicClientConfig extraction
-  const { sheetId: _sheetId, telegramChatId: _telegramChatId, ...publicConfig } = raw;
+  const {
+    sheetId: _sheetId,
+    telegramChatId: _telegramChatId,
+    demoMode: _demoMode,
+    sellerTelegramUserId: _sellerTelegramUserId,
+    ...publicConfig
+  } = raw;
   void _sheetId;
   void _telegramChatId;
+  void _demoMode;
+  void _sellerTelegramUserId;
   if ("sheetId" in publicConfig) {
     failures.push(`${file}: publicConfig still contains sheetId property`);
   }
   if ("telegramChatId" in publicConfig) {
     failures.push(`${file}: publicConfig still contains telegramChatId property`);
+  }
+  if ("demoMode" in publicConfig) {
+    failures.push(`${file}: publicConfig still contains demoMode property`);
+  }
+  if ("sellerTelegramUserId" in publicConfig) {
+    failures.push(`${file}: publicConfig still contains sellerTelegramUserId property`);
   }
   if (typeof publicConfig.pixelId !== "string") {
     failures.push(`${file}: publicConfig must keep public pixelId`);

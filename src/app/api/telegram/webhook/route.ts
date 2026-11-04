@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerClientByOrderPrefix, getServerClientSecrets } from "@/lib/server/clients";
+import { getServerClientByOrderPrefix, getServerClientConfig, getServerClientSecrets } from "@/lib/server/clients";
 import { logger } from "@/lib/server/logger";
 import {
   acquireOrderLock,
+  checkDemoTapRateLimit,
   getOrderMeta,
   getRedisDriver,
   releaseOrderLock,
@@ -42,6 +43,12 @@ interface TelegramWebhookUpdate {
   callback_query?: {
     id: string;
     data?: string;
+    from?: {
+      id: number | string;
+      is_bot?: boolean;
+      first_name?: string;
+      username?: string;
+    };
     message?: {
       message_id: number;
       chat: {
@@ -97,6 +104,7 @@ export async function POST(req: NextRequest) {
     const callbackData = String(callbackQuery.data);
     const chatId = String(callbackQuery.message?.chat?.id ?? "");
     const messageId = Number(callbackQuery.message?.message_id);
+    const fromId = String(callbackQuery.from?.id ?? "");
 
     const parsed = parseCallbackData(callbackData);
     if (!parsed) {
@@ -149,7 +157,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true, error: "Client config not found" });
       }
 
-      // 3b. Verify Chat ID equals seller's registered client telegramChatId
+      // 3b. Resolve demo mode and verify Chat ID equals seller's registered client telegramChatId
+      const client = getServerClientConfig(slug);
+      const isDemoOrder = Boolean(meta?.isDemo || secrets.demoMode || client?.demoMode);
+
       const clientChatId = String(meta?.telegramChatId || secrets.telegramChatId || "");
       const adminChatId = getAdminChatId();
       const normalizedChat = chatId.replace(/^-100/, "-");
@@ -160,6 +171,7 @@ export async function POST(req: NextRequest) {
           received: chatId,
           expected: clientChatId,
           orderNumber,
+          isDemoOrder,
         });
         await answerTelegramCallback(
           callbackQueryId,
@@ -170,6 +182,47 @@ export async function POST(req: NextRequest) {
           { ok: true, error: "Unauthorized chat ID", changed: false },
           { status: 200 }
         );
+      }
+
+      // 3c. Callback security: Demo mode vs Real client
+      if (isDemoOrder) {
+        // Any Telegram user is allowed to tap demo orders, but rate-limit to 10 taps/min per user
+        const tapLimit = await checkDemoTapRateLimit(fromId, redis);
+        if (!tapLimit.allowed) {
+          logger.warn("Demo tap rate limit exceeded", { fromId, count: tapLimit.count, orderNumber });
+          await answerTelegramCallback(
+            callbackQueryId,
+            "অনেক বেশি অনুরোধ, একটু পর চেষ্টা করুন",
+            false
+          );
+          return NextResponse.json(
+            { ok: true, error: "Demo tap rate limit exceeded", rateLimited: true, changed: false },
+            { status: 200 }
+          );
+        }
+      } else {
+        // Real client: only the seller may tap status buttons
+        const sellerUserId =
+          secrets.sellerTelegramUserId ||
+          meta?.sellerTelegramUserId ||
+          (!clientChatId.startsWith("-") ? clientChatId : null);
+
+        if (sellerUserId && fromId && fromId !== sellerUserId) {
+          logger.warn("Unauthorized stranger tap on real client order", {
+            fromId,
+            expectedSellerId: sellerUserId,
+            orderNumber,
+          });
+          await answerTelegramCallback(
+            callbackQueryId,
+            "Unauthorized: Only the seller may update order status",
+            false
+          );
+          return NextResponse.json(
+            { ok: true, error: "Unauthorized user ID", changed: false },
+            { status: 200 }
+          );
+        }
       }
 
       if (parsed.type === "payment") {

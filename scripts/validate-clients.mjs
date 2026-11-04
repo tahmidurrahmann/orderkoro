@@ -253,6 +253,15 @@ export function validateSingleClientConfig(cfg, fileName = "config.json") {
   if (typeof cfg.telegramChatId !== "string" || !cfg.telegramChatId.trim()) {
     errors.push(`telegramChatId: required non-empty string`);
   }
+  if (cfg.demoMode !== undefined && typeof cfg.demoMode !== "boolean") {
+    errors.push(`demoMode: must be a boolean if specified`);
+  }
+  if (
+    cfg.sellerTelegramUserId !== undefined &&
+    (typeof cfg.sellerTelegramUserId !== "string" || !cfg.sellerTelegramUserId.trim())
+  ) {
+    errors.push(`sellerTelegramUserId: must be a non-empty string if specified`);
+  }
   if (cfg.confirmationMode !== "call" && cfg.confirmationMode !== "tap") {
     errors.push(`confirmationMode: must be "call" or "tap"`);
   }

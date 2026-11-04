@@ -11,10 +11,8 @@ import React, {
   useSyncExternalStore,
   useEffect,
 } from "react";
-import {
-  isEffectivelySoldOut,
-  type PublicClientConfig,
-} from "@/lib/config-schema";
+import type { PublicClientConfig } from "@/lib/config-schema";
+import { isEffectivelySoldOut } from "@/lib/sold-out";
 import { darkenHex } from "@/lib/contrast";
 import {
   calculateOrderTotals,

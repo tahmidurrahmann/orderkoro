@@ -54,6 +54,10 @@ for (const envKey of envVars) {
   }
 }
 
+// 3. Ensure server-only property keys never appear in client bundles
+secretsToCheck.set("server-only-prop:demoMode", '"demoMode"');
+secretsToCheck.set("server-only-prop:sellerTelegramUserId", '"sellerTelegramUserId"');
+
 function scanDir(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   const files = [];

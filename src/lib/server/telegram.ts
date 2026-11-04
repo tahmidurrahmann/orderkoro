@@ -33,6 +33,7 @@ export interface TelegramOrderPayload {
   note?: string;
   confirmationMode: string;
   statusUrl?: string;
+  isDemo?: boolean;
 }
 
 export function escapeTelegramHtml(text: string): string {
@@ -66,7 +67,11 @@ export function formatTelegramOrderHtml(
 ): string {
   const lines: string[] = [];
 
-  lines.push(`📦 <b>Order #${escapeTelegramHtml(order.orderNumber)}</b>`);
+  if (order.isDemo) {
+    lines.push(`📦 [ডেমো] <b>Order #${escapeTelegramHtml(order.orderNumber)}</b>`);
+  } else {
+    lines.push(`📦 <b>Order #${escapeTelegramHtml(order.orderNumber)}</b>`);
+  }
   lines.push(`Status: <b>${status.toUpperCase()}</b>`);
 
   if (repeatPhoneFlag) {
@@ -79,7 +84,11 @@ export function formatTelegramOrderHtml(
 
   lines.push("");
   lines.push(`👤 <b>Customer:</b> ${escapeTelegramHtml(order.name)}`);
-  lines.push(`📞 <b>Phone:</b> <a href="tel:${escapeTelegramHtml(order.phone)}">${escapeTelegramHtml(order.phone)}</a>`);
+  if (order.isDemo) {
+    lines.push(`📞 <b>Phone:</b> ${escapeTelegramHtml(order.phone)}`);
+  } else {
+    lines.push(`📞 <b>Phone:</b> <a href="tel:${escapeTelegramHtml(order.phone)}">${escapeTelegramHtml(order.phone)}</a>`);
+  }
   lines.push(`📍 <b>Address:</b> ${escapeTelegramHtml(order.address)}, ${escapeTelegramHtml(order.district)} (${escapeTelegramHtml(zoneDisplay)})`);
   lines.push("");
   lines.push(`🛍️ <b>Item:</b> ${escapeTelegramHtml(order.productTitle)}`);
@@ -131,7 +140,7 @@ export function formatTelegramOrderHtml(
   if (order.confirmationMode) {
     lines.push(`📞 <b>Confirmation Mode:</b> ${escapeTelegramHtml(order.confirmationMode)}`);
   }
-  if (order.statusUrl) {
+  if (order.statusUrl && !order.isDemo) {
     lines.push(`🔗 <b>Status Link:</b> <code>${escapeTelegramHtml(order.statusUrl)}</code>`);
   }
 

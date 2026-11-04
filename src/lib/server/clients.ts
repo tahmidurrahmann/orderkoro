@@ -138,5 +138,7 @@ export function getServerClientSecrets(slug: string): ServerClientSecrets | null
     telegramChatId: cfg.telegramChatId,
     highValueThreshold: cfg.highValueThreshold,
     previewToken: cfg.previewToken,
+    demoMode: cfg.demoMode,
+    sellerTelegramUserId: cfg.sellerTelegramUserId,
   };
 }

@@ -547,6 +547,60 @@ export async function checkPhoneRateLimit(
 }
 
 // ---------------------------------------------------------------------
+// Demo Mode Rate Limiting:
+// - Submission IP limit: 5 per hour (3600s)
+// - Submission Global limit: 60 per hour (3600s)
+// - Callback tap limit: 10 per minute (60s) per Telegram user ID
+// ---------------------------------------------------------------------
+export async function checkDemoIpRateLimit(
+  ip: string,
+  driver: RedisDriver = getRedisDriver()
+): Promise<{ allowed: boolean; count: number }> {
+  const key = `rl:demo:ip:${ip}`;
+  const pipe = driver.pipeline();
+  pipe.incr(key);
+  pipe.expire(key, 3600);
+  const results = await pipe.exec();
+  const count = Number(results[0] || 1);
+  return {
+    allowed: count <= 5,
+    count,
+  };
+}
+
+export async function checkDemoGlobalRateLimit(
+  driver: RedisDriver = getRedisDriver()
+): Promise<{ allowed: boolean; count: number }> {
+  const key = `rl:demo:global`;
+  const pipe = driver.pipeline();
+  pipe.incr(key);
+  pipe.expire(key, 3600);
+  const results = await pipe.exec();
+  const count = Number(results[0] || 1);
+  return {
+    allowed: count <= 60,
+    count,
+  };
+}
+
+export async function checkDemoTapRateLimit(
+  telegramUserId: string,
+  driver: RedisDriver = getRedisDriver()
+): Promise<{ allowed: boolean; count: number }> {
+  const cleanId = String(telegramUserId || "").trim();
+  const key = `rl:demo:tap:${cleanId}`;
+  const pipe = driver.pipeline();
+  pipe.incr(key);
+  pipe.expire(key, 60);
+  const results = await pipe.exec();
+  const count = Number(results[0] || 1);
+  return {
+    allowed: count <= 10,
+    count,
+  };
+}
+
+// ---------------------------------------------------------------------
 // Dead Letter Queue: failed:<slug> (14d TTL)
 // ---------------------------------------------------------------------
 export interface DeadLetterOrder {
@@ -582,6 +636,7 @@ export interface OrderMetaRecord {
   telegramChatId?: string;
   telegramMessageId?: number;
   phone?: string;
+  address?: string;
   sheetSynced?: boolean;
   paymentMethod?: string;
   paymentStatus?: "COD" | "Unverified" | "Verified" | "Not received";
@@ -602,15 +657,19 @@ export interface OrderMetaRecord {
   createdAtDhakaIso?: string;
   repeatPhoneFlag?: boolean;
   confirmationMode?: "call" | "tap";
+  isDemo?: boolean;
+  sellerTelegramUserId?: string;
 }
 
 export async function storeOrderMeta(
   orderNumber: string,
   meta: OrderMetaRecord,
-  driver: RedisDriver = getRedisDriver()
+  driver: RedisDriver = getRedisDriver(),
+  ttlSeconds?: number
 ): Promise<void> {
   const key = `ordmeta:${orderNumber}`;
-  await driver.set(key, meta, { ex: 7776000 }); // 90 days
+  const ttl = ttlSeconds ?? (meta.isDemo ? 86400 : 7776000);
+  await driver.set(key, meta, { ex: ttl }); // 24h for demo, 90d for real
 }
 
 export async function getOrderMeta(
@@ -689,10 +748,11 @@ export function generateOrderToken(): string {
 export async function storeOrderToken(
   token: string,
   record: OrderTokenRecord,
-  driver: RedisDriver = getRedisDriver()
+  driver: RedisDriver = getRedisDriver(),
+  ttlSeconds = 7776000
 ): Promise<void> {
   const key = `ordtoken:${token}`;
-  await driver.set(key, record, { ex: 7776000 }); // 90 days TTL (7,776,000s)
+  await driver.set(key, record, { ex: ttlSeconds }); // 90 days default, 24h for demo
 }
 
 export async function getOrderToken(
