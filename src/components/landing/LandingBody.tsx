@@ -233,9 +233,9 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
         {/* 1. HERO SECTION */}
         {/* ================================================================= */}
         <section aria-labelledby="hero-heading" className="pt-2 sm:pt-6">
-          <div className="lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
+          <div className="lg:grid lg:grid-cols-12 gap-6 lg:gap-12 lg:items-center">
             {/* Left Column: Headline, Copy, Action Buttons, Badges */}
-            <div className="lg:col-span-7 text-center lg:text-left space-y-6">
+            <div className="lg:col-span-7 text-left space-y-6">
               {/* Eyebrow badge */}
               <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-1.5 text-xs font-semibold text-[var(--text-secondary)] shadow-xs">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
@@ -251,12 +251,12 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
               </h1>
 
               {/* Subtitle */}
-              <p className="text-base sm:text-lg lg:text-xl text-[var(--text-secondary)] leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              <p className="text-base sm:text-lg lg:text-xl text-[var(--text-secondary)] leading-relaxed max-w-2xl lg:mx-0">
                 {LANDING_COPY.hero.subline[lang]}
               </p>
 
               {/* Primary & Secondary Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2 max-w-md mx-auto lg:mx-0">
+              <div className="flex flex-col sm:flex-row items-center justify-start gap-3.5 pt-2 max-w-md lg:mx-0">
                 <Link
                   href="/demo-brand"
                   className="w-full sm:w-auto flex-1 min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-green)] px-7 py-3.5 text-base font-bold text-white shadow-md hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer"
@@ -289,11 +289,11 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
               </div>
 
               {/* Trust Badges */}
-              <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+              <div className="pt-2 flex flex-wrap items-center justify-start gap-2 sm:gap-3 text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
                 {LANDING_COPY.hero.badges.map((badge, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-1.5 shadow-2xs"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-1 md:px-3 md:py-1.5 shadow-2xs"
                   >
                     <span className="text-emerald-600">
                       <CheckIcon className="h-3.5 w-3.5" />
@@ -305,9 +305,9 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
             </div>
 
             {/* Right Column (Desktop Only): Interactive-style Product Page Showcase */}
-            <div className="lg:col-span-5 hidden lg:block relative">
+            <div className="lg:col-span-5 block relative top-12 lg:top-0">
               {/* Floating Pill Top */}
-              <div className="absolute -top-4 -right-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-emerald-600 text-white px-3.5 py-1.5 text-xs font-bold shadow-lg">
+              <div className="absolute -top-4 -right-2 lg:-right-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-emerald-600 text-white px-3.5 py-1.5 text-xs font-bold shadow-lg">
                 <span>{LANDING_COPY.hero.previewCard.pillSpeed[lang]}</span>
               </div>
 
@@ -315,11 +315,10 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
               <div className="rounded-3xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-6 shadow-xl space-y-4 relative overflow-hidden">
                 <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3 text-xs font-bold text-[var(--text-muted)]">
                   <span className="inline-flex items-center gap-1.5 text-[var(--ok-green)]">
-                    <span className="h-2 w-2 rounded-full bg-[var(--ok-green)]" />
                     {LANDING_COPY.hero.previewCard.badge[lang]}
                   </span>
                   <span className="font-mono text-slate-400">
-                    orderkoro.app/demo
+                    orderkoro.shop/demo-brand
                   </span>
                 </div>
 
@@ -385,7 +384,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
               </div>
 
               {/* Floating Pill Bottom */}
-              <div className="absolute -bottom-4 -left-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-slate-900 text-white px-3.5 py-1.5 text-xs font-semibold shadow-lg">
+              <div className="absolute -bottom-4 -left-2 lg:-left-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-slate-900 text-white px-3.5 py-1.5 text-xs font-semibold shadow-lg">
                 <span>{LANDING_COPY.hero.previewCard.pillSync[lang]}</span>
               </div>
             </div>
@@ -395,7 +394,10 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
         {/* ================================================================= */}
         {/* 2. PROBLEM STRIP */}
         {/* ================================================================= */}
-        <section aria-labelledby="problem-heading" className="space-y-4">
+        <section
+          aria-labelledby="problem-heading"
+          className="space-y-4 pt-12 lg:pt-0"
+        >
           <div>
             <h2
               id="problem-heading"
@@ -498,7 +500,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
         <section aria-labelledby="demo-heading" className="space-y-8">
           <div className="flex flex-col lg:flex-row lg:items-center gap-6">
             {/* Left side on desktop: Heading, Features list, Action buttons */}
-            <div className="flex-1 text-center lg:text-left space-y-6 mb-8 lg:mb-0">
+            <div className="flex-1 text-left space-y-6 mb-8 lg:mb-0">
               <div className="inline-flex items-center gap-1.5 rounded-full bg-sky-100 text-sky-800 px-3.5 py-1 text-xs font-bold">
                 <TelegramIcon className="h-3.5 w-3.5" />
                 <span>{LANDING_COPY.demoBlock.badge[lang]}</span>
@@ -514,7 +516,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
               </p>
 
               {/* Feature bullet list */}
-              <ul className="space-y-2.5 text-xs sm:text-sm text-[var(--text-secondary)] font-medium text-left max-w-md mx-auto lg:mx-0">
+              <ul className="space-y-2.5 text-xs sm:text-sm text-[var(--text-secondary)] font-medium text-left lg:mx-0">
                 {LANDING_COPY.demoBlock.features.map((feat, fIdx) => (
                   <li key={fIdx} className="flex items-start gap-2.5">
                     <span className="text-emerald-600 mt-0.5 shrink-0">
@@ -527,7 +529,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
 
               {/* Actions & Warning */}
               <div className="space-y-3 pt-2">
-                <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 max-w-md mx-auto lg:mx-0">
+                <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 lg:max-w-md lg:mx-0">
                   {hasAlertsUrl && (
                     <a
                       href={demoAlertsUrl}
@@ -560,7 +562,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
                   </Link>
                 </div>
 
-                <p className="text-xs font-medium text-slate-600">
+                <p className="text-xs font-medium text-slate-600 pt-2">
                   ⚠️ {LANDING_COPY.demoBlock.warning[lang]}
                 </p>
                 {hasAlertsUrl && (
@@ -572,7 +574,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
             </div>
 
             {/* Right side: Telegram Window Mockup */}
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 flex">
               <div className="w-full max-w-lg rounded-3xl border border-slate-300 bg-[#eef3f7] p-4 sm:p-6 shadow-xl space-y-4">
                 {/* Telegram Header */}
                 <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
@@ -964,25 +966,25 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
         {/* 8. FINAL CTA */}
         {/* ================================================================= */}
         <section aria-labelledby="final-cta-heading">
-          <div className="rounded-3xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--bg-surface)] via-emerald-50/20 to-[var(--bg-subtle)] p-8 sm:p-12 lg:p-16 text-center space-y-6 shadow-sm">
-            <div className="max-w-xl mx-auto space-y-3">
+          <div className="rounded-3xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--bg-surface)] via-emerald-50/20 to-[var(--bg-subtle)] p-8 text-center space-y-6 shadow-sm flex flex-col lg:flex-row lg:gap-6 justify-between">
+            <div className="flex-1 space-y-3 text-left">
               <h2
                 id="final-cta-heading"
                 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--text-primary)] leading-tight"
               >
                 {LANDING_COPY.finalCta.title[lang]}
               </h2>
-              <p className="text-sm sm:text-base lg:text-lg text-[var(--text-secondary)]">
+              <p className="text-sm text-[var(--text-secondary)]">
                 {LANDING_COPY.finalCta.subtitle[lang]}
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto pt-2">
+            <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
               <a
                 href={effectiveContactUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto flex-1 min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-green)] px-7 py-3.5 text-base font-bold text-white shadow-md hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer"
+                className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-green)] px-7 py-3.5 text-base font-bold text-white shadow-md hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer"
               >
                 <MessengerIcon className="h-5 w-5" />
                 <span>{LANDING_COPY.finalCta.primaryButton[lang]}</span>
@@ -990,7 +992,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
 
               <Link
                 href="/demo-brand"
-                className="w-full sm:w-auto flex-1 min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-strong)] bg-white px-7 py-3.5 text-base font-bold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] active:scale-[0.98] transition-all cursor-pointer"
+                className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-strong)] bg-white px-7 py-3.5 text-base font-bold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] active:scale-[0.98] transition-all cursor-pointer"
               >
                 <span>{LANDING_COPY.finalCta.secondaryButton[lang]}</span>
               </Link>
@@ -1001,16 +1003,8 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
         {/* ================================================================= */}
         {/* FOOTER */}
         {/* ================================================================= */}
-        <footer className="pt-10 border-t border-[var(--border-subtle)] space-y-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 text-center lg:text-left">
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
-              <LandingWordmark />
-              <span className="hidden sm:inline text-slate-300">•</span>
-              <p className="text-xs text-[var(--text-muted)]">
-                {LANDING_COPY.footer.tagline[lang]}
-              </p>
-            </div>
-
+        <footer className="pt-6 border-t border-[var(--border-subtle)]">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 text-left">
             <div className="flex items-center justify-center gap-5 text-xs font-semibold text-[var(--text-secondary)]">
               <Link href="/demo-brand/privacy" className="hover:underline">
                 {LANDING_COPY.footer.privacy[lang]}
@@ -1020,11 +1014,10 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
                 {LANDING_COPY.footer.terms[lang]}
               </Link>
             </div>
+            <p className="text-xs text-[var(--text-secondary)] text-center pt-2">
+              {LANDING_COPY.footer.copyright[lang]}
+            </p>
           </div>
-
-          <p className="text-xs text-[var(--text-secondary)] text-center pt-2">
-            {LANDING_COPY.footer.copyright[lang]}
-          </p>
         </footer>
       </div>
 
@@ -1047,7 +1040,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
             href={effectiveContactUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-[2] min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-green)] px-4 py-2.5 text-xs font-bold text-white shadow-sm active:scale-[0.98] transition-all"
+            className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-green)] px-4 py-2.5 text-xs font-bold text-white shadow-sm active:scale-[0.98] transition-all"
           >
             <MessengerIcon className="h-4 w-4" />
             <span>{LANDING_COPY.stickyBar.messageUs[lang]}</span>

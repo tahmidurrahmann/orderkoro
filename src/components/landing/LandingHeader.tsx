@@ -16,7 +16,7 @@ export function LandingWordmark() {
         alt="OrderKoro"
         width={34}
         height={34}
-        className="h-8.5 w-auto shrink-0"
+        className="h-6.5 md:h-8.5 w-auto shrink-0"
         priority
       />
     </Link>

@@ -20,7 +20,14 @@ export function getPricingLine(): { bn: string; en: string } {
 
 export interface BenefitItem {
   id: string;
-  icon: "telegram" | "sheet" | "speed" | "payment" | "policy" | "protection" | "pixel";
+  icon:
+    | "telegram"
+    | "sheet"
+    | "speed"
+    | "payment"
+    | "policy"
+    | "protection"
+    | "pixel";
   title: {
     bn: string;
     en: string;
@@ -400,12 +407,17 @@ export const LANDING_COPY = {
         lang === "bn"
           ? `প্রথম ${formatNumber(total, "bn")} জন সেলার`
           : `First ${formatNumber(total, "en")} sellers`,
-      price: (amount: number, lang: SupportedLocale) => formatPrice(amount, lang),
+      price: (amount: number, lang: SupportedLocale) =>
+        formatPrice(amount, lang),
       oneTimeLabel: {
         bn: "একবারই",
         en: "one-time",
       },
-      remainingText: (remaining: number, total: number, lang: SupportedLocale) =>
+      remainingText: (
+        remaining: number,
+        total: number,
+        lang: SupportedLocale,
+      ) =>
         lang === "bn"
           ? `বাকি আছে: ${formatNumber(remaining, "bn")}/${formatNumber(total, "bn")}`
           : `Remaining: ${formatNumber(remaining, "en")}/${formatNumber(total, "en")}`,
@@ -435,7 +447,8 @@ export const LANDING_COPY = {
         bn: "কমপ্লিট অর্ডার পেজ সেটআপ",
         en: "Complete order page setup",
       },
-      price: (amount: number, lang: SupportedLocale) => formatPrice(amount, lang),
+      price: (amount: number, lang: SupportedLocale) =>
+        formatPrice(amount, lang),
       includedNote: (months: number, lang: SupportedLocale) =>
         lang === "bn"
           ? `প্রথম ${formatNumber(months, "bn")} মাসের হোস্টিং ও সাপোর্টসহ`
@@ -601,10 +614,6 @@ export const LANDING_COPY = {
     },
   },
   footer: {
-    tagline: {
-      bn: "ফেসবুক সেলারদের জন্য এক পণ্যের ফাস্ট অর্ডার পেজ",
-      en: "Single-product high-converting order pages for Facebook sellers",
-    },
     privacy: {
       bn: "প্রাইভেসি পলিসি",
       en: "Privacy Policy",
