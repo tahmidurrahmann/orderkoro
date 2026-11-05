@@ -497,7 +497,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
                   <ArrowDown className="h-5 w-5" />
                   {L.how.flow.click[lang]}
                 </div>
-                <div className="w-full rounded-2xl bg-[var(--k-green)] px-5 py-5 text-xl font-extrabold text-white">
+                <div className="w-full rounded-2xl bg-[var(--k-green)] px-5 py-5 text-lg md:text-xl font-extrabold text-white">
                   {L.how.flow.page[lang]}
                 </div>
                 <div className="flex items-center gap-2 text-[15px] font-semibold text-[var(--k-muted)]">
@@ -580,7 +580,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
                   href={demoAlertsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-xl bg-white px-6 text-[17px] font-bold text-[var(--k-green)] transition hover:opacity-95 active:scale-[0.98]"
+                  className="inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-xl bg-white px-6 text-[15px] md:text-[17px] font-bold text-[var(--k-green)] transition hover:opacity-95 active:scale-[0.98]"
                 >
                   <SendIcon />
                   <span>{L.proof.channelButton[lang]}</span>
@@ -749,7 +749,9 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
                   className={`${BTN_PRIMARY} w-full`}
                 >
                   <MessengerIcon />
-                  <span>{L.pricing.earlyCard.ctaButton[lang]}</span>
+                  <span className="text-[14px] md:text-[17px]">
+                    {L.pricing.earlyCard.ctaButton[lang]}
+                  </span>
                 </a>
               </div>
             ) : null}
@@ -808,7 +810,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
                 href={contact}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-xl px-6 text-[17px] font-bold transition active:scale-[0.98] ${
+                className={`inline-flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-xl px-6 text-[15px] md:text-[17px] font-bold transition active:scale-[0.98] ${
                   showEarlyOffer
                     ? "border-2 border-[var(--k-line)] bg-white text-[var(--k-ink)] hover:bg-[var(--k-cream)]"
                     : "bg-[var(--k-green)] text-white hover:opacity-95"
@@ -938,9 +940,9 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
       </section>
 
       {/* ============================== FOOTER ============================== */}
-      <footer className="bg-[var(--k-ink)] text-white">
+      <footer className="bg-[var(--k-cream)] text-white">
         <Container className="flex flex-col gap-4 py-9 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-5 text-[15px] font-semibold text-[#D8D6CE]">
+          <div className="flex flex-wrap items-center gap-5 text-[15px] font-semibold text-neutral-950">
             <Link href={LEGAL_LINKS.privacy} className="hover:underline">
               {L.footer.privacy[lang]}
             </Link>
@@ -948,7 +950,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
               {L.footer.terms[lang]}
             </Link>
           </div>
-          <p className="text-sm text-[#BDBAB0]">{L.footer.copyright[lang]}</p>
+          <p className="text-sm text-neutral-950">{L.footer.copyright[lang]}</p>
         </Container>
       </footer>
 
