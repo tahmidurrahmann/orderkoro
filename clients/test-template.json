@@ -1,0 +1,147 @@
+{
+  "slug": "test-template",
+  "orderPrefix": "TMP",
+  "testOnly": true,
+  "brand": {
+    "name": {
+      "bn": "টেস্ট স্টোর",
+      "en": "Test Store"
+    },
+    "logoUrl": {
+      "bn": "/demo-brand/logo-bn.svg",
+      "en": "/demo-brand/logo.svg"
+    },
+    "primaryColor": "#1E3A5F",
+    "accentColor": "#B45309"
+  },
+  "language": {
+    "default": "bn",
+    "allowSwitch": true
+  },
+  "product": {
+    "title": {
+      "bn": "টেস্ট প্রোডাক্ট (সেলার সেটআপ টেমপ্লেট)",
+      "en": "Test Product (Seller Setup Template)"
+    },
+    "price": 1490,
+    "oldPrice": 1850,
+    "shortDescription": {
+      "bn": "এটি একটি টেস্ট ক্লায়েন্ট কনফিগ টেমপ্লেট। সেলার তার নিজস্ব Sheet ও Telegram যুক্ত করে টেস্ট করতে পারবেন।",
+      "en": "This is a test client config template for onboarding and staging tests."
+    },
+    "details": [
+      {
+        "bn": "টেস্ট ফিচার ১",
+        "en": "Test Feature 1"
+      }
+    ],
+    "images": [
+      "/demo-brand/indigo-front.svg",
+      "/demo-brand/indigo-collar.svg",
+      "/demo-brand/indigo-cuff.svg",
+      "/demo-brand/indigo-weave.svg"
+    ],
+    "sizeChartImage": "/demo-brand/size-chart-table.svg",
+    "sizeAdviceText": {
+      "bn": "আপনার সাইজ বেছে নিন।",
+      "en": "Select your best fitting size."
+    }
+  },
+  "colors": [
+    {
+      "id": "deep-indigo",
+      "name": {
+        "bn": "গভীর নীল (Deep Indigo)",
+        "en": "Deep Indigo"
+      },
+      "hex": "#1E3A5F",
+      "images": [
+        "/demo-brand/indigo-front.svg",
+        "/demo-brand/indigo-collar.svg",
+        "/demo-brand/indigo-cuff.svg",
+        "/demo-brand/indigo-weave.svg"
+      ]
+    }
+  ],
+  "sizes": [
+    { "name": "S (38)", "available": true },
+    { "name": "M (40)", "available": true },
+    { "name": "L (42)", "available": true }
+  ],
+  "maxQuantity": 5,
+  "soldOut": false,
+  "delivery": {
+    "zones": [
+      {
+        "id": "dhaka-city",
+        "label": {
+          "bn": "ঢাকা সিটি",
+          "en": "Dhaka City"
+        },
+        "charge": 70,
+        "daysMin": 1,
+        "daysMax": 2
+      },
+      {
+        "id": "outside-dhaka",
+        "label": {
+          "bn": "ঢাকার বাইরে",
+          "en": "Outside Dhaka"
+        },
+        "charge": 130,
+        "daysMin": 2,
+        "daysMax": 4
+      }
+    ],
+    "districtZoneMap": {
+      "Dhaka": "dhaka-city"
+    },
+    "defaultZoneId": "outside-dhaka",
+    "freeDeliveryAbove": 2800,
+    "courierNote": {
+      "bn": "পার্সেল রিসিভ করার সময় দেখে নিন।",
+      "en": "Inspect your parcel upon delivery."
+    }
+  },
+  "returnPolicy": {
+    "return": {
+      "enabled": true,
+      "days": 0
+    },
+    "exchange": {
+      "enabled": true,
+      "days": 3
+    },
+    "returnShippingPaidBy": "customer"
+  },
+  "contact": {
+    "phone": "01900000000",
+    "messengerPageUsername": "teststore",
+    "businessAddress": {
+      "bn": "বাড়ি ১২, রোড ৫, ধানমন্ডি, ঢাকা ১২০৫",
+      "en": "House 12, Road 5, Dhanmondi, Dhaka 1205"
+    }
+  },
+  "payments": {
+    "cod": {
+      "enabled": true
+    },
+    "bkash": {
+      "enabled": true,
+      "number": "01711002233",
+      "type": "personal"
+    }
+  },
+  "status": "active",
+  "seo": {
+    "index": false
+  },
+  "sheetId": "1t6kpHRdTgIPnRbJiKJodSEw5HLMKm1hSx89Z0ggISYI",
+  "telegramChatId": "-5233056020",
+  "sellerTelegramUserId": "5233056020",
+  "pixelId": "109283746501928",
+  "confirmationMode": "call",
+  "customerConfirm": "off",
+  "ogImage": "/demo-brand/og.jpg",
+  "showPoweredBy": true
+}

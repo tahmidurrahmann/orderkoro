@@ -61,6 +61,7 @@ Register the webhook once with Telegram Bot API:
 ```bash
 curl -F "url=https://orders.yourdomain.com/api/telegram/webhook" \
      -F "secret_token=YOUR_TELEGRAM_WEBHOOK_SECRET" \
+     -F 'allowed_updates=["message","callback_query"]' \
      https://api.telegram.org/botYOUR_TELEGRAM_BOT_TOKEN/setWebhook
 ```
 Or run the helper script:

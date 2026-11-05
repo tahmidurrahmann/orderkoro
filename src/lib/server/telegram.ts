@@ -307,3 +307,42 @@ export async function sendAdminTelegramAlert(
   }
   return { ok: true, messageId: data.result?.message_id };
 }
+
+export async function sendTelegramTextMessage(
+  chatId: string | number,
+  text: string,
+  parseMode: "Markdown" | "HTML" = "Markdown"
+): Promise<{ ok: boolean; messageId?: number; description?: string }> {
+  if (process.env.MOCK_INTEGRATIONS === "1") {
+    return { ok: true, messageId: 1003 };
+  }
+
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) {
+    throw new Error("Missing TELEGRAM_BOT_TOKEN");
+  }
+
+  const truncatedText = text.length > 4000 ? text.slice(0, 3950) + "\n...[truncated]" : text;
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+  const res = await fetchWithRetry(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: truncatedText,
+      parse_mode: parseMode,
+      disable_web_page_preview: true,
+    }),
+  });
+
+  const data = (await res.json()) as {
+    ok: boolean;
+    result?: { message_id?: number };
+    description?: string;
+  };
+  if (!res.ok || !data.ok) {
+    return { ok: false, description: data.description || `HTTP ${res.status}` };
+  }
+  return { ok: true, messageId: data.result?.message_id };
+}

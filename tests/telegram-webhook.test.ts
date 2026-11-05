@@ -720,3 +720,209 @@ describe("Demo Alerts Channel Mode & Callback Security", () => {
     expect(publicConfig.telegramChatId).toBeUndefined();
   });
 });
+
+describe("Telegram Webhook /start and /id Chat-ID Helper", () => {
+  const TEST_SECRET = "test_webhook_secret_12345";
+  const PRIVATE_CHAT_ID = "554433221";
+  const GROUP_CHAT_ID = "-100987654321";
+  const OWNER_CHAT = "998877665";
+
+  beforeEach(async () => {
+    vi.stubEnv("MOCK_INTEGRATIONS", "1");
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("TELEGRAM_WEBHOOK_SECRET", TEST_SECRET);
+    vi.stubEnv("OWNER_CHAT_ID", OWNER_CHAT);
+    vi.restoreAllMocks();
+
+    const redis = getRedisDriver();
+    await redis.del(`rl:tg:chat:${PRIVATE_CHAT_ID}`);
+    await redis.del(`rl:tg:chat:${GROUP_CHAT_ID}`);
+    await redis.del("rl:tg:chat:987654321");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it("1. handles private /start, replies with chat ID in monospace and 'প্রাইভেট চ্যাট'", async () => {
+    const sendSpy = vi.spyOn(telegramModule, "sendTelegramTextMessage").mockResolvedValue({ ok: true, messageId: 101 });
+
+    const res = await POST(
+      makeWebhookRequest({
+        message: {
+          text: "/start",
+          chat: { id: Number(PRIVATE_CHAT_ID), type: "private" },
+        },
+      })
+    );
+
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.ok).toBe(true);
+    expect(data.handled).toBe("chat_id_helper");
+    expect(data.chatId).toBe(PRIVATE_CHAT_ID);
+    expect(data.chatType).toBe("private");
+
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    const [sentChatId, sentText, parseMode] = sendSpy.mock.calls[0];
+    expect(sentChatId).toBe(PRIVATE_CHAT_ID);
+    expect(sentText).toContain("✅ আপনার Chat ID:\n`554433221`");
+    expect(sentText).toContain("ধরন: প্রাইভেট চ্যাট");
+    expect(sentText).toContain("এই নম্বরটি কপি করে OrderKoro-কে পাঠান।");
+    expect(sentText).not.toContain("কানেক্ট কোড:");
+    expect(parseMode).toBe("Markdown");
+  });
+
+  it("2. handles group /start@OrderKoro_bot, replies with negative ID and 'গ্রুপ'", async () => {
+    const sendSpy = vi.spyOn(telegramModule, "sendTelegramTextMessage").mockResolvedValue({ ok: true, messageId: 102 });
+
+    const res = await POST(
+      makeWebhookRequest({
+        message: {
+          text: "/start@OrderKoro_bot",
+          chat: { id: Number(GROUP_CHAT_ID), type: "supergroup" },
+        },
+      })
+    );
+
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.ok).toBe(true);
+    expect(data.handled).toBe("chat_id_helper");
+    expect(data.chatType).toBe("group");
+
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    const [sentChatId, sentText] = sendSpy.mock.calls[0];
+    expect(sentChatId).toBe(GROUP_CHAT_ID);
+    expect(sentText).toContain("✅ আপনার Chat ID:\n`-100987654321`");
+    expect(sentText).toContain("ধরন: গ্রুপ");
+    expect(sentText).toContain("এই নম্বরটি কপি করে OrderKoro-কে পাঠান।");
+  });
+
+  it("3. handles /start with payload (e.g. /start BUNON123), includes code and alerts OWNER_CHAT_ID", async () => {
+    const sendSpy = vi.spyOn(telegramModule, "sendTelegramTextMessage").mockResolvedValue({ ok: true, messageId: 103 });
+
+    const res = await POST(
+      makeWebhookRequest({
+        message: {
+          text: "/start BUNON123",
+          chat: { id: Number(PRIVATE_CHAT_ID), type: "private" },
+        },
+      })
+    );
+
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.ok).toBe(true);
+
+    // Should have sent 2 messages: 1 to the user chat, 1 to OWNER_CHAT_ID
+    expect(sendSpy).toHaveBeenCalledTimes(2);
+
+    // Call 1: to user
+    const [userChatId, userText] = sendSpy.mock.calls[0];
+    expect(userChatId).toBe(PRIVATE_CHAT_ID);
+    expect(userText).toContain("✅ আপনার Chat ID:\n`554433221`");
+    expect(userText).toContain("কানেক্ট কোড: `BUNON123`");
+    expect(userText).toContain("ধরন: প্রাইভেট চ্যাট");
+
+    // Call 2: to owner
+    const [ownerChatId, ownerText] = sendSpy.mock.calls[1];
+    expect(ownerChatId).toBe(OWNER_CHAT);
+    expect(ownerText).toBe("New connect: code BUNON123, chat 554433221, type private");
+  });
+
+  it("4. handles /start with payload when OWNER_CHAT_ID is not set (skips owner alert)", async () => {
+    vi.stubEnv("OWNER_CHAT_ID", "");
+    const sendSpy = vi.spyOn(telegramModule, "sendTelegramTextMessage").mockResolvedValue({ ok: true, messageId: 104 });
+
+    const res = await POST(
+      makeWebhookRequest({
+        message: {
+          text: "/start BUNON123",
+          chat: { id: Number(PRIVATE_CHAT_ID), type: "private" },
+        },
+      })
+    );
+
+    expect(res.status).toBe(200);
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(sendSpy.mock.calls[0][0]).toBe(PRIVATE_CHAT_ID);
+  });
+
+  it("5. handles /id command, replies with Chat ID", async () => {
+    const sendSpy = vi.spyOn(telegramModule, "sendTelegramTextMessage").mockResolvedValue({ ok: true, messageId: 105 });
+
+    const res = await POST(
+      makeWebhookRequest({
+        message: {
+          text: "/id",
+          chat: { id: 987654321, type: "private" },
+        },
+      })
+    );
+
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.ok).toBe(true);
+    expect(data.handled).toBe("chat_id_helper");
+    expect(data.chatId).toBe("987654321");
+
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(sendSpy.mock.calls[0][1]).toContain("✅ আপনার Chat ID:\n`987654321`");
+  });
+
+  it("6. silently ignores unrelated messages without echoing or replying", async () => {
+    const sendSpy = vi.spyOn(telegramModule, "sendTelegramTextMessage");
+
+    const res = await POST(
+      makeWebhookRequest({
+        message: {
+          text: "আমার অর্ডারটি কোথায়?",
+          chat: { id: Number(PRIVATE_CHAT_ID), type: "private" },
+        },
+      })
+    );
+
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.ok).toBe(true);
+    expect(data.ignored).toBe(true);
+    expect(sendSpy).not.toHaveBeenCalled();
+  });
+
+  it("7. rate limits chat replies: max 5 replies / minute, 6th is dropped silently", async () => {
+    const sendSpy = vi.spyOn(telegramModule, "sendTelegramTextMessage").mockResolvedValue({ ok: true });
+
+    // Send 5 valid /id requests
+    for (let i = 1; i <= 5; i++) {
+      const res = await POST(
+        makeWebhookRequest({
+          message: {
+            text: "/id",
+            chat: { id: Number(PRIVATE_CHAT_ID), type: "private" },
+          },
+        })
+      );
+      const data = await res.json();
+      expect(data.handled).toBe("chat_id_helper");
+    }
+
+    expect(sendSpy).toHaveBeenCalledTimes(5);
+
+    // 6th request within the same minute should be rate limited
+    const limitedRes = await POST(
+      makeWebhookRequest({
+        message: {
+          text: "/id",
+          chat: { id: Number(PRIVATE_CHAT_ID), type: "private" },
+        },
+      })
+    );
+    const limitedData = await limitedRes.json();
+    expect(limitedData.ok).toBe(true);
+    expect(limitedData.handled).toBe("rate_limited");
+    // Send spy count should NOT increment
+    expect(sendSpy).toHaveBeenCalledTimes(5);
+  });
+});

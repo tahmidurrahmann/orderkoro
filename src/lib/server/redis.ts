@@ -601,6 +601,37 @@ export async function checkDemoTapRateLimit(
 }
 
 // ---------------------------------------------------------------------
+// Telegram Bot Chat Rate Limiting: max 5 replies / minute (60s)
+// ---------------------------------------------------------------------
+export async function checkTelegramChatRateLimit(
+  chatId: string | number,
+  driver: RedisDriver = getRedisDriver(),
+  limit = 5,
+  windowSeconds = 60
+): Promise<{ allowed: boolean; count: number }> {
+  const cleanId = String(chatId || "").trim();
+  const key = `rl:tg:chat:${cleanId}`;
+  const pipe = driver.pipeline();
+  pipe.incr(key);
+  pipe.expire(key, windowSeconds);
+  const results = await pipe.exec();
+  const count = Number(results[0] || 1);
+  return {
+    allowed: count <= limit,
+    count,
+  };
+}
+
+export async function resetTelegramChatRateLimit(
+  chatId: string | number,
+  driver: RedisDriver = getRedisDriver()
+): Promise<void> {
+  const cleanId = String(chatId || "").trim();
+  const key = `rl:tg:chat:${cleanId}`;
+  await driver.del(key);
+}
+
+// ---------------------------------------------------------------------
 // Dead Letter Queue: failed:<slug> (14d TTL)
 // ---------------------------------------------------------------------
 export interface DeadLetterOrder {

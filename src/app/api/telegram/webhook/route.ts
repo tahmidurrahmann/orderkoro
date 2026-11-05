@@ -4,6 +4,7 @@ import { logger } from "@/lib/server/logger";
 import {
   acquireOrderLock,
   checkDemoTapRateLimit,
+  checkTelegramChatRateLimit,
   getOrderMeta,
   getRedisDriver,
   releaseOrderLock,
@@ -28,6 +29,7 @@ import {
   escapeTelegramHtml,
   getAdminChatId,
   sendAdminTelegramAlert,
+  sendTelegramTextMessage,
 } from "@/lib/server/telegram";
 
 export const runtime = "nodejs";
@@ -35,9 +37,20 @@ export const dynamic = "force-dynamic";
 
 interface TelegramWebhookUpdate {
   message?: {
+    message_id?: number;
     text?: string;
     chat: {
       id: number | string;
+      type?: "private" | "group" | "supergroup" | "channel" | string;
+      title?: string;
+      username?: string;
+      first_name?: string;
+    };
+    from?: {
+      id: number | string;
+      is_bot?: boolean;
+      first_name?: string;
+      username?: string;
     };
   };
   callback_query?: {
@@ -87,11 +100,80 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
     }
 
-    // 2. Handle /start command from seller
-    if (update.message?.text?.trim().startsWith("/start")) {
+    // 2. Handle Message updates (/start and /id chat-ID helper)
+    if (update.message) {
+      const rawText = (update.message.text || "").trim();
+      const COMMAND_REGEX = /^\/(start|id)(@\w+)?(\s|$)/i;
+
+      // Ignore every other message silently (no echoing, no AI replies)
+      if (!COMMAND_REGEX.test(rawText)) {
+        return NextResponse.json({ ok: true, ignored: true });
+      }
+
       const chatId = String(update.message.chat.id);
-      logger.info("Seller bot /start received", { chatId });
-      return NextResponse.json({ ok: true, handled: "start_command", chatId });
+      const redis = getRedisDriver();
+
+      // Rate limit per chat: max 5 replies / minute
+      const rateLimit = await checkTelegramChatRateLimit(chatId, redis, 5, 60);
+      if (!rateLimit.allowed) {
+        logger.warn("Telegram bot rate limit exceeded for chat", { chatId, count: rateLimit.count });
+        return NextResponse.json({ ok: true, handled: "rate_limited", chatId });
+      }
+
+      // Determine chat type ("প্রাইভেট চ্যাট" or "গ্রুপ")
+      const chatTypeRaw = update.message.chat.type;
+      const numChatId = Number(update.message.chat.id);
+      const isPrivate =
+        chatTypeRaw === "private" || (!chatTypeRaw && !isNaN(numChatId) && numChatId > 0);
+      const chatType = isPrivate ? "private" : "group";
+      const chatTypeBn = isPrivate ? "প্রাইভেট চ্যাট" : "গ্রুপ";
+
+      // Extract optional payload (e.g. /start BUNON123)
+      const isStart = /^\/start(@\w+)?(\s|$)/i.test(rawText);
+      const payloadMatch = rawText.match(/^\/(?:start|id)(?:@\w+)?(?:\s+(.+))?$/i);
+      const payload = payloadMatch?.[1]?.trim() || "";
+
+      const safeChatId = chatId.replace(/[`\\]/g, "");
+      const safePayload = payload.replace(/[`\\]/g, "");
+
+      let replyText = `✅ আপনার Chat ID:\n\`${safeChatId}\`\n\n`;
+      if (payload) {
+        replyText += `কানেক্ট কোড: \`${safePayload}\`\n`;
+      }
+      replyText += `ধরন: ${chatTypeBn}\n\nএই নম্বরটি কপি করে OrderKoro-কে পাঠান।`;
+
+      // Reply to the SAME chat
+      try {
+        await sendTelegramTextMessage(chatId, replyText, "Markdown");
+      } catch (sendErr) {
+        logger.error("Failed to send Telegram chat ID helper message", {
+          chatId,
+          error: sendErr instanceof Error ? sendErr.message : String(sendErr),
+        });
+      }
+
+      // If /start has a payload and OWNER_CHAT_ID is set, alert the owner
+      const ownerChatId = process.env.OWNER_CHAT_ID?.trim();
+      if (isStart && payload && ownerChatId) {
+        try {
+          await sendTelegramTextMessage(
+            ownerChatId,
+            `New connect: code ${payload}, chat ${chatId}, type ${chatType}`
+          );
+        } catch (ownerErr) {
+          logger.warn("Failed to notify OWNER_CHAT_ID of new connect", {
+            ownerChatId,
+            error: ownerErr instanceof Error ? ownerErr.message : String(ownerErr),
+          });
+        }
+      }
+
+      logger.info("Telegram bot chat-ID helper replied", {
+        chatId,
+        chatType,
+        hasPayload: Boolean(payload),
+      });
+      return NextResponse.json({ ok: true, handled: "chat_id_helper", chatId, chatType });
     }
 
     // 3. Handle Callback Query (Inline Keyboard Buttons)

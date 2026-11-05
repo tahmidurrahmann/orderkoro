@@ -1,4 +1,5 @@
 import demoBrandRaw from "../../clients/demo-brand.json";
+import testTemplateRaw from "../../clients/test-template.json";
 import {
   type ClientConfig,
   type PublicClientConfig,
@@ -12,7 +13,7 @@ const isProduction =
   (process.env.NODE_ENV === "production" ||
     process.env.VERCEL_ENV === "production");
 
-const RAW_CLIENTS: unknown[] = [demoBrandRaw];
+const RAW_CLIENTS: unknown[] = [demoBrandRaw, testTemplateRaw];
 
 const ALL_VALIDATED_CLIENTS: ClientConfig[] =
   validateClientCollection(RAW_CLIENTS);

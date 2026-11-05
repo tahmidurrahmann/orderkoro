@@ -65,6 +65,7 @@ If any secret credential is leaked or exposed:
    ```bash
    curl -F "url=https://<your-domain>/api/telegram/webhook" \
         -F "secret_token=<NEW_SECRET>" \
+        -F 'allowed_updates=["message","callback_query"]' \
         https://api.telegram.org/bot<NEW_TOKEN>/setWebhook
    ```
 8. Redeploy the application.
