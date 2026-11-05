@@ -140,7 +140,7 @@ export function formatTelegramOrderHtml(
   if (order.confirmationMode) {
     lines.push(`📞 <b>Confirmation Mode:</b> ${escapeTelegramHtml(order.confirmationMode)}`);
   }
-  if (order.statusUrl && !order.isDemo) {
+  if (order.statusUrl) {
     lines.push(`🔗 <b>Status Link:</b> <code>${escapeTelegramHtml(order.statusUrl)}</code>`);
   }
 

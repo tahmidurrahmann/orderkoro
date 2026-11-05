@@ -640,7 +640,7 @@ export async function POST(req: NextRequest) {
         paidFrom: isDemo && paidFromPhone ? "01XXX-XXX***" : paidFromPhone,
         note: payload.note,
         confirmationMode: config.confirmationMode || "call",
-        statusUrl: isDemo ? undefined : statusUrl,
+        statusUrl,
         isDemo,
       };
 

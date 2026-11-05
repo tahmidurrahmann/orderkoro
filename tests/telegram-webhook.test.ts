@@ -606,7 +606,7 @@ describe("Demo Alerts Channel Mode & Callback Security", () => {
     expect(data.error).toBe("ডেমো এখন ব্যস্ত, একটু পরে চেষ্টা করুন");
   });
 
-  it("7. demo order masks phone and address in Sheet and Telegram, and omits statusUrl", async () => {
+  it("7. demo order masks phone and address in Sheet and Telegram, and includes statusUrl for testing", async () => {
     let capturedSheetRow: unknown[] = [];
     let capturedTelegramPayload: telegramModule.TelegramOrderPayload | null = null;
 
@@ -650,15 +650,15 @@ describe("Demo Alerts Channel Mode & Callback Security", () => {
     expect(capturedTelegramPayload!.phone).toBe("01XXX-XXX***");
     expect(capturedTelegramPayload!.address).toBe("***");
     expect(capturedTelegramPayload!.isDemo).toBe(true);
-    expect(capturedTelegramPayload!.statusUrl).toBeUndefined();
+    expect(capturedTelegramPayload!.statusUrl).toContain("/demo-brand/order/");
 
-    // Verify formatted HTML has [ডেমো] and no status link or tel: link
+    // Verify formatted HTML has [ডেমো], masked phone, no tel: link, and includes status link
     const formattedHtml = telegramModule.formatTelegramOrderHtml(capturedTelegramPayload!);
     expect(formattedHtml).toContain("[ডেমো]");
     expect(formattedHtml).toContain("01XXX-XXX***");
     expect(formattedHtml).not.toContain("tel:01");
-    expect(formattedHtml).not.toContain("Status Link:");
-    expect(formattedHtml).not.toContain("order/");
+    expect(formattedHtml).toContain("Status Link:");
+    expect(formattedHtml).toContain("/demo-brand/order/");
 
     // Verify Redis metadata stores masked PII and isDemo flag
     const meta = await getOrderMeta(data.orderNumber, getRedisDriver());

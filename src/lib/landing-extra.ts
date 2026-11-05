@@ -58,8 +58,8 @@ export const CONTACT_PHONE: string | null = null;
 
 /** Footer links. Change to "/privacy" and "/terms" once OrderKoro's own pages exist. */
 export const LEGAL_LINKS = {
-  privacy: "/demo-brand/privacy",
-  terms: "/demo-brand/terms",
+  privacy: "/privacy",
+  terms: "/terms",
 };
 
 export const DEMO_PATH = "/demo-brand";
