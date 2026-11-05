@@ -1,5 +1,4 @@
 import demoBrandRaw from "../../clients/demo-brand.json";
-import testTemplateRaw from "../../clients/test-template.json";
 import {
   type ClientConfig,
   type PublicClientConfig,
@@ -10,22 +9,24 @@ import {
 
 const isProduction =
   typeof process !== "undefined" &&
-  (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production");
+  (process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production");
 
-const RAW_CLIENTS: unknown[] = [demoBrandRaw, testTemplateRaw];
+const RAW_CLIENTS: unknown[] = [demoBrandRaw];
 
-const ALL_VALIDATED_CLIENTS: ClientConfig[] = validateClientCollection(RAW_CLIENTS);
+const ALL_VALIDATED_CLIENTS: ClientConfig[] =
+  validateClientCollection(RAW_CLIENTS);
 
 const VALIDATED_CLIENTS: ClientConfig[] = isProduction
   ? ALL_VALIDATED_CLIENTS.filter((c) => !c.testOnly)
   : ALL_VALIDATED_CLIENTS;
 
 const CLIENT_BY_SLUG = new Map<string, ClientConfig>(
-  VALIDATED_CLIENTS.map((c) => [c.slug, c])
+  VALIDATED_CLIENTS.map((c) => [c.slug, c]),
 );
 
 const CLIENT_BY_PREFIX = new Map<string, ClientConfig>(
-  VALIDATED_CLIENTS.map((c) => [c.orderPrefix, c])
+  VALIDATED_CLIENTS.map((c) => [c.orderPrefix, c]),
 );
 
 export function getAllClients(): ClientConfig[] {

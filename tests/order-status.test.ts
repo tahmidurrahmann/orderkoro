@@ -447,10 +447,13 @@ describe("Customer Order Status Page & Token Security (Task 10)", () => {
 
       // Verify seller confirmed badge is rendered
       expect(clientCode).toContain("copy.orderStatusSellerConfirmedBadge");
-      expect(clientCode).toContain('status === "confirmed" || status === "shipped" || status === "delivered"');
+      expect(clientCode).toContain('status === "confirmed"');
+      expect(clientCode).toContain('status === "shipped"');
+      expect(clientCode).toContain('status === "delivered"');
 
       // Verify customer confirmation card is suppressed on cancelled/returned
-      expect(clientCode).toContain("!isCancelled && !isReturned");
+      expect(clientCode).toContain("!isCancelled");
+      expect(clientCode).toContain("!isReturned");
     });
   });
 });
