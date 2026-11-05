@@ -1,0 +1,449 @@
+/* src/components/order-alert-demo.css
+   Keyframes for <OrderAlertDemo />. One shared 14s timeline; every element uses percentages of it.
+   1s = 7.14%.  Scene 1: 0-32%  Scene 2: 34-66%  Scene 3: 68-98% */
+
+.oad {
+  --oad-d: 14s;
+}
+
+.oad-a {
+  animation-duration: var(--oad-d);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  animation-timing-function: linear;
+  animation-delay: var(--oad-delay, 0s);
+}
+.oad[data-playing="false"] .oad-a {
+  animation-play-state: paused;
+}
+
+.oad-scene {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* ---- scenes + captions ---- */
+.oad-s1 {
+  animation-name: oad-s1;
+}
+.oad-s2 {
+  animation-name: oad-s2;
+}
+.oad-s3 {
+  animation-name: oad-s3;
+}
+@keyframes oad-s1 {
+  0% {
+    opacity: 0;
+    visibility: visible;
+  }
+  2%,
+  31% {
+    opacity: 1;
+    visibility: visible;
+  }
+  33%,
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes oad-s2 {
+  0%,
+  33% {
+    opacity: 0;
+    visibility: hidden;
+  }
+  35%,
+  65% {
+    opacity: 1;
+    visibility: visible;
+  }
+  67%,
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes oad-s3 {
+  0%,
+  67% {
+    opacity: 0;
+    visibility: hidden;
+  }
+  69%,
+  97% {
+    opacity: 1;
+    visibility: visible;
+  }
+  99%,
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.oad-dot1 {
+  animation-name: oad-dot1;
+}
+.oad-dot2 {
+  animation-name: oad-dot2;
+}
+.oad-dot3 {
+  animation-name: oad-dot3;
+}
+@keyframes oad-dot1 {
+  0%,
+  33% {
+    background-color: #0a694b;
+    width: 24px;
+  }
+  34%,
+  100% {
+    background-color: #ddd9cf;
+    width: 8px;
+  }
+}
+@keyframes oad-dot2 {
+  0%,
+  33% {
+    background-color: #ddd9cf;
+    width: 8px;
+  }
+  34%,
+  66% {
+    background-color: #0a694b;
+    width: 24px;
+  }
+  67%,
+  100% {
+    background-color: #ddd9cf;
+    width: 8px;
+  }
+}
+@keyframes oad-dot3 {
+  0%,
+  66% {
+    background-color: #ddd9cf;
+    width: 8px;
+  }
+  67%,
+  98% {
+    background-color: #0a694b;
+    width: 24px;
+  }
+  99%,
+  100% {
+    background-color: #ddd9cf;
+    width: 8px;
+  }
+}
+
+/* ---- scene 1: customer order page ---- */
+.oad-type-name {
+  animation-name: oad-type-name;
+  animation-timing-function: steps(10, end);
+}
+@keyframes oad-type-name {
+  0%,
+  4% {
+    clip-path: inset(0 100% 0 0);
+  }
+  11%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.oad-type-phone {
+  animation-name: oad-type-phone;
+  animation-timing-function: steps(10, end);
+}
+@keyframes oad-type-phone {
+  0%,
+  12% {
+    clip-path: inset(0 100% 0 0);
+  }
+  18%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.oad-size-pick {
+  animation-name: oad-size-pick;
+}
+@keyframes oad-size-pick {
+  0%,
+  21% {
+    background-color: #f5f4f0;
+    color: #1b1b18;
+    border-color: #ddd9cf;
+  }
+  22%,
+  100% {
+    background-color: #0a694b;
+    color: #ffffff;
+    border-color: #0a694b;
+  }
+}
+.oad-btn-tap {
+  animation-name: oad-btn-tap;
+}
+@keyframes oad-btn-tap {
+  0%,
+  27% {
+    transform: scale(1);
+    background-color: #0a694b;
+  }
+  28.5% {
+    transform: scale(0.96);
+    background-color: #064a35;
+  }
+  30%,
+  100% {
+    transform: scale(1);
+    background-color: #0a694b;
+  }
+}
+.oad-cur1 {
+  animation-name: oad-cur1;
+}
+@keyframes oad-cur1 {
+  0%,
+  15% {
+    opacity: 0;
+    left: 80%;
+    top: 50%;
+    transform: scale(1);
+  }
+  17% {
+    opacity: 1;
+    left: 80%;
+    top: 50%;
+    transform: scale(1);
+  }
+  20% {
+    opacity: 1;
+    left: 40%;
+    top: 35%;
+    transform: scale(1);
+  }
+  21% {
+    transform: scale(0.8);
+  }
+  22.5% {
+    transform: scale(1);
+  }
+  26% {
+    opacity: 1;
+    left: 52%;
+    top: 90%;
+    transform: scale(1);
+  }
+  27.5% {
+    transform: scale(0.8);
+  }
+  29% {
+    transform: scale(1);
+  }
+  31%,
+  100% {
+    opacity: 0;
+    left: 52%;
+    top: 90%;
+  }
+}
+
+/* ---- scene 2: telegram alert ---- */
+.oad-bubble {
+  animation-name: oad-bubble;
+}
+@keyframes oad-bubble {
+  0%,
+  35% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  39%,
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.oad-status-new {
+  animation-name: oad-status-new;
+}
+@keyframes oad-status-new {
+  0%,
+  53% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+.oad-status-done {
+  animation-name: oad-status-done;
+}
+@keyframes oad-status-done {
+  0%,
+  54% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  57%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.oad-btn-confirm {
+  animation-name: oad-btn-confirm;
+}
+@keyframes oad-btn-confirm {
+  0%,
+  51% {
+    background-color: #f5f4f0;
+    color: #1b1b18;
+    border-color: #ddd9cf;
+    transform: scale(1);
+  }
+  52.5% {
+    transform: scale(0.95);
+  }
+  54%,
+  100% {
+    background-color: #0a694b;
+    color: #ffffff;
+    border-color: #0a694b;
+    transform: scale(1);
+  }
+}
+.oad-btn-other {
+  animation-name: oad-btn-other;
+}
+@keyframes oad-btn-other {
+  0%,
+  54% {
+    opacity: 1;
+  }
+  57%,
+  100% {
+    opacity: 0.35;
+  }
+}
+.oad-cur2 {
+  animation-name: oad-cur2;
+}
+@keyframes oad-cur2 {
+  0%,
+  43% {
+    opacity: 0;
+    left: 75%;
+    top: 62%;
+    transform: scale(1);
+  }
+  45% {
+    opacity: 1;
+    left: 75%;
+    top: 62%;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    left: 19%;
+    top: 77%;
+    transform: scale(1);
+  }
+  51.5% {
+    transform: scale(0.8);
+  }
+  53% {
+    transform: scale(1);
+  }
+  58% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0;
+    left: 19%;
+    top: 77%;
+  }
+}
+.oad-call-note {
+  animation-name: oad-call-note;
+}
+@keyframes oad-call-note {
+  0%,
+  41% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  44%,
+  49% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---- scene 3: google sheet ---- */
+.oad-row-new {
+  animation-name: oad-row-new;
+}
+@keyframes oad-row-new {
+  0%,
+  70% {
+    opacity: 0;
+    transform: translateY(-10px);
+    background-color: #cfe8dc;
+  }
+  74% {
+    opacity: 1;
+    transform: translateY(0);
+    background-color: #cfe8dc;
+  }
+  90%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    background-color: #e6f1ec;
+  }
+}
+.oad-saved {
+  animation-name: oad-saved;
+}
+@keyframes oad-saved {
+  0%,
+  76% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  80%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- reduced motion: show one finished frame instead ---- */
+.oad-static {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .oad-motion {
+    display: none !important;
+  }
+  .oad-static {
+    display: block;
+  }
+  .oad-pause {
+    display: none !important;
+  }
+}

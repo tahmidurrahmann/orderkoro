@@ -63,70 +63,144 @@ export const LANDING_COPY = {
     },
     primaryCta: { bn: "ডেমো অর্ডার করে দেখুন", en: "Try a demo order" },
     secondaryCta: { bn: "মেসেজ করুন", en: "Message us" },
-    // Sample card shown on the right until a real screenshot is set in landing-extra.ts.
-    // Keep the fields in line with your real Telegram alert, and keep it labelled as a sample.
-    sample: {
-      tag: {
-        bn: "নমুনা অ্যালার্ট · ডেমো ডেটা",
-        en: "Sample alert · demo data",
+    // Animated demo shown in the hero (see OrderAlertDemo.tsx). Sample data only.
+    // Keep the alert fields in line with your real Telegram alert.
+    anim: {
+      badge: { bn: "নমুনা · ডেমো ডেটা", en: "Sample · demo data" },
+      ariaLabel: {
+        bn: "১৪ সেকেন্ডের অ্যানিমেশন: কাস্টমার পেজে অর্ডার করে, টেলিগ্রামে অ্যালার্ট আসে, বিক্রেতা বাটনে ট্যাপ করে কনফার্ম করেন এবং অর্ডার গুগল শিটে জমা হয়",
+        en: "14-second animation: a customer orders on the page, a Telegram alert arrives, the seller taps Confirm, and the order is saved to Google Sheet",
       },
-      botName: "OrderKoro Bot",
-      heading: { bn: "নতুন অর্ডার", en: "New order" },
-      orderNo: "BNN-1042",
-      status: "NEW",
-      rows: [
+      pause: { bn: "অ্যানিমেশন থামান", en: "Pause animation" },
+      play: { bn: "অ্যানিমেশন চালান", en: "Play animation" },
+      steps: [
         {
-          label: { bn: "কাস্টমার", en: "Customer" },
-          value: { bn: "তানজিম আহমেদ", en: "Tanzim Ahmed" },
-        },
-        {
-          label: { bn: "ফোন", en: "Phone" },
-          value: { bn: "01XXX-XXX***", en: "01XXX-XXX***" },
-        },
-        {
-          label: { bn: "এলাকা", en: "Area" },
-          value: { bn: "***, ঢাকা সিটি", en: "***, Dhaka City" },
-        },
-        {
-          label: { bn: "পণ্য", en: "Item" },
-          value: {
-            bn: "প্রিমিয়াম সুতি পাঞ্জাবি",
-            en: "Premium Cotton Panjabi",
+          n: "১",
+          nEn: "1",
+          text: {
+            bn: "কাস্টমার আপনার পেজে অর্ডার করে",
+            en: "The customer orders on your page",
           },
         },
         {
-          label: { bn: "রঙ ও সাইজ", en: "Colour & size" },
-          value: { bn: "গভীর নীল, L (42)", en: "Deep Indigo, L (42)" },
+          n: "২",
+          nEn: "2",
+          text: {
+            bn: "টেলিগ্রামে অ্যালার্ট আসে, বাটনে ট্যাপ করে কনফার্ম",
+            en: "A Telegram alert arrives; tap to confirm",
+          },
         },
         {
-          label: { bn: "পেমেন্ট", en: "Payment" },
-          value: { bn: "ক্যাশ অন ডেলিভারি", en: "Cash on Delivery" },
+          n: "৩",
+          nEn: "3",
+          text: {
+            bn: "অর্ডার আপনার গুগল শিটে জমা হয়",
+            en: "The order is saved to your Google Sheet",
+          },
         },
       ],
-      totalLabel: { bn: "মোট", en: "Total" },
-      totalValue: { bn: "৳১,৫৬০", en: "৳1,560" },
-      totalNote: { bn: "(১,৪৯০ + ডেলিভারি ৭০)", en: "(1,490 + 70 delivery)" },
-      buttons: [
-        { bn: "কনফার্ম", en: "Confirm" },
-        { bn: "ফোন ধরেনি", en: "No answer" },
-        { bn: "ক্যানসেল", en: "Cancel" },
-      ],
-      sheetTitle: {
-        bn: "একই অর্ডার আপনার গুগল শিটে",
-        en: "The same order in your Google Sheet",
+      page: {
+        brand: { bn: "বুনন", en: "Bunon Atelier" },
+        product: {
+          bn: "প্রিমিয়াম সুতি পাঞ্জাবি",
+          en: "Premium Cotton Panjabi",
+        },
+        price: { bn: "৳১,৪৯০", en: "৳1,490" },
+        colorLabel: { bn: "রঙ: গভীর নীল", en: "Colour: Deep Indigo" },
+        sizeLabel: { bn: "সাইজ", en: "Size" },
+        sizes: ["S (38)", "M (40)", "L (42)", "XL (44)"],
+        nameLabel: { bn: "আপনার নাম", en: "Your name" },
+        nameValue: { bn: "তানজিম আহমেদ", en: "Tanzim Ahmed" },
+        phoneLabel: { bn: "মোবাইল নম্বর", en: "Mobile number" },
+        phoneValue: "01XXX-XXXXXX",
+        delivery: {
+          bn: "ঢাকা সিটি · ডেলিভারি ৳৭০",
+          en: "Dhaka City · delivery ৳70",
+        },
+        totalLabel: { bn: "মোট", en: "Total" },
+        totalValue: { bn: "৳১,৫৬০", en: "৳1,560" },
+        cta: { bn: "অর্ডার কনফার্ম করুন", en: "Confirm order" },
       },
-      sheetCols: [
-        { bn: "অর্ডার", en: "Order" },
-        { bn: "কাস্টমার", en: "Customer" },
-        { bn: "সাইজ", en: "Size" },
-        { bn: "মোট", en: "Total" },
-      ],
-      sheetRow: [
-        { bn: "BNN-1042", en: "BNN-1042" },
-        { bn: "তানজিম আহমেদ", en: "Tanzim Ahmed" },
-        { bn: "L (42)", en: "L (42)" },
-        { bn: "৳১,৫৬০", en: "৳1,560" },
-      ],
+      alert: {
+        botName: "OrderKoro Bot",
+        now: { bn: "এখন", en: "now" },
+        heading: { bn: "নতুন অর্ডার", en: "New order" },
+        orderNo: "BNN-1042",
+        statusNew: "NEW",
+        statusDone: "CONFIRMED",
+        rows: [
+          {
+            label: { bn: "কাস্টমার", en: "Customer" },
+            value: { bn: "তানজিম আহমেদ", en: "Tanzim Ahmed" },
+          },
+          {
+            label: { bn: "ফোন", en: "Phone" },
+            value: { bn: "01XXX-XXX***", en: "01XXX-XXX***" },
+          },
+          {
+            label: { bn: "এলাকা", en: "Area" },
+            value: { bn: "***, ঢাকা সিটি", en: "***, Dhaka City" },
+          },
+          {
+            label: { bn: "পণ্য", en: "Item" },
+            value: {
+              bn: "প্রিমিয়াম সুতি পাঞ্জাবি × ১",
+              en: "Premium Cotton Panjabi × 1",
+            },
+          },
+          {
+            label: { bn: "রঙ, সাইজ", en: "Colour, size" },
+            value: { bn: "গভীর নীল, L (42)", en: "Deep Indigo, L (42)" },
+          },
+          {
+            label: { bn: "ডেলিভারি", en: "Delivery" },
+            value: { bn: "৳৭০", en: "৳70" },
+          },
+          {
+            label: { bn: "পেমেন্ট", en: "Payment" },
+            value: { bn: "ক্যাশ অন ডেলিভারি", en: "Cash on Delivery" },
+          },
+        ],
+        totalLabel: { bn: "মোট", en: "Total" },
+        totalValue: { bn: "৳১,৫৬০", en: "৳1,560" },
+        buttons: [
+          { bn: "কনফার্ম", en: "Confirm" },
+          { bn: "ফোন ধরেনি", en: "No answer" },
+          { bn: "ক্যানসেল", en: "Cancel" },
+        ],
+        callNote: {
+          bn: "কাস্টমারকে কল করে, বাটনে ট্যাপ করে কনফার্ম করুন",
+          en: "Call the customer, then tap to confirm",
+        },
+      },
+      sheet: {
+        title: { bn: "আপনার গুগল শিট", en: "Your Google Sheet" },
+        cols: [
+          { bn: "অর্ডার", en: "Order" },
+          { bn: "কাস্টমার", en: "Customer" },
+          { bn: "সাইজ", en: "Size" },
+          { bn: "মোট", en: "Total" },
+          { bn: "স্ট্যাটাস", en: "Status" },
+        ],
+        prevRow: [
+          { bn: "BNN-1041", en: "BNN-1041" },
+          { bn: "রাকিব হাসান", en: "Rakib Hasan" },
+          { bn: "M (40)", en: "M (40)" },
+          { bn: "৳১,৫৬০", en: "৳1,560" },
+          { bn: "Confirmed", en: "Confirmed" },
+        ],
+        newRow: [
+          { bn: "BNN-1042", en: "BNN-1042" },
+          { bn: "তানজিম আহমেদ", en: "Tanzim Ahmed" },
+          { bn: "L (42)", en: "L (42)" },
+          { bn: "৳১,৫৬০", en: "৳1,560" },
+          { bn: "Confirmed", en: "Confirmed" },
+        ],
+        saved: {
+          bn: "অর্ডার আপনার শিটে জমা হয়েছে",
+          en: "Order saved to your Sheet",
+        },
+      },
     },
   },
 
@@ -349,15 +423,15 @@ export const LANDING_COPY = {
             ? "ক্যাশ অন ডেলিভারি (+ বিকাশ ও নগদ)"
             : "ক্যাশ অন ডেলিভারি ও এলাকাভিত্তিক চার্জ",
           en: LANDING_CLAIMS.mobilePayments
-            ? "Cash on Delivery (+ bKash & Nagad)"
+            ? "Cash on Delivery (+ bKash, Nagad & Rocket)"
             : "Cash on Delivery and area-based charges",
         },
         description: {
           bn: LANDING_CLAIMS.mobilePayments
-            ? "ক্যাশ অন ডেলিভারির পাশাপাশি বিকাশ ও নগদের ট্রানজেকশন আইডি নেওয়া যায়। ডেলিভারি চার্জ এলাকা অনুযায়ী নিজে যোগ হয়।"
-            : "কাস্টমার এলাকা বেছে নিলে ডেলিভারি চার্জ নিজে থেকেই যোগ হয়ে যায়।",
+            ? "ক্যাশ অন ডেলিভারির পাশাপাশি বিকাশ, নগদ ও রকেটের ট্রানজেকশন আইডি দিয়েও পেমেন্ট নেওয়া যায়। এলাকা অনুযায়ী ডেলিভারি চার্জ স্বয়ংক্রিয়ভাবে যোগ হয়।"
+            : "কাস্টমার এলাকা নির্বাচন করলেই ডেলিভারি চার্জ স্বয়ংক্রিয়ভাবে যোগ হয়ে যায়।",
           en: LANDING_CLAIMS.mobilePayments
-            ? "Cash on Delivery plus bKash and Nagad transaction IDs. Delivery charge is added by area."
+            ? "Cash on Delivery plus bKash, Nagad, Rocket transaction IDs. Delivery charge is added by area."
             : "Delivery charge is added automatically once the customer chooses an area.",
         },
       },
@@ -418,15 +492,15 @@ export const LANDING_COPY = {
     forItems: [
       {
         bn: "ফেসবুক অ্যাডে একটি পণ্য বিক্রি করেন",
-        en: "sell one product through Facebook ads",
+        en: "Sell one product through Facebook ads",
       },
       {
         bn: "বেশির ভাগ অর্ডার ক্যাশ অন ডেলিভারিতে নেন",
-        en: "take most orders as Cash on Delivery",
+        en: "Take most orders as Cash on Delivery",
       },
       {
         bn: "ইনবক্সে অর্ডার সামলাতে হিমশিম খান",
-        en: "struggle to manage orders in the inbox",
+        en: "Struggle to manage orders in the inbox",
       },
     ],
     notTitle: {
@@ -436,15 +510,15 @@ export const LANDING_COPY = {
     notItems: [
       {
         bn: "শত শত পণ্যের পূর্ণ অনলাইন স্টোর চান",
-        en: "want a full online store with hundreds of products",
+        en: "Want a full online store with hundreds of products",
       },
       {
         bn: "কার্টে একসাথে অনেক পণ্য কেনার ব্যবস্থা চান",
-        en: "need a cart for buying many products at once",
+        en: "Need a cart for buying many products at once",
       },
       {
         bn: "অনলাইনে কার্ড পেমেন্ট গেটওয়ে চান",
-        en: "need an online card payment gateway",
+        en: "Need an online card payment gateway",
       },
     ],
   },
@@ -520,7 +594,7 @@ export const LANDING_COPY = {
             ? "ক্যাশ অন ডেলিভারি ও মোবাইল পেমেন্ট (বিকাশ ও নগদ)"
             : "ক্যাশ অন ডেলিভারি ও এলাকাভিত্তিক ডেলিভারি চার্জ",
           en: LANDING_CLAIMS.mobilePayments
-            ? "Cash on Delivery and mobile payments (bKash & Nagad)"
+            ? "Cash on Delivery and mobile payments (bKash, Nagad & Rocket)"
             : "Cash on Delivery and area-based delivery charges",
         },
         {
