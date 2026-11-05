@@ -415,4 +415,42 @@ describe("Customer Order Status Page & Token Security (Task 10)", () => {
       expect(meta?.paymentStatus).toBe("Not received");
     });
   });
+
+  describe("7. Order Progress Stepper & Connecting Line Geometry", () => {
+    it("ensures all reached steps receive tick marks and connecting line starts exactly from first step", () => {
+      const clientPath = path.join(process.cwd(), "src/components/OrderStatusClient.tsx");
+      const clientCode = fs.readFileSync(clientPath, "utf-8");
+
+      // Verify completion condition includes current step (idx <= currentStep)
+      expect(clientCode).toContain("const isCompleted = idx <= currentStep;");
+
+      // Verify checkmark SVG rendered for completed steps
+      expect(clientCode).toContain("isCompleted ? (");
+      expect(clientCode).toContain("M20 6 9 17l-5-5");
+
+      // Verify grid-cols-4 symmetrical layout
+      expect(clientCode).toContain("grid grid-cols-4");
+
+      // Verify connecting line is gated by idx > 0 so nothing extends to the left of the first step
+      expect(clientCode).toContain("{idx > 0 && (");
+      expect(clientCode).toContain("-left-1/2 w-full");
+
+      // Verify no hardcoded absolute left-4 / right-4 on the full stepper bar
+      expect(clientCode).not.toContain("absolute left-4 right-4");
+    });
+  });
+
+  describe("8. Seller Confirmation Badge & Empty Card Prevention", () => {
+    it("renders seller confirmed badge when seller confirms, and avoids empty card wrappers", () => {
+      const clientPath = path.join(process.cwd(), "src/components/OrderStatusClient.tsx");
+      const clientCode = fs.readFileSync(clientPath, "utf-8");
+
+      // Verify seller confirmed badge is rendered
+      expect(clientCode).toContain("copy.orderStatusSellerConfirmedBadge");
+      expect(clientCode).toContain('status === "confirmed" || status === "shipped" || status === "delivered"');
+
+      // Verify customer confirmation card is suppressed on cancelled/returned
+      expect(clientCode).toContain("!isCancelled && !isReturned");
+    });
+  });
 });

@@ -179,6 +179,7 @@ export interface CopyDictionary {
   orderStatusConfirmButton: string;
   orderStatusConfirmingButton: string;
   orderStatusConfirmedBadge: string;
+  orderStatusSellerConfirmedBadge: string;
   orderStatusSellerWillCall: string;
   orderStatusAreaLabel: string;
   orderStatusPhoneLabel: string;
@@ -353,6 +354,7 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     orderStatusConfirmButton: "অর্ডার নিশ্চিত করুন",
     orderStatusConfirmingButton: "নিশ্চিত করা হচ্ছে...",
     orderStatusConfirmedBadge: "আপনি অর্ডারটি নিশ্চিত করেছেন",
+    orderStatusSellerConfirmedBadge: "বিক্রেতা অর্ডারটি নিশ্চিত করেছেন",
     orderStatusSellerWillCall: "অর্ডারটি নিশ্চিত করতে বিক্রেতা আপনার সাথে ফোনে যোগাযোগ করবেন।",
     orderStatusAreaLabel: "এলাকা",
     orderStatusPhoneLabel: "ফোন নম্বর",
@@ -525,6 +527,7 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     orderStatusConfirmButton: "Confirm my order",
     orderStatusConfirmingButton: "Confirming...",
     orderStatusConfirmedBadge: "Confirmed by you",
+    orderStatusSellerConfirmedBadge: "Confirmed by seller",
     orderStatusSellerWillCall: "The seller will call you to confirm your order.",
     orderStatusAreaLabel: "Area",
     orderStatusPhoneLabel: "Phone Number",

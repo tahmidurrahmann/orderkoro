@@ -69,97 +69,99 @@ export function PlatformLegalClient({ type }: PlatformLegalClientProps) {
     >
       <LandingHeader />
 
-      <main className="flex-1 w-full max-w-[1208px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
-        {/* Navigation Breadcrumb */}
-        <div className="pt-6">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm font-bold text-[var(--k-green)] hover:underline cursor-pointer"
-          >
-            {backToHomeText}
-          </Link>
-        </div>
-
+      <main className="flex-1 w-full max-w-[1208px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 mt-6">
         {/* Page Container */}
-        <div className="rounded-3xl border border-[var(--k-line)] bg-white p-6 sm:p-10 shadow-sm space-y-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--k-tint)] text-[var(--k-green)] border border-emerald-200 px-3.5 py-1 text-xs font-bold">
-              <span>{doc.lastUpdated[lang]}</span>
-            </div>
-
-            <h1 className="text-2xl sm:text-4xl font-black text-[var(--k-ink)] tracking-tight">
-              {doc.title[lang]}
-            </h1>
-
-            <p className="text-base sm:text-lg text-[var(--k-muted)] leading-relaxed">
-              {doc.subtitle[lang]}
-            </p>
-          </div>
-
-          <hr className="border-[var(--k-line)] my-6" />
-
-          {/* Document Content Sections */}
-          <div className="space-y-8 text-sm sm:text-base text-[var(--k-muted)] leading-relaxed">
-            {doc.sections.map((section) => (
-              <section key={section.id} className="space-y-3">
-                <h2 className="text-lg sm:text-xl font-extrabold text-[var(--k-ink)]">
-                  {section.title[lang]}
-                </h2>
-
-                {section.paragraphs.map((p, pIdx) => (
-                  <p
-                    key={pIdx}
-                    className="leading-relaxed text-[var(--k-ink)]/90"
-                  >
-                    {p[lang]}
-                  </p>
-                ))}
-
-                {section.listItems && section.listItems.length > 0 && (
-                  <ul className="space-y-2 pt-1 pl-4 list-disc text-sm sm:text-base text-[var(--k-ink)]/90">
-                    {section.listItems.map((item, iIdx) => (
-                      <li key={iIdx} className="leading-relaxed">
-                        {item[lang]}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            ))}
-          </div>
-
-          {/* Contact Box */}
-          <div className="rounded-2xl border border-[var(--k-line)] bg-[var(--k-tint)]/60 p-5 sm:p-6 mt-8 space-y-3">
-            <h3 className="text-base sm:text-lg font-bold text-[var(--k-ink)]">
-              {doc.contactBox.title[lang]}
-            </h3>
-            <p className="text-xs sm:text-sm text-[var(--k-muted)]">
-              {doc.contactBox.description[lang]}
-            </p>
-            <div className="pt-1">
-              <a
-                href={doc.contactBox.messengerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-[var(--k-green)] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-[var(--k-green-dark)] active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <MessengerIcon className="h-4 w-4" />
-                <span>{doc.contactBox.messengerLabel[lang]}</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Cross Link to Other Legal Page */}
-          <div className="pt-6 border-t border-[var(--k-line)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm">
+        <div className="rounded-3xl border border-[var(--k-line)] bg-white p-6 sm:p-10 shadow-sm">
+          {/* Navigation Breadcrumb */}
+          <div className="text-right">
             <Link
-              href={`/${otherType}`}
-              className="text-[var(--k-green)] font-bold hover:underline"
+              href="/"
+              className="inline-flex items-center text-sm font-bold text-[var(--k-green)] hover:underline cursor-pointer"
             >
-              {otherLinkText}
-            </Link>
-            <Link href="/" className="text-[var(--k-muted)] hover:underline">
               {backToHomeText}
             </Link>
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--k-tint)] text-[var(--k-green)] border border-emerald-200 px-3.5 py-1 text-xs font-bold">
+                <span>{doc.lastUpdated[lang]}</span>
+              </div>
+
+              <h1 className="text-2xl sm:text-4xl font-black text-[var(--k-ink)] tracking-tight">
+                {doc.title[lang]}
+              </h1>
+
+              <p className="text-base sm:text-lg text-[var(--k-muted)] leading-relaxed">
+                {doc.subtitle[lang]}
+              </p>
+            </div>
+
+            <hr className="border-[var(--k-line)] my-6" />
+
+            {/* Document Content Sections */}
+            <div className="space-y-8 text-sm sm:text-base text-[var(--k-muted)] leading-relaxed">
+              {doc.sections.map((section) => (
+                <section key={section.id} className="space-y-3">
+                  <h2 className="text-lg sm:text-xl font-extrabold text-[var(--k-ink)]">
+                    {section.title[lang]}
+                  </h2>
+
+                  {section.paragraphs.map((p, pIdx) => (
+                    <p
+                      key={pIdx}
+                      className="leading-relaxed text-[var(--k-ink)]/90"
+                    >
+                      {p[lang]}
+                    </p>
+                  ))}
+
+                  {section.listItems && section.listItems.length > 0 && (
+                    <ul className="space-y-2 pt-1 pl-4 list-disc text-sm sm:text-base text-[var(--k-ink)]/90">
+                      {section.listItems.map((item, iIdx) => (
+                        <li key={iIdx} className="leading-relaxed">
+                          {item[lang]}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              ))}
+            </div>
+
+            {/* Contact Box */}
+            <div className="rounded-2xl border border-[var(--k-line)] bg-[var(--k-tint)]/60 p-5 sm:p-6 mt-8 space-y-3">
+              <h3 className="text-base sm:text-lg font-bold text-[var(--k-ink)]">
+                {doc.contactBox.title[lang]}
+              </h3>
+              <p className="text-xs sm:text-sm text-[var(--k-muted)]">
+                {doc.contactBox.description[lang]}
+              </p>
+              <div className="pt-1">
+                <a
+                  href={doc.contactBox.messengerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-[var(--k-green)] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-[var(--k-green-dark)] active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  <MessengerIcon className="h-4 w-4" />
+                  <span>{doc.contactBox.messengerLabel[lang]}</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Cross Link to Other Legal Page */}
+            <div className="pt-6 border-t border-[var(--k-line)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm">
+              <Link
+                href={`/${otherType}`}
+                className="text-[var(--k-green)] font-bold hover:underline"
+              >
+                {otherLinkText}
+              </Link>
+              <Link href="/" className="text-[var(--k-muted)] hover:underline">
+                {backToHomeText}
+              </Link>
+            </div>
           </div>
         </div>
       </main>

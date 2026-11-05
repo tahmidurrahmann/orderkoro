@@ -2,7 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { PublicClientConfig } from "@/lib/config-schema";
 import type { SupportedLocale } from "@/lib/format";
 import { getClientCopy, resolveLocalizedText } from "@/lib/i18n";
@@ -24,14 +29,22 @@ interface LegalPageClientProps {
 
 const emptySubscribe = () => () => {};
 
-export default function LegalPageClient({ config, type }: LegalPageClientProps) {
+export default function LegalPageClient({
+  config,
+  type,
+}: LegalPageClientProps) {
   const initialLang = useSyncExternalStore(
     emptySubscribe,
-    () => (config.language.allowSwitch ? getSavedLocale(config.language.default) : config.language.default),
-    () => config.language.default
+    () =>
+      config.language.allowSwitch
+        ? getSavedLocale(config.language.default)
+        : config.language.default,
+    () => config.language.default,
   );
 
-  const [selectedLang, setSelectedLang] = useState<SupportedLocale | null>(null);
+  const [selectedLang, setSelectedLang] = useState<SupportedLocale | null>(
+    null,
+  );
   const lang = selectedLang ?? initialLang;
 
   useEffect(() => {
@@ -46,7 +59,10 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
     saveLocalePreference(newLang);
   }
 
-  const copy = useMemo(() => getClientCopy(lang, config.copy), [lang, config.copy]);
+  const copy = useMemo(
+    () => getClientCopy(lang, config.copy),
+    [lang, config.copy],
+  );
 
   const brandName = resolveLocalizedText(config.brand.name, lang);
   const businessAddress = config.contact.businessAddress
@@ -66,10 +82,13 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
       ? "প্রাইভেসি পলিসি (Privacy Policy)"
       : "Privacy Policy"
     : lang === "bn"
-    ? "শর্তাবলী, ডেলিভারি ও রিটার্ন পলিসি (Terms & Returns)"
-    : "Terms, Delivery & Return Policy";
+      ? "শর্তাবলী, ডেলিভারি ও রিটার্ন পলিসি (Terms & Returns)"
+      : "Terms, Delivery & Return Policy";
 
-  const lastUpdatedText = getPolicyLastUpdatedDate(config.policyUpdatedAt, lang);
+  const lastUpdatedText = getPolicyLastUpdatedDate(
+    config.policyUpdatedAt,
+    lang,
+  );
   const sections = isPrivacy
     ? getPrivacyPageSections(config, lang)
     : getTermsPageSections(config, lang);
@@ -151,13 +170,13 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
       {/* Main Content */}
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 sm:px-6 py-8">
         <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 sm:p-8 shadow-xs space-y-6">
+          <Link
+            href={`/${config.slug}`}
+            className="inline-flex items-center justify-end gap-1.5 text-xs font-semibold text-[var(--brand-primary)] hover:underline mb-3 cursor-pointer w-full"
+          >
+            <span>← {copy.thanksBackToProduct}</span>
+          </Link>
           <div>
-            <Link
-              href={`/${config.slug}`}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-primary)] hover:underline mb-3 cursor-pointer"
-            >
-              <span>← {copy.thanksBackToProduct}</span>
-            </Link>
             <h1 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] tracking-tight">
               {pageTitle}
             </h1>
@@ -228,7 +247,9 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
             {/* Responsible Business Contact Card (Always Present on Both Pages) */}
             <section className="space-y-2 pt-2 border-t border-[var(--border-subtle)]">
               <h2 className="text-base font-bold text-[var(--text-primary)]">
-                {lang === "bn" ? "দায়িত্বশীল প্রতিষ্ঠান ও যোগাযোগ" : "Responsible Business & Contact"}
+                {lang === "bn"
+                  ? "দায়িত্বশীল প্রতিষ্ঠান ও যোগাযোগ"
+                  : "Responsible Business & Contact"}
               </h2>
               <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-4 space-y-1.5 text-xs sm:text-sm">
                 <p>
@@ -257,7 +278,10 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
                   <strong className="text-[var(--text-primary)]">
                     {lang === "bn" ? "ফোন:" : "Phone:"}
                   </strong>{" "}
-                  <a href={`tel:${config.contact.phone}`} className="text-[var(--brand-primary)] hover:underline">
+                  <a
+                    href={`tel:${config.contact.phone}`}
+                    className="text-[var(--brand-primary)] hover:underline"
+                  >
                     {config.contact.phone}
                   </a>
                 </p>
@@ -290,8 +314,8 @@ export default function LegalPageClient({ config, type }: LegalPageClientProps) 
                   ? "শর্তাবলী ও রিটার্ন পলিসি দেখুন →"
                   : "View Terms & Returns Policy →"
                 : lang === "bn"
-                ? "প্রাইভেসি পলিসি দেখুন →"
-                : "View Privacy Policy →"}
+                  ? "প্রাইভেসি পলিসি দেখুন →"
+                  : "View Privacy Policy →"}
             </Link>
 
             <Link

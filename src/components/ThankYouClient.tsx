@@ -55,6 +55,12 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
   const lang = customLang ?? initialLang;
   const isLoaded = isHydrated;
 
+  const origin = useSyncExternalStore(
+    emptySubscribe,
+    () => (typeof window !== "undefined" ? window.location.origin : ""),
+    () => ""
+  );
+
   const [copiedOrderNo, setCopiedOrderNo] = useState<boolean>(false);
   const [copiedStatusLink, setCopiedStatusLink] = useState<boolean>(false);
   const [copiedDetails, setCopiedDetails] = useState<boolean>(false);
@@ -120,8 +126,8 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
 
   async function handleCopyStatusLink() {
     if (!receipt?.token) return;
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const statusUrl = `${origin}/${receipt.slug}/order/${receipt.token}`;
+    const currentOrigin = origin || (typeof window !== "undefined" ? window.location.origin : "");
+    const statusUrl = `${currentOrigin}/${receipt.slug}/order/${receipt.token}`;
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(statusUrl);
@@ -401,9 +407,10 @@ export default function ThankYouClient({ config }: ThankYouClientProps) {
                         </span>
                         <a
                           href={`/${receipt.slug}/order/${receipt.token}`}
+                          suppressHydrationWarning
                           className="block font-mono text-xs font-semibold text-[var(--brand-primary)] hover:underline truncate"
                         >
-                          {typeof window !== "undefined" ? window.location.origin : ""}/{receipt.slug}/order/{receipt.token}
+                          {origin}/{receipt.slug}/order/{receipt.token}
                         </a>
                       </div>
 

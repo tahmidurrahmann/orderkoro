@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { SupportedLocale } from "@/lib/format";
@@ -49,6 +54,8 @@ export interface OrderStatusClientProps {
   showPoweredBy?: boolean;
 }
 
+const emptySubscribe = () => () => {};
+
 export default function OrderStatusClient({
   slug,
   token,
@@ -76,14 +83,24 @@ export default function OrderStatusClient({
   copy: customCopy,
   showPoweredBy = true,
 }: OrderStatusClientProps) {
+  const origin = useSyncExternalStore(
+    emptySubscribe,
+    () => (typeof window !== "undefined" ? window.location.origin : ""),
+    () => "",
+  );
   const [lang, setLang] = useState<SupportedLocale>(language.default);
   const [copiedOrderNumber, setCopiedOrderNumber] = useState(false);
   const [copiedStatusLink, setCopiedStatusLink] = useState(false);
-  const [customerConfirmed, setCustomerConfirmed] = useState(initialCustomerConfirmed);
+  const [customerConfirmed, setCustomerConfirmed] = useState(
+    initialCustomerConfirmed,
+  );
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
-  const copy = useMemo(() => getClientCopy(lang, customCopy), [lang, customCopy]);
+  const copy = useMemo(
+    () => getClientCopy(lang, customCopy),
+    [lang, customCopy],
+  );
   const brandNameText = resolveLocalizedText(brand.name, lang);
   const activeLogoUrl =
     typeof brand.logoUrl === "string"
@@ -116,8 +133,9 @@ export default function OrderStatusClient({
   }, [orderNumber]);
 
   const handleCopyLink = useCallback(async () => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${origin}/${slug}/order/${token}`;
+    const currentOrigin =
+      origin || (typeof window !== "undefined" ? window.location.origin : "");
+    const url = `${currentOrigin}/${slug}/order/${token}`;
     try {
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
@@ -136,7 +154,7 @@ export default function OrderStatusClient({
     } catch {
       setCopiedStatusLink(false);
     }
-  }, [slug, token]);
+  }, [origin, slug, token]);
 
   const handleCustomerConfirm = useCallback(async () => {
     if (isConfirming || customerConfirmed) return;
@@ -156,14 +174,14 @@ export default function OrderStatusClient({
           data.error ||
             (lang === "bn"
               ? "অর্ডার নিশ্চিত করা যায়নি। অনুগ্রহ করে বিক্রেতার সাথে যোগাযোগ করুন।"
-              : "Could not confirm order. Please contact seller.")
+              : "Could not confirm order. Please contact seller."),
         );
       }
     } catch {
       setConfirmError(
         lang === "bn"
           ? "নেটওয়ার্ক সমস্যা। অনুগ্রহ করে আবার চেষ্টা করুন।"
-          : "Network error. Please try again."
+          : "Network error. Please try again.",
       );
     } finally {
       setIsConfirming(false);
@@ -211,12 +229,12 @@ export default function OrderStatusClient({
     paymentMethod === "bkash"
       ? "bKash (বিকাশ)"
       : paymentMethod === "nagad"
-      ? "Nagad (নগদ)"
-      : paymentMethod === "rocket"
-      ? "Rocket (রকেট)"
-      : lang === "bn"
-      ? "ক্যাশ অন ডেলিভারি (পণ্য হাতে পেয়ে পরিশোধ)"
-      : "Cash on Delivery";
+        ? "Nagad (নগদ)"
+        : paymentMethod === "rocket"
+          ? "Rocket (রকেট)"
+          : lang === "bn"
+            ? "ক্যাশ অন ডেলিভারি (পণ্য হাতে পেয়ে পরিশোধ)"
+            : "Cash on Delivery";
 
   return (
     <div
@@ -285,6 +303,16 @@ export default function OrderStatusClient({
           )}
         </header>
 
+        {/* Back to Store Link */}
+        <div className="my-3 text-right">
+          <Link
+            href={`/${slug}`}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-primary)] hover:underline cursor-pointer"
+          >
+            <span>← {copy.thanksBackToProduct}</span>
+          </Link>
+        </div>
+
         {/* Page Title & Order Number Card */}
         <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -313,7 +341,11 @@ export default function OrderStatusClient({
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                   </svg>
-                  <span>{copiedOrderNumber ? copy.thanksCopiedOrderNo : copy.thanksCopyOrderNo}</span>
+                  <span>
+                    {copiedOrderNumber
+                      ? copy.thanksCopiedOrderNo
+                      : copy.thanksCopyOrderNo}
+                  </span>
                 </button>
               </div>
             </div>
@@ -334,7 +366,14 @@ export default function OrderStatusClient({
             /* Cancelled Terminal State */
             <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-center">
               <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-600 text-white">
-                <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg
+                  aria-hidden="true"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
                   <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
               </div>
@@ -351,7 +390,14 @@ export default function OrderStatusClient({
             /* Returned Terminal State */
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center">
               <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-amber-600 text-white">
-                <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg
+                  aria-hidden="true"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
                   <path d="m9 14-4-4 4-4" />
                   <path d="M5 10h11a4 4 0 1 1 0 8h-1" />
                 </svg>
@@ -368,45 +414,65 @@ export default function OrderStatusClient({
           ) : (
             /* Normal Progress Stepper */
             <div>
-              <div className="relative flex items-center justify-between">
-                {/* Connecting Line */}
-                <div className="absolute left-4 right-4 top-4 -translate-y-1/2 h-1 bg-neutral-200 -z-0" />
-                <div
-                  className="absolute left-4 top-4 -translate-y-1/2 h-1 bg-[var(--brand-primary)] -z-0 transition-all duration-500"
-                  style={{
-                    width: `${(currentStep / (normalTimelineSteps.length - 1)) * 100}%`,
-                  }}
-                />
-
+              <div className="relative grid grid-cols-4">
                 {normalTimelineSteps.map((step, idx) => {
-                  const isDone = idx < currentStep;
+                  const isCompleted = idx <= currentStep;
                   const isCurrent = idx === currentStep;
 
                   return (
                     <div
                       key={step.key}
-                      className="relative z-10 flex flex-col items-center"
+                      className="relative flex flex-col items-center"
                     >
+                      {/* Connecting Line from previous step */}
+                      {idx > 0 && (
+                        <div
+                          className="absolute top-4 -translate-y-1/2 -left-1/2 w-full h-1 z-0 pointer-events-none"
+                          aria-hidden="true"
+                        >
+                          {/* Background Track (gray) */}
+                          <div className="h-full w-full bg-neutral-200" />
+                          {/* Active Completed Track (brand) */}
+                          <div
+                            className={`absolute inset-0 h-full bg-[var(--brand-primary)] transition-all duration-500 ${
+                              isCompleted ? "w-full" : "w-0"
+                            }`}
+                          />
+                        </div>
+                      )}
+
+                      {/* Step Circle */}
                       <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-all ${
-                          isDone
-                            ? "bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white"
-                            : isCurrent
-                            ? "bg-white border-[var(--brand-primary)] text-[var(--brand-primary)] ring-4 ring-[var(--brand-primary)]/15"
+                        className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-all ${
+                          isCompleted
+                            ? `bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white ${
+                                isCurrent
+                                  ? "ring-4 ring-[var(--brand-primary)]/20"
+                                  : ""
+                              }`
                             : "bg-white border-neutral-300 text-neutral-400"
                         }`}
                       >
-                        {isDone ? (
-                          <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        {isCompleted ? (
+                          <svg
+                            aria-hidden="true"
+                            className="h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                          >
                             <path d="M20 6 9 17l-5-5" />
                           </svg>
                         ) : (
                           <span>{idx + 1}</span>
                         )}
                       </div>
+
+                      {/* Step Label */}
                       <span
-                        className={`mt-2 text-center text-[11px] sm:text-xs font-semibold ${
-                          isDone || isCurrent
+                        className={`mt-2 text-center text-[11px] sm:text-xs font-semibold leading-tight px-1 ${
+                          isCompleted
                             ? "text-[var(--text-primary)]"
                             : "text-[var(--text-muted)]"
                         }`}
@@ -427,10 +493,12 @@ export default function OrderStatusClient({
         </div>
 
         {/* Customer Confirmation Action Section (when customerConfirm === "tap") */}
-        {customerConfirmConfig === "tap" && (
-          <div className="mt-4 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-xs">
-            {isHighValueOrRepeat ? (
-              /* High value or repeat order notice */
+        {customerConfirmConfig === "tap" &&
+          !isCancelled &&
+          !isReturned &&
+          (isHighValueOrRepeat ? (
+            /* High value or repeat order notice */
+            <div className="mt-4 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-xs">
               <div className="flex items-start gap-2.5 rounded-md bg-neutral-50 p-3 text-xs text-[var(--text-secondary)]">
                 <svg
                   aria-hidden="true"
@@ -444,8 +512,10 @@ export default function OrderStatusClient({
                 </svg>
                 <p className="font-medium">{copy.orderStatusSellerWillCall}</p>
               </div>
-            ) : customerConfirmed ? (
-              /* Already confirmed by customer */
+            </div>
+          ) : customerConfirmed ? (
+            /* Already confirmed by customer */
+            <div className="mt-4 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-xs">
               <div className="flex items-center gap-2 rounded-md bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 text-xs font-semibold text-emerald-800">
                 <svg
                   aria-hidden="true"
@@ -459,8 +529,29 @@ export default function OrderStatusClient({
                 </svg>
                 <span>{copy.orderStatusConfirmedBadge}</span>
               </div>
-            ) : status === "new" ? (
-              /* Unconfirmed status: show confirmation button */
+            </div>
+          ) : status === "confirmed" ||
+            status === "shipped" ||
+            status === "delivered" ? (
+            /* Confirmed by seller */
+            <div className="mt-4 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-xs">
+              <div className="flex items-center gap-2 rounded-md bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 text-xs font-semibold text-emerald-800">
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4 text-emerald-600 shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                <span>{copy.orderStatusSellerConfirmedBadge}</span>
+              </div>
+            </div>
+          ) : status === "new" ? (
+            /* Unconfirmed status: show confirmation button */
+            <div className="mt-4 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-xs">
               <div>
                 <button
                   type="button"
@@ -491,9 +582,8 @@ export default function OrderStatusClient({
                   </p>
                 )}
               </div>
-            ) : null}
-          </div>
-        )}
+            </div>
+          ) : null)}
 
         {/* Order Details Card */}
         <div className="mt-4 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-xs space-y-3.5">
@@ -586,7 +676,10 @@ export default function OrderStatusClient({
               {sellerPhone && (
                 <p className="text-[var(--text-secondary)]">
                   {lang === "bn" ? "ফোন" : "Phone"}:{" "}
-                  <a href={`tel:${sellerPhone}`} className="text-[var(--brand-primary)] font-semibold hover:underline">
+                  <a
+                    href={`tel:${sellerPhone}`}
+                    className="text-[var(--brand-primary)] font-semibold hover:underline"
+                  >
                     {sellerPhone}
                   </a>
                 </p>
@@ -615,8 +708,11 @@ export default function OrderStatusClient({
               <span className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                 {copy.thanksStatusLinkLabel}
               </span>
-              <span className="block font-mono text-xs text-[var(--text-secondary)] truncate">
-                {typeof window !== "undefined" ? window.location.origin : ""}/{slug}/order/{token}
+              <span
+                suppressHydrationWarning
+                className="block font-mono text-xs text-[var(--text-secondary)] truncate"
+              >
+                {origin}/{slug}/order/{token}
               </span>
             </div>
 
@@ -636,22 +732,16 @@ export default function OrderStatusClient({
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
-              <span>{copiedStatusLink ? copy.thanksCopiedStatusLinkFeedback : copy.thanksCopyStatusLinkButton}</span>
+              <span>
+                {copiedStatusLink
+                  ? copy.thanksCopiedStatusLinkFeedback
+                  : copy.thanksCopyStatusLinkButton}
+              </span>
             </button>
           </div>
           <p className="mt-1.5 text-[11px] font-medium text-[var(--text-muted)]">
             {copy.thanksStatusLinkHint}
           </p>
-        </div>
-
-        {/* Back to Store Link */}
-        <div className="mt-6 text-center">
-          <Link
-            href={`/${slug}`}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-primary)] hover:underline cursor-pointer"
-          >
-            <span>← {copy.thanksBackToProduct}</span>
-          </Link>
         </div>
 
         {/* Footer */}
