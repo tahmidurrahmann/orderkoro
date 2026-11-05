@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { BRAND_WORDMARK_TEXT } from "@/components/landing/LandingHeader";
 import { LANDING, LANDING_CLAIMS } from "@/lib/landing-config";
 import { LANDING_COPY, getPricingLine } from "@/lib/landing-copy";
 import {
@@ -7,6 +6,7 @@ import {
   saveLocalePreference,
   subscribeLocale,
 } from "@/lib/locale-preference";
+import { BRAND_WORDMARK_TEXT } from "@/components/landing/LandingWordmark";
 
 describe("Landing Page Header, Language Switch, Config, and Copy Unit Tests", () => {
   beforeEach(() => {
