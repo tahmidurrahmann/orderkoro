@@ -1,203 +1,234 @@
 "use client";
 
+// src/components/LandingBody.tsx  (replaces your current file)
+import Image from "next/image";
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
+import {
+  useSyncExternalStore,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import type { SupportedLocale } from "@/lib/format";
 import { LANDING } from "@/lib/landing-config";
-import { LANDING_COPY, type BenefitItem } from "@/lib/landing-copy";
+import { LANDING_COPY, type BenefitIcon } from "@/lib/landing-copy";
+import {
+  CONTACT_PHONE,
+  DEMO_PATH,
+  FOUNDER,
+  LEGAL_LINKS,
+  MEASURED,
+  NO_COMMISSION,
+  RISK_REVERSAL,
+  SHOTS,
+} from "@/lib/landing-extra";
 import { getSavedLocale, subscribeLocale } from "@/lib/locale-preference";
-import { LandingWordmark } from "./LandingHeader";
 
 interface LandingBodyProps {
   contactUrl: string;
   demoAlertsUrl?: string;
 }
 
-function TelegramIcon({ className = "h-5 w-5" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
-    </svg>
-  );
-}
+// Self-contained colours so the page does not depend on other CSS variables.
+const THEME = {
+  "--k-green": "#0A694B",
+  "--k-green-dark": "#064A35",
+  "--k-tint": "#E6F1EC",
+  "--k-orange": "#F78E10",
+  "--k-cream": "#F5F4F0",
+  "--k-ink": "#1B1B18",
+  "--k-muted": "#5C5A52",
+  "--k-line": "#DDD9CF",
+  "--k-red": "#B42318",
+  "--k-red-tint": "#FBEFEC",
+} as CSSProperties;
 
-function MessengerIcon({ className = "h-5 w-5" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.914 1.455 5.518 3.735 7.21V22l3.39-1.86c.915.253 1.884.39 2.875.39 5.523 0 10-4.145 10-9.258C22 6.145 17.523 2 12 2zm1.066 12.448l-2.556-2.727-4.99 2.727 5.485-5.823 2.62 2.727 4.927-2.727-5.486 5.823z" />
-    </svg>
-  );
-}
+/* ------------------------------ icons ------------------------------ */
 
-function CheckIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon({ className = "h-5 w-5" }: { className?: string }) {
+function Ico({
+  children,
+  className = "h-5 w-5",
+  sw = 2,
+}: {
+  children: ReactNode;
+  className?: string;
+  sw?: number;
+}) {
   return (
     <svg
       className={className}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={sw}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <polyline points="6 9 12 15 18 9" />
+      {children}
     </svg>
   );
 }
 
-function BenefitCardIcon({ icon }: { icon: BenefitItem["icon"] }) {
+const CheckIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Ico className={className} sw={2.5}>
+    <polyline points="20 6 9 17 4 12" />
+  </Ico>
+);
+const CrossIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Ico className={className} sw={2.5}>
+    <path d="M18 6 6 18M6 6l12 12" />
+  </Ico>
+);
+const DashIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Ico className={className} sw={2.5}>
+    <path d="M5 12h14" />
+  </Ico>
+);
+const ArrowRight = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Ico className={className} sw={2.5}>
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </Ico>
+);
+const ArrowDown = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Ico className={className}>
+    <path d="M12 5v14M5 12l7 7 7-7" />
+  </Ico>
+);
+const ChevronDown = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Ico className={className}>
+    <polyline points="6 9 12 15 18 9" />
+  </Ico>
+);
+const MessengerIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Ico className={className}>
+    <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.6-.8L3 21l1.9-5.3A8.4 8.4 0 1 1 21 11.5z" />
+  </Ico>
+);
+const SendIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Ico className={className}>
+    <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z" />
+  </Ico>
+);
+const PhoneIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Ico className={className}>
+    <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" />
+  </Ico>
+);
+
+function BenefitGlyph({ icon }: { icon: BenefitIcon }) {
   switch (icon) {
     case "telegram":
       return (
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-100 shadow-2xs">
-          <TelegramIcon className="h-5 w-5" />
-        </span>
+        <Ico className="h-6 w-6">
+          <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z" />
+        </Ico>
       );
     case "sheet":
       return (
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-2xs">
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <rect width="18" height="18" x="3" y="3" rx="2" />
-            <path d="M3 9h18" />
-            <path d="M3 15h18" />
-            <path d="M9 3v18" />
-          </svg>
-        </span>
+        <Ico className="h-6 w-6">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M3 9h18M3 15h18M9 3v18" />
+        </Ico>
       );
     case "speed":
       return (
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-100 shadow-2xs">
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-          </svg>
-        </span>
+        <Ico className="h-6 w-6">
+          <path d="M12 14l4-4" />
+          <path d="M3.3 17a10 10 0 1 1 17.4 0" />
+        </Ico>
       );
     case "payment":
       return (
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-purple-600 border border-purple-100 shadow-2xs">
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <rect width="20" height="14" x="2" y="5" rx="2" />
-            <line x1="2" x2="22" y1="10" y2="10" />
-          </svg>
-        </span>
+        <Ico className="h-6 w-6">
+          <rect x="1" y="3" width="15" height="13" />
+          <path d="M16 8h4l3 3v5h-7z" />
+          <circle cx="5.5" cy="18.5" r="2.5" />
+          <circle cx="18.5" cy="18.5" r="2.5" />
+        </Ico>
       );
     case "policy":
       return (
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100 shadow-2xs">
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" x2="8" y1="13" y2="13" />
-            <line x1="16" x2="8" y1="17" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
-          </svg>
-        </span>
+        <Ico className="h-6 w-6">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6M16 13H8M16 17H8" />
+        </Ico>
       );
     case "protection":
       return (
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100 shadow-2xs">
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
-        </span>
+        <Ico className="h-6 w-6">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" />
+        </Ico>
       );
     case "pixel":
-      return (
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-2xs">
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-            <path d="M2 12h20" />
-          </svg>
-        </span>
-      );
     default:
-      return null;
+      return (
+        <Ico className="h-6 w-6">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20" />
+        </Ico>
+      );
   }
 }
+
+/* ---------------------------- small pieces ---------------------------- */
+
+function Container({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`mx-auto w-full max-w-6xl px-5 sm:px-8 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+function SectionHead({
+  label,
+  title,
+  subtitle,
+  light = false,
+}: {
+  label: string;
+  title: string;
+  subtitle?: string;
+  light?: boolean;
+}) {
+  return (
+    <div className="max-w-2xl">
+      <div
+        className={`text-base font-bold ${light ? "text-[#9FD3BE]" : "text-[var(--k-green)]"}`}
+      >
+        {label}
+      </div>
+      <h2
+        className={`mt-2 text-[28px] font-extrabold leading-[1.3] sm:text-[40px] sm:leading-[1.25] ${
+          light ? "text-white" : "text-[var(--k-ink)]"
+        }`}
+      >
+        {title}
+      </h2>
+      {subtitle ? (
+        <p
+          className={`mt-4 text-[17px] leading-relaxed sm:text-lg ${light ? "text-[#CFE5DB]" : "text-[var(--k-muted)]"}`}
+        >
+          {subtitle}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+const BTN_PRIMARY =
+  "inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-xl bg-[var(--k-green)] px-7 text-[17px] font-bold text-white transition hover:opacity-95 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--k-green)]";
+const BTN_OUTLINE =
+  "inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-xl border-2 border-[var(--k-green)] bg-white px-6 text-[17px] font-bold text-[var(--k-green)] transition hover:bg-[var(--k-tint)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--k-green)]";
+
+/* ------------------------------- page ------------------------------- */
 
 export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
   const lang: SupportedLocale = useSyncExternalStore(
@@ -206,13 +237,12 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
     () => "bn",
   );
 
-  const effectiveContactUrl = contactUrl || "https://m.me/61596152341071";
+  const L = LANDING_COPY;
+  const contact = contactUrl || "https://m.me/61596152341071";
   const hasAlertsUrl = Boolean(
     demoAlertsUrl && demoAlertsUrl.trim().length > 0,
   );
   const showEarlyOffer = LANDING.earlyOfferRemaining > 0;
-
-  // Segmented bar for early offer: total segments = earlyOfferTotal
   const claimedCount = Math.max(
     0,
     LANDING.earlyOfferTotal - LANDING.earlyOfferRemaining,
@@ -222,828 +252,731 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
     (_, i) => i < claimedCount,
   );
 
+  const showLighthouse =
+    MEASURED.lighthouseMobile !== null && MEASURED.measuredOn !== null;
+  const trustItems: { key: string; icon: ReactNode; text: string }[] = [
+    {
+      key: "sheet",
+      icon: (
+        <Ico>
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M3 9h18M3 15h18M9 3v18" />
+        </Ico>
+      ),
+      text: L.trust.sheet[lang],
+    },
+    {
+      key: "tg",
+      icon: (
+        <Ico>
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" />
+        </Ico>
+      ),
+      text: L.trust.telegram[lang],
+    },
+  ];
+  if (NO_COMMISSION) {
+    trustItems.push({
+      key: "commission",
+      icon: (
+        <Ico>
+          <line x1="19" y1="5" x2="5" y2="19" />
+          <circle cx="6.5" cy="6.5" r="2.5" />
+          <circle cx="17.5" cy="17.5" r="2.5" />
+        </Ico>
+      ),
+      text: L.trust.commission[lang],
+    });
+  }
+  if (showLighthouse) {
+    trustItems.push({
+      key: "lh",
+      icon: (
+        <Ico>
+          <path d="M12 14l4-4" />
+          <path d="M3.3 17a10 10 0 1 1 17.4 0" />
+        </Ico>
+      ),
+      text: L.trust.lighthouse(
+        MEASURED.lighthouseMobile as number,
+        MEASURED.measuredOn as string,
+        lang,
+      ),
+    });
+  }
+
+  const showProof = Boolean(SHOTS.telegram || SHOTS.sheet || hasAlertsUrl);
+
   return (
     <main
       id="main-content"
       tabIndex={-1}
-      className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)] outline-none pb-28 lg:pb-16"
+      style={THEME}
+      className="min-h-screen bg-[var(--k-cream)] text-[var(--k-ink)] outline-none pb-24 lg:pb-0"
     >
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-16 sm:space-y-24">
-        {/* ================================================================= */}
-        {/* 1. HERO SECTION */}
-        {/* ================================================================= */}
-        <section aria-labelledby="hero-heading" className="pt-2 sm:pt-6">
-          <div className="lg:grid lg:grid-cols-12 gap-6 lg:gap-12 lg:items-center">
-            {/* Left Column: Headline, Copy, Action Buttons, Badges */}
-            <div className="lg:col-span-7 text-left space-y-6">
-              {/* Eyebrow badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-1.5 text-xs font-semibold text-[var(--text-secondary)] shadow-xs">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <span>{LANDING_COPY.eyebrow[lang]}</span>
-              </div>
+      {/* ============================ 1. HERO ============================ */}
+      <section aria-labelledby="hero-heading" className="bg-[var(--k-cream)]">
+        <Container className="py-10 sm:py-16 lg:py-20">
+          <div
+            className={
+              SHOTS.demoPage
+                ? "grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16"
+                : "max-w-3xl"
+            }
+          >
+            <div>
+              <span className="inline-flex items-center gap-2.5 rounded-full border border-[var(--k-line)] bg-white px-4 py-2 text-[14px] font-semibold text-[var(--k-muted)] sm:text-[15px]">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--k-orange)]" />
+                {L.eyebrow[lang]}
+              </span>
 
-              {/* Main H1 */}
               <h1
                 id="hero-heading"
-                className="text-3xl sm:text-5xl lg:text-[3.25rem] font-black tracking-tight text-[var(--text-primary)] leading-[1.18] sm:leading-[1.15]"
+                className="mt-6 text-[36px] font-extrabold leading-[1.24] tracking-tight sm:text-[52px] lg:text-[58px] lg:leading-[1.2]"
               >
-                {LANDING_COPY.hero.headline[lang]}
+                <span className="block">{L.hero.line1[lang]}</span>
+                <span className="block text-[var(--k-green)]">
+                  {L.hero.line2[lang]}
+                </span>
               </h1>
 
-              {/* Subtitle */}
-              <p className="text-base sm:text-lg lg:text-xl text-[var(--text-secondary)] leading-relaxed max-w-2xl lg:mx-0">
-                {LANDING_COPY.hero.subline[lang]}
+              <p className="mt-6 max-w-xl text-[18px] leading-[1.7] text-[var(--k-muted)] sm:text-xl">
+                {L.hero.subline[lang]}
               </p>
 
-              {/* Primary & Secondary Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-start gap-3.5 pt-2 max-w-md lg:mx-0">
-                <Link
-                  href="/demo-brand"
-                  className="w-full sm:w-auto flex-1 min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-green)] px-7 py-3.5 text-base font-bold text-white shadow-md hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer"
-                >
-                  <span>{LANDING_COPY.hero.primaryCta[lang]}</span>
-                  <svg
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                  </svg>
+              <div className="mt-8 flex flex-col gap-3.5 sm:flex-row">
+                <Link href={DEMO_PATH} className={BTN_PRIMARY}>
+                  <span>{L.hero.primaryCta[lang]}</span>
+                  <ArrowRight />
                 </Link>
-
                 <a
-                  href={effectiveContactUrl}
+                  href={contact}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto flex-1 min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[var(--ok-green)] bg-[var(--bg-surface)] px-6 py-3.5 text-base font-bold text-[var(--ok-green)] hover:bg-[var(--bg-subtle)] active:scale-[0.98] transition-all cursor-pointer"
+                  className={BTN_OUTLINE}
                 >
-                  <MessengerIcon className="h-5 w-5 text-[var(--ok-green)]" />
-                  <span>{LANDING_COPY.hero.secondaryCta[lang]}</span>
+                  <MessengerIcon />
+                  <span>{L.hero.secondaryCta[lang]}</span>
                 </a>
               </div>
 
-              {/* Trust Badges */}
-              <div className="pt-2 flex flex-wrap items-center justify-start gap-2 sm:gap-3 text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
-                {LANDING_COPY.hero.badges.map((badge, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-1 md:px-3 md:py-1.5 shadow-2xs"
-                  >
-                    <span className="text-emerald-600">
-                      <CheckIcon className="h-3.5 w-3.5" />
-                    </span>
-                    <span>{badge[lang]}</span>
+              {RISK_REVERSAL ? (
+                <p className="mt-5 flex items-center gap-2.5 text-base font-semibold">
+                  <span className="text-[var(--k-green)]">
+                    <CheckIcon className="h-5 w-5" />
                   </span>
-                ))}
-              </div>
+                  {RISK_REVERSAL[lang]}
+                </p>
+              ) : null}
             </div>
 
-            {/* Right Column (Desktop Only): Interactive-style Product Page Showcase */}
-            <div className="lg:col-span-5 block relative top-12 lg:top-0">
-              {/* Floating Pill Top */}
-              <div className="absolute -top-4 -right-2 lg:-right-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-emerald-600 text-white px-3.5 py-1.5 text-xs font-bold shadow-lg">
-                <span>{LANDING_COPY.hero.previewCard.pillSpeed[lang]}</span>
-              </div>
-
-              {/* Showcase Card */}
-              <div className="rounded-3xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-6 shadow-xl space-y-4 relative overflow-hidden">
-                <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3 text-xs font-bold text-[var(--text-muted)]">
-                  <span className="inline-flex items-center gap-1.5 text-[var(--ok-green)]">
-                    {LANDING_COPY.hero.previewCard.badge[lang]}
-                  </span>
-                  <span className="font-mono text-slate-400">
-                    orderkoro.shop/demo-brand
-                  </span>
-                </div>
-
-                {/* Product Meta */}
-                <div className="space-y-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-700">
-                    {LANDING_COPY.hero.previewCard.brandName[lang]}
-                  </span>
-                  <h3 className="text-base font-extrabold text-[var(--text-primary)]">
-                    {LANDING_COPY.hero.previewCard.productTitle[lang]}
-                  </h3>
-                  <div className="flex items-baseline gap-2 pt-1">
-                    <span className="text-2xl font-black text-[var(--text-primary)]">
-                      {LANDING_COPY.hero.previewCard.price[lang]}
-                    </span>
-                    <span className="text-xs text-[var(--text-muted)] line-through">
-                      {LANDING_COPY.hero.previewCard.oldPrice[lang]}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Color swatches mock */}
-                <div className="space-y-1.5 pt-1">
-                  <div className="text-xs font-semibold text-[var(--text-secondary)]">
-                    {LANDING_COPY.hero.previewCard.colorLabel[lang]}
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="h-6 w-6 rounded-full bg-slate-900 ring-2 ring-emerald-500 ring-offset-1" />
-                    <div className="h-6 w-6 rounded-full bg-amber-800 opacity-60" />
-                    <div className="h-6 w-6 rounded-full bg-emerald-800 opacity-60" />
-                  </div>
-                </div>
-
-                {/* Size options mock */}
-                <div className="space-y-1.5">
-                  <div className="text-xs font-semibold text-[var(--text-secondary)]">
-                    {LANDING_COPY.hero.previewCard.sizeLabel[lang]}
-                  </div>
-                  <div className="flex gap-1.5">
-                    {["S (38)", "M (40)", "L (42)", "XL (44)"].map(
-                      (sz, sIdx) => (
-                        <span
-                          key={sz}
-                          className={`px-2.5 py-1 rounded-md text-xs font-bold border ${
-                            sIdx === 2
-                              ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)]"
-                              : "bg-[var(--bg-subtle)] text-[var(--text-secondary)] border-[var(--border-subtle)]"
-                          }`}
-                        >
-                          {sz}
-                        </span>
-                      ),
-                    )}
-                  </div>
-                </div>
-
-                {/* Instant CTA mock */}
-                <div className="pt-2">
-                  <div className="w-full py-2.5 rounded-xl bg-[var(--ok-green)] text-white font-bold text-xs text-center shadow-xs">
-                    {LANDING_COPY.hero.previewCard.ctaButton[lang]}
-                  </div>
+            {SHOTS.demoPage ? (
+              <div className="flex justify-center">
+                <div className="w-[270px] rounded-[44px] bg-[var(--k-ink)] p-2.5 shadow-[0_24px_60px_rgba(27,27,24,0.18)] sm:w-[300px]">
+                  <Image
+                    src={SHOTS.demoPage.src}
+                    width={SHOTS.demoPage.width}
+                    height={SHOTS.demoPage.height}
+                    alt={SHOTS.demoPage.alt[lang]}
+                    priority
+                    sizes="300px"
+                    className="h-auto w-full rounded-[34px]"
+                  />
                 </div>
               </div>
-
-              {/* Floating Pill Bottom */}
-              <div className="absolute -bottom-4 -left-2 lg:-left-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-slate-900 text-white px-3.5 py-1.5 text-xs font-semibold shadow-lg">
-                <span>{LANDING_COPY.hero.previewCard.pillSync[lang]}</span>
-              </div>
-            </div>
+            ) : null}
           </div>
-        </section>
+        </Container>
+      </section>
 
-        {/* ================================================================= */}
-        {/* 2. PROBLEM STRIP */}
-        {/* ================================================================= */}
-        <section
-          aria-labelledby="problem-heading"
-          className="space-y-4 pt-12 lg:pt-0"
-        >
-          <div>
-            <h2
-              id="problem-heading"
-              className="text-xs uppercase tracking-wider font-bold text-[var(--text-muted)]"
-            >
-              {LANDING_COPY.problemStrip.title[lang]}
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            {LANDING_COPY.problemStrip.items.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-2xl border border-rose-200 bg-rose-50/50 p-4 flex items-center gap-3 text-sm font-semibold text-rose-950 shadow-2xs hover:border-rose-300 hover:shadow-xs transition-all"
+      {/* ========================= 2. TRUST STRIP ========================= */}
+      <section
+        aria-label="trust"
+        className="border-y border-[var(--k-line)] bg-white"
+      >
+        <Container className="py-6 sm:py-7">
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {trustItems.map((item) => (
+              <li
+                key={item.key}
+                className="flex items-center gap-3.5 text-base font-semibold leading-snug"
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-700 font-bold text-xs">
-                  ✕
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--k-tint)] text-[var(--k-green)]">
+                  {item.icon}
                 </span>
-                <span className="leading-snug">{item[lang]}</span>
-              </div>
+                <span>{item.text}</span>
+              </li>
             ))}
-          </div>
-        </section>
+          </ul>
+        </Container>
+      </section>
 
-        {/* ================================================================= */}
-        {/* 3. HOW IT WORKS */}
-        {/* ================================================================= */}
-        <section aria-labelledby="how-it-works-heading" className="space-y-8">
-          <div className="space-y-2 max-w-xl">
-            <h2
-              id="how-it-works-heading"
-              className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--text-primary)]"
-            >
-              {LANDING_COPY.howItWorks.title[lang]}
-            </h2>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)]">
-              {LANDING_COPY.howItWorks.subtitle[lang]}
-            </p>
+      {/* ======================= 3. BEFORE / AFTER ======================= */}
+      <section
+        aria-labelledby="compare-heading"
+        className="bg-[var(--k-cream)] py-16 sm:py-24"
+      >
+        <Container>
+          <div id="compare-heading">
+            <SectionHead
+              label={L.compare.label[lang]}
+              title={L.compare.title[lang]}
+              subtitle={L.compare.subtitle[lang]}
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {LANDING_COPY.howItWorks.steps.map((step, idx) => (
-              <div
-                key={idx}
-                className="relative rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 sm:p-7 shadow-xs hover:shadow-sm hover:border-[var(--border-strong)] transition-all flex flex-col justify-between space-y-4"
-              >
-                <div className="space-y-4">
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--ok-green)] text-white font-black text-sm shadow-xs">
-                    {lang === "bn" ? step.number : step.numberEn}
+          <div className="mt-10 hidden gap-3 px-1 text-lg font-bold md:grid md:grid-cols-2">
+            <div className="text-[var(--k-red)]">
+              {L.compare.leftTitle[lang]}
+            </div>
+            <div className="text-[var(--k-green)]">
+              {L.compare.rightTitle[lang]}
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3 md:mt-3">
+            {L.compare.rows.map((row, i) => (
+              <div key={i} className="grid gap-1.5 md:grid-cols-2 md:gap-3">
+                <div className="flex items-start gap-3.5 rounded-2xl bg-[var(--k-red-tint)] px-5 py-4 text-[16px] leading-relaxed sm:px-6 sm:py-5 sm:text-[17px]">
+                  <span className="mt-1 shrink-0 text-[var(--k-red)]">
+                    <CrossIcon className="h-5 w-5" />
                   </span>
-                  <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] leading-snug">
-                    {step.title[lang]}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
-                    {step.description[lang]}
-                  </p>
+                  <span>{row.a[lang]}</span>
+                </div>
+                <div className="flex items-start gap-3.5 rounded-2xl bg-[var(--k-tint)] px-5 py-4 text-[16px] font-semibold leading-relaxed sm:px-6 sm:py-5 sm:text-[17px]">
+                  <span className="mt-1 shrink-0 text-[var(--k-green)]">
+                    <CheckIcon className="h-5 w-5" />
+                  </span>
+                  <span>{row.b[lang]}</span>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </Container>
+      </section>
 
-        {/* ================================================================= */}
-        {/* 4. WHAT YOU GET (BENEFIT-FIRST, FLAG-GATED) */}
-        {/* ================================================================= */}
-        <section aria-labelledby="what-you-get-heading" className="space-y-8">
-          <div className="space-y-2 max-w-xl">
-            <h2
-              id="what-you-get-heading"
-              className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--text-primary)]"
+      {/* ========================= 4. HOW IT WORKS ========================= */}
+      <section
+        id="how-it-works"
+        aria-labelledby="how-heading"
+        className="scroll-mt-20 bg-white py-16 sm:py-24"
+      >
+        <Container>
+          <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+            <div>
+              <div id="how-heading">
+                <SectionHead
+                  label={L.how.label[lang]}
+                  title={L.how.title[lang]}
+                />
+              </div>
+              <ol className="mt-10 space-y-9">
+                {L.how.steps.map((step, i) => (
+                  <li key={i} className="flex gap-5">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--k-green)] text-xl font-extrabold text-white">
+                      {lang === "bn" ? step.number : step.numberEn}
+                    </span>
+                    <div>
+                      <h3 className="text-xl font-bold leading-snug sm:text-[22px]">
+                        {step.title[lang]}
+                      </h3>
+                      <p className="mt-2 text-[16px] leading-[1.7] text-[var(--k-muted)] sm:text-[17px]">
+                        {step.description[lang]}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div
+              aria-hidden="true"
+              className="rounded-[28px] bg-[var(--k-cream)] p-7 sm:p-9"
             >
-              {LANDING_COPY.whatYouGet.title[lang]}
-            </h2>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)]">
-              {LANDING_COPY.whatYouGet.subtitle[lang]}
-            </p>
+              <div className="flex flex-col items-center gap-2.5 text-center">
+                <div className="w-full rounded-2xl border border-[var(--k-line)] bg-white px-5 py-4 text-lg font-bold">
+                  {L.how.flow.ad[lang]}
+                </div>
+                <div className="flex items-center gap-2 text-[15px] font-semibold text-[var(--k-muted)]">
+                  <ArrowDown className="h-5 w-5" />
+                  {L.how.flow.click[lang]}
+                </div>
+                <div className="w-full rounded-2xl bg-[var(--k-green)] px-5 py-5 text-xl font-extrabold text-white">
+                  {L.how.flow.page[lang]}
+                </div>
+                <div className="flex items-center gap-2 text-[15px] font-semibold text-[var(--k-muted)]">
+                  <ArrowDown className="h-5 w-5" />
+                  {L.how.flow.ordered[lang]}
+                </div>
+                <div className="grid w-full gap-2.5 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-[var(--k-line)] bg-white px-4 py-4 text-base font-bold leading-snug">
+                    {L.how.flow.telegram[lang]}
+                  </div>
+                  <div className="rounded-2xl border border-[var(--k-line)] bg-white px-4 py-4 text-base font-bold leading-snug">
+                    {L.how.flow.sheet[lang]}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </Container>
+      </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {LANDING_COPY.whatYouGet.items.map((benefit) => (
-              <div
-                key={benefit.id}
-                className="rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-xs hover:border-[var(--border-strong)] hover:shadow-sm transition-all flex flex-col justify-start space-y-3"
-              >
-                <BenefitCardIcon icon={benefit.icon} />
-                <h3 className="text-base font-bold text-[var(--text-primary)] leading-snug pt-1">
-                  {benefit.title[lang]}
+      {/* ============================ 5. PROOF ============================ */}
+      {showProof ? (
+        <section
+          id="demo"
+          aria-labelledby="proof-heading"
+          className="scroll-mt-20 bg-[var(--k-green-dark)] py-16 text-white sm:py-24"
+        >
+          <Container>
+            <div id="proof-heading">
+              <SectionHead
+                light
+                label={L.proof.label[lang]}
+                title={L.proof.title[lang]}
+                subtitle={
+                  SHOTS.telegram || SHOTS.sheet
+                    ? L.proof.subtitle[lang]
+                    : undefined
+                }
+              />
+            </div>
+
+            {SHOTS.telegram || SHOTS.sheet ? (
+              <div className="mt-12 grid items-start gap-8 lg:grid-cols-[380px_1fr]">
+                {SHOTS.telegram ? (
+                  <figure>
+                    <Image
+                      src={SHOTS.telegram.src}
+                      width={SHOTS.telegram.width}
+                      height={SHOTS.telegram.height}
+                      alt={SHOTS.telegram.alt[lang]}
+                      sizes="(min-width: 1024px) 380px, 100vw"
+                      className="h-auto w-full rounded-2xl border border-white/20"
+                    />
+                    <figcaption className="mt-3.5 text-base text-[#CFE5DB]">
+                      {L.proof.telegramCaption[lang]}
+                    </figcaption>
+                  </figure>
+                ) : null}
+                {SHOTS.sheet ? (
+                  <figure className={SHOTS.telegram ? "" : "lg:col-span-2"}>
+                    <Image
+                      src={SHOTS.sheet.src}
+                      width={SHOTS.sheet.width}
+                      height={SHOTS.sheet.height}
+                      alt={SHOTS.sheet.alt[lang]}
+                      sizes="(min-width: 1024px) 700px, 100vw"
+                      className="h-auto w-full rounded-2xl border border-white/20"
+                    />
+                    <figcaption className="mt-3.5 text-base text-[#CFE5DB]">
+                      {L.proof.sheetCaption[lang]}
+                    </figcaption>
+                  </figure>
+                ) : null}
+              </div>
+            ) : null}
+
+            {hasAlertsUrl ? (
+              <div className="mt-11 flex flex-col gap-5 sm:flex-row sm:items-center">
+                <a
+                  href={demoAlertsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-xl bg-white px-6 text-[17px] font-bold text-[var(--k-green)] transition hover:opacity-95 active:scale-[0.98]"
+                >
+                  <SendIcon />
+                  <span>{L.proof.channelButton[lang]}</span>
+                </a>
+                <p className="max-w-md text-base leading-relaxed text-[#CFE5DB]">
+                  {L.proof.warning[lang]} {L.proof.channelNotice[lang]}
+                </p>
+              </div>
+            ) : null}
+          </Container>
+        </section>
+      ) : null}
+
+      {/* =========================== 6. BENEFITS =========================== */}
+      <section
+        aria-labelledby="benefits-heading"
+        className="bg-[var(--k-cream)] py-16 sm:py-24"
+      >
+        <Container>
+          <div id="benefits-heading">
+            <SectionHead
+              label={L.benefits.label[lang]}
+              title={L.benefits.title[lang]}
+            />
+          </div>
+          <div className="mt-12 grid gap-x-10 gap-y-11 sm:grid-cols-2 lg:grid-cols-3">
+            {L.benefits.items.map((b) => (
+              <div key={b.id}>
+                <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[var(--k-tint)] text-[var(--k-green)]">
+                  <BenefitGlyph icon={b.icon} />
+                </span>
+                <h3 className="mt-4 text-[20px] font-bold leading-snug sm:text-[21px]">
+                  {b.title[lang]}
                 </h3>
-                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
-                  {benefit.description[lang]}
+                <p className="mt-2 text-[16px] leading-[1.7] text-[var(--k-muted)] sm:text-[17px]">
+                  {b.description[lang]}
                 </p>
               </div>
             ))}
           </div>
-        </section>
+        </Container>
+      </section>
 
-        {/* ================================================================= */}
-        {/* 5. DEMO BLOCK (TELEGRAM ALERT MOCK) */}
-        {/* ================================================================= */}
-        <section aria-labelledby="demo-heading" className="space-y-8">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-            {/* Left side on desktop: Heading, Features list, Action buttons */}
-            <div className="flex-1 text-left space-y-6 mb-8 lg:mb-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-sky-100 text-sky-800 px-3.5 py-1 text-xs font-bold">
-                <TelegramIcon className="h-3.5 w-3.5" />
-                <span>{LANDING_COPY.demoBlock.badge[lang]}</span>
-              </div>
-              <h2
-                id="demo-heading"
-                className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--text-primary)] leading-tight"
-              >
-                {LANDING_COPY.demoBlock.title[lang]}
-              </h2>
-              <p className="text-sm sm:text-base text-[var(--text-secondary)]">
-                {LANDING_COPY.demoBlock.subtitle[lang]}
-              </p>
-
-              {/* Feature bullet list */}
-              <ul className="space-y-2.5 text-xs sm:text-sm text-[var(--text-secondary)] font-medium text-left lg:mx-0">
-                {LANDING_COPY.demoBlock.features.map((feat, fIdx) => (
-                  <li key={fIdx} className="flex items-start gap-2.5">
-                    <span className="text-emerald-600 mt-0.5 shrink-0">
-                      <CheckIcon className="h-4 w-4" />
+      {/* ============================ 7. WHO FOR ============================ */}
+      <section
+        aria-labelledby="who-heading"
+        className="bg-white py-16 sm:py-24"
+      >
+        <Container>
+          <div id="who-heading">
+            <SectionHead label={L.who.label[lang]} title={L.who.title[lang]} />
+          </div>
+          <div className="mt-11 grid gap-5 md:grid-cols-2 md:gap-6">
+            <div className="rounded-3xl bg-[var(--k-tint)] p-7 sm:p-9">
+              <h3 className="text-xl font-extrabold text-[var(--k-green)] sm:text-[22px]">
+                {L.who.forTitle[lang]}
+              </h3>
+              <ul className="mt-5 space-y-4 text-[17px] leading-relaxed sm:text-lg">
+                {L.who.forItems.map((it, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="mt-1 shrink-0 text-[var(--k-green)]">
+                      <CheckIcon className="h-5 w-5" />
                     </span>
-                    <span>{feat[lang]}</span>
+                    {it[lang]}
                   </li>
                 ))}
               </ul>
-
-              {/* Actions & Warning */}
-              <div className="space-y-3 pt-2">
-                <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 lg:max-w-md lg:mx-0">
-                  {hasAlertsUrl && (
-                    <a
-                      href={demoAlertsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white px-5 py-2.5 text-xs sm:text-sm font-bold shadow-xs active:scale-[0.98] transition-all cursor-pointer"
-                    >
-                      <TelegramIcon className="h-4 w-4" />
-                      <span>{LANDING_COPY.demoBlock.channelButton[lang]}</span>
-                    </a>
-                  )}
-
-                  <Link
-                    href="/demo-brand"
-                    className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-[var(--border-strong)] bg-white px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] active:scale-[0.98] transition-all cursor-pointer"
-                  >
-                    <span>{LANDING_COPY.demoBlock.tryDemoButton[lang]}</span>
-                    <svg
-                      className="h-4 w-4"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12h14" />
-                      <path d="m12 5 7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-
-                <p className="text-xs font-medium text-slate-600 pt-2">
-                  ⚠️ {LANDING_COPY.demoBlock.warning[lang]}
-                </p>
-                {hasAlertsUrl && (
-                  <p className="text-xs text-sky-800 font-semibold">
-                    {LANDING_COPY.demoBlock.channelNotice[lang]}
-                  </p>
-                )}
-              </div>
             </div>
-
-            {/* Right side: Telegram Window Mockup */}
-            <div className="flex-1 flex">
-              <div className="w-full max-w-lg rounded-3xl border border-slate-300 bg-[#eef3f7] p-4 sm:p-6 shadow-xl space-y-4">
-                {/* Telegram Header */}
-                <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-9 w-9 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-xs">
-                      <TelegramIcon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                        <span>OrderKoro Bot</span>
-                        <span className="text-sky-600 text-xs">✓</span>
-                      </div>
-                      <div className="text-xs text-slate-600">bot</div>
-                    </div>
-                  </div>
-                  <span className="text-xs font-mono text-slate-600">
-                    12:34 PM
-                  </span>
-                </div>
-
-                {/* Telegram Message Bubble */}
-                <div className="rounded-2xl bg-white p-4 sm:p-5 text-xs sm:text-sm text-slate-900 shadow-xs font-sans space-y-2 border border-slate-100 leading-relaxed">
-                  <div className="font-bold text-slate-950 flex items-center gap-1.5">
-                    <span>📦</span>
-                    <span className="rounded-xs bg-amber-100 text-amber-900 px-1.5 py-0.5 text-2xs font-extrabold">
-                      [{LANDING_COPY.demoBlock.mock.tag}]
+            <div className="rounded-3xl border border-[var(--k-line)] bg-[var(--k-cream)] p-7 sm:p-9">
+              <h3 className="text-xl font-extrabold text-[var(--k-muted)] sm:text-[22px]">
+                {L.who.notTitle[lang]}
+              </h3>
+              <ul className="mt-5 space-y-4 text-[17px] leading-relaxed text-[var(--k-muted)] sm:text-lg">
+                {L.who.notItems.map((it, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="mt-1 shrink-0">
+                      <DashIcon className="h-5 w-5" />
                     </span>
-                    <span>
-                      Order #{LANDING_COPY.demoBlock.mock.orderNumber}
-                    </span>
-                  </div>
-                  <div>
-                    Status:{" "}
-                    <strong className="text-emerald-700">
-                      {LANDING_COPY.demoBlock.mock.status}
-                    </strong>
-                  </div>
-
-                  <div className="pt-1 space-y-0.5 border-t border-slate-100">
-                    <p>
-                      👤{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.customerLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.customerValue}
-                    </p>
-                    <p>
-                      📞{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.phoneLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.phoneValue}
-                    </p>
-                    <p>
-                      📍{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.addressLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.addressValue}
-                    </p>
-                  </div>
-
-                  <div className="pt-1 space-y-0.5 border-t border-slate-100">
-                    <p>
-                      🛍️{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.itemLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.itemValue[lang]}
-                    </p>
-                    <p>
-                      🎨{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.colorLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.colorValue[lang]}
-                    </p>
-                    <p>
-                      📏{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.sizeLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.sizeValue}
-                    </p>
-                    <p>
-                      🔢{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.qtyLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.qtyValue}
-                    </p>
-                    <p>
-                      🚚{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.deliveryLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.deliveryValue}
-                    </p>
-                    <p>
-                      💳{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.paymentLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.paymentValue[lang]}
-                    </p>
-                    <p className="font-bold text-slate-950 text-sm pt-1">
-                      💵{" "}
-                      <strong>
-                        {LANDING_COPY.demoBlock.mock.totalLabel[lang]}
-                      </strong>{" "}
-                      {LANDING_COPY.demoBlock.mock.totalValue}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Telegram Action Buttons Mockup */}
-                <div className="space-y-1.5 pt-1">
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      tabIndex={-1}
-                      className="rounded-xl bg-white/95 border border-slate-200 py-2.5 px-3 text-xs font-semibold text-slate-800 shadow-2xs pointer-events-none"
-                    >
-                      {LANDING_COPY.demoBlock.mock.btnConfirm[lang]}
-                    </button>
-                    <button
-                      type="button"
-                      tabIndex={-1}
-                      className="rounded-xl bg-white/95 border border-slate-200 py-2.5 px-3 text-xs font-semibold text-slate-800 shadow-2xs pointer-events-none"
-                    >
-                      {LANDING_COPY.demoBlock.mock.btnNoAnswer[lang]}
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    className="w-full rounded-xl bg-white/95 border border-slate-200 py-2.5 px-3 text-xs font-semibold text-slate-800 shadow-2xs pointer-events-none"
-                  >
-                    {LANDING_COPY.demoBlock.mock.btnCancel[lang]}
-                  </button>
-                </div>
-              </div>
+                    {it[lang]}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-        </section>
+        </Container>
+      </section>
 
-        {/* ================================================================= */}
-        {/* 6. PRICING SECTION */}
-        {/* ================================================================= */}
-        <section
-          id="pricing"
-          aria-labelledby="pricing-heading"
-          className="space-y-8 scroll-mt-20"
-        >
-          <div className="space-y-2">
-            <h2
-              id="pricing-heading"
-              className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--text-primary)]"
-            >
-              {LANDING_COPY.pricing.title[lang]}
-            </h2>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)]">
-              {LANDING_COPY.pricing.subtitle[lang]}
-            </p>
+      {/* ============================ 8. PRICING ============================ */}
+      <section
+        id="pricing"
+        aria-labelledby="pricing-heading"
+        className="scroll-mt-20 bg-[var(--k-cream)] py-16 sm:py-24"
+      >
+        <Container>
+          <div id="pricing-heading">
+            <SectionHead
+              label={L.pricing.label[lang]}
+              title={L.pricing.title[lang]}
+              subtitle={L.pricing.subtitle[lang]}
+            />
           </div>
 
           <div
-            className={`grid grid-cols-1 ${showEarlyOffer ? "md:grid-cols-2" : "max-w-xl mx-auto"} gap-8 items-stretch`}
+            className={`mt-11 grid items-stretch gap-6 ${
+              showEarlyOffer ? "lg:grid-cols-[1.15fr_1fr]" : "mx-auto max-w-xl"
+            }`}
           >
-            {/* Early Offer Card (Rendered ONLY if earlyOfferRemaining > 0) */}
-            {showEarlyOffer && (
-              <div className="rounded-3xl border-2 border-[var(--ok-green)] bg-[var(--bg-surface)] p-6 sm:p-8 shadow-lg flex flex-col justify-between space-y-6 relative overflow-hidden">
-                <div className="space-y-4">
-                  {/* Badge */}
-                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 text-[var(--ok-green)] border border-emerald-200 px-3.5 py-1 text-xs font-bold">
-                    <span>
-                      {LANDING_COPY.pricing.earlyCard.badge(
-                        LANDING.earlyOfferTotal,
-                        lang,
-                      )}
+            {showEarlyOffer ? (
+              <div className="flex flex-col justify-between gap-7 rounded-[28px] border-2 border-[var(--k-green)] bg-white p-7 shadow-[0_18px_48px_rgba(10,105,75,0.12)] sm:p-10">
+                <div>
+                  <span className="inline-flex rounded-full bg-[var(--k-tint)] px-4 py-1.5 text-[15px] font-bold text-[var(--k-green)]">
+                    {L.pricing.earlyCard.badge(LANDING.earlyOfferTotal, lang)}
+                  </span>
+                  <div className="mt-5 flex items-baseline gap-3">
+                    <span className="text-[46px] font-extrabold leading-tight sm:text-[60px]">
+                      {L.pricing.earlyCard.price(LANDING.earlyPrice, lang)}
+                    </span>
+                    <span className="text-lg font-bold text-[var(--k-muted)]">
+                      {L.pricing.earlyCard.oneTimeLabel[lang]}
                     </span>
                   </div>
 
-                  {/* Price */}
-                  <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl sm:text-4xl font-black text-[var(--text-primary)]">
-                        {LANDING_COPY.pricing.earlyCard.price(
-                          LANDING.earlyPrice,
-                          lang,
-                        )}
-                      </span>
-                      <span className="text-sm font-bold text-[var(--text-secondary)]">
-                        {LANDING_COPY.pricing.earlyCard.oneTimeLabel[lang]}
-                      </span>
-                    </div>
-
-                    {/* Remaining & Segmented Progress Bar */}
-                    <div className="mt-3 space-y-2">
-                      <div className="text-xs font-bold text-[var(--ok-green)]">
-                        {LANDING_COPY.pricing.earlyCard.remainingText(
-                          LANDING.earlyOfferRemaining,
-                          LANDING.earlyOfferTotal,
-                          lang,
-                        )}
-                      </div>
-                      {/* Segmented bar - no fake urgency / animations */}
+                  <div className="mt-5 text-base font-bold text-[var(--k-green)]">
+                    {L.pricing.earlyCard.remainingText(
+                      LANDING.earlyOfferRemaining,
+                      LANDING.earlyOfferTotal,
+                      lang,
+                    )}
+                  </div>
+                  <div
+                    className="mt-2.5 flex gap-2"
+                    role="progressbar"
+                    aria-label={L.pricing.earlyCard.remainingText(
+                      LANDING.earlyOfferRemaining,
+                      LANDING.earlyOfferTotal,
+                      lang,
+                    )}
+                    aria-valuenow={claimedCount}
+                    aria-valuemin={0}
+                    aria-valuemax={LANDING.earlyOfferTotal}
+                  >
+                    {segments.map((claimed, i) => (
                       <div
-                        className="flex gap-1.5"
-                        role="progressbar"
-                        aria-label={LANDING_COPY.pricing.earlyCard.remainingText(
-                          LANDING.earlyOfferRemaining,
-                          LANDING.earlyOfferTotal,
-                          lang,
-                        )}
-                        aria-valuenow={claimedCount}
-                        aria-valuemin={0}
-                        aria-valuemax={LANDING.earlyOfferTotal}
-                      >
-                        {segments.map((isClaimed, sIdx) => (
-                          <div
-                            key={sIdx}
-                            className={`h-2 flex-1 rounded-full ${
-                              isClaimed
-                                ? "bg-[var(--ok-green)]"
-                                : "bg-[var(--border-strong)]"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
+                        key={i}
+                        className={`h-2 flex-1 rounded-full ${claimed ? "bg-[var(--k-green)]" : "bg-[var(--k-line)]"}`}
+                      />
+                    ))}
                   </div>
 
-                  {/* Exact Scope Text */}
-                  <div className="rounded-2xl bg-[var(--bg-subtle)] p-4 border border-[var(--border-subtle)] space-y-2 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
-                    <p className="font-medium text-[var(--text-primary)]">
-                      {LANDING_COPY.pricing.earlyCard.scopeText[lang]}
+                  <div className="mt-6 rounded-2xl bg-[var(--k-cream)] p-5 text-[16px] leading-[1.7]">
+                    <p className="font-semibold">
+                      {L.pricing.earlyCard.scopeText[lang]}
                     </p>
-                    <p className="text-xs text-[var(--text-secondary)] border-t border-[var(--border-subtle)] pt-2">
-                      {LANDING_COPY.pricing.earlyCard.scopeSubtext[lang]}
+                    <p className="mt-2.5 border-t border-[var(--k-line)] pt-2.5 text-[15px] text-[var(--k-muted)]">
+                      {L.pricing.earlyCard.scopeSubtext[lang]}
                     </p>
                   </div>
-
-                  {/* Next Price Note */}
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    {LANDING_COPY.pricing.earlyCard.nextPriceNote[lang]}
+                  <p className="mt-4 text-[15px] leading-relaxed text-[var(--k-muted)]">
+                    {L.pricing.earlyCard.nextPriceNote[lang]}
                   </p>
                 </div>
-
                 <a
-                  href={effectiveContactUrl}
+                  href={contact}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-green)] px-6 py-3.5 text-sm sm:text-base font-bold text-white shadow-md hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer"
+                  className={`${BTN_PRIMARY} w-full`}
                 >
-                  <MessengerIcon className="h-5 w-5" />
-                  <span>{LANDING_COPY.pricing.earlyCard.ctaButton[lang]}</span>
+                  <MessengerIcon />
+                  <span>{L.pricing.earlyCard.ctaButton[lang]}</span>
                 </a>
               </div>
-            )}
+            ) : null}
 
-            {/* Standard Card */}
             <div
-              className={`rounded-3xl border ${
+              className={`flex flex-col justify-between gap-7 rounded-[28px] bg-white p-7 sm:p-10 ${
                 showEarlyOffer
-                  ? "border-[var(--border-subtle)] bg-[var(--bg-surface)]"
-                  : "border-2 border-[var(--ok-green)] bg-[var(--bg-surface)] shadow-lg"
-              } p-6 sm:p-8 flex flex-col justify-between space-y-6`}
+                  ? "border border-[var(--k-line)]"
+                  : "border-2 border-[var(--k-green)] shadow-[0_18px_48px_rgba(10,105,75,0.12)]"
+              }`}
             >
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 text-slate-800 border border-slate-200 px-3 py-1 text-xs font-bold">
-                    <span>{LANDING_COPY.pricing.standardCard.badge[lang]}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-[var(--text-primary)]">
-                    {LANDING_COPY.pricing.standardCard.title[lang]}
-                  </h3>
+              <div>
+                <span className="inline-flex rounded-full border border-[var(--k-line)] bg-[var(--k-cream)] px-4 py-1.5 text-[15px] font-bold">
+                  {L.pricing.standardCard.badge[lang]}
+                </span>
+                <h3 className="mt-4 text-[22px] font-bold">
+                  {L.pricing.standardCard.title[lang]}
+                </h3>
+                <div className="mt-3 text-[40px] font-extrabold leading-tight sm:text-[52px]">
+                  {L.pricing.standardCard.price(LANDING.standardPrice, lang)}
+                </div>
+                <div className="mt-1.5 text-base font-semibold text-[var(--k-muted)]">
+                  {L.pricing.standardCard.includedNote(
+                    LANDING.standardIncludedMonths,
+                    lang,
+                  )}
                 </div>
 
-                {/* Price */}
-                <div>
-                  <div className="text-3xl sm:text-4xl font-black text-[var(--text-primary)]">
-                    {LANDING_COPY.pricing.standardCard.price(
-                      LANDING.standardPrice,
-                      lang,
-                    )}
-                  </div>
-                  <div className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] mt-1">
-                    {LANDING_COPY.pricing.standardCard.includedNote(
-                      LANDING.standardIncludedMonths,
-                      lang,
-                    )}
-                  </div>
+                <div className="mt-6 border-t border-[var(--k-line)] pt-5 text-[14px] font-bold text-[var(--k-muted)]">
+                  {L.pricing.standardCard.featuresTitle[lang]}
                 </div>
+                <ul className="mt-3.5 space-y-3 text-[16px] leading-snug">
+                  {L.pricing.standardCard.features.map((f, i) => (
+                    <li key={i} className="flex gap-2.5">
+                      <span className="mt-0.5 shrink-0 text-[var(--k-green)]">
+                        <CheckIcon className="h-[18px] w-[18px]" />
+                      </span>
+                      {f[lang]}
+                    </li>
+                  ))}
+                </ul>
 
-                {/* What's Included */}
-                <div className="space-y-2.5 pt-2 border-t border-[var(--border-subtle)]">
-                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                    {LANDING_COPY.pricing.standardCard.featuresTitle[lang]}
-                  </div>
-                  <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-secondary)]">
-                    {LANDING_COPY.pricing.standardCard.features.map(
-                      (feat, fIdx) => (
-                        <li key={fIdx} className="flex items-start gap-2">
-                          <span className="text-emerald-600 mt-0.5 shrink-0">
-                            <CheckIcon className="h-4 w-4" />
-                          </span>
-                          <span>{feat[lang]}</span>
-                        </li>
-                      ),
-                    )}
-                  </ul>
+                <div className="mt-6 border-t border-[var(--k-line)] pt-5 text-[14px] font-bold text-[var(--k-muted)]">
+                  {L.pricing.standardCard.extraCostsTitle[lang]}
                 </div>
-
-                {/* Separate Costs */}
-                <div className="space-y-2 pt-2 border-t border-[var(--border-subtle)]">
-                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                    {LANDING_COPY.pricing.standardCard.extraCostsTitle[lang]}
-                  </div>
-                  <ul className="space-y-1.5 text-xs text-[var(--text-muted)]">
-                    {LANDING_COPY.pricing.standardCard.extraCosts.map(
-                      (extra, eIdx) => (
-                        <li key={eIdx} className="flex items-start gap-2">
-                          <span className="text-slate-400 mt-0.5 shrink-0">
-                            •
-                          </span>
-                          <span>{extra[lang]}</span>
-                        </li>
-                      ),
-                    )}
-                  </ul>
-                </div>
+                <ul className="mt-2.5 space-y-1.5 text-[15px] leading-relaxed text-[var(--k-muted)]">
+                  {L.pricing.standardCard.extraCosts.map((x, i) => (
+                    <li key={i} className="flex gap-2.5">
+                      <span aria-hidden="true">•</span>
+                      {x[lang]}
+                    </li>
+                  ))}
+                </ul>
               </div>
-
               <a
-                href={effectiveContactUrl}
+                href={contact}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`w-full min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl ${
+                className={`inline-flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-xl px-6 text-[17px] font-bold transition active:scale-[0.98] ${
                   showEarlyOffer
-                    ? "border-2 border-[var(--border-strong)] bg-white text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]"
-                    : "bg-[var(--ok-green)] text-white shadow-md hover:opacity-95"
-                } px-6 py-3.5 text-sm sm:text-base font-bold active:scale-[0.98] transition-all cursor-pointer`}
+                    ? "border-2 border-[var(--k-line)] bg-white text-[var(--k-ink)] hover:bg-[var(--k-cream)]"
+                    : "bg-[var(--k-green)] text-white hover:opacity-95"
+                }`}
               >
-                <MessengerIcon className="h-5 w-5" />
-                <span>{LANDING_COPY.pricing.standardCard.ctaButton[lang]}</span>
+                <MessengerIcon />
+                <span>{L.pricing.standardCard.ctaButton[lang]}</span>
               </a>
             </div>
           </div>
+        </Container>
+      </section>
+
+      {/* ============================ 9. ABOUT ============================ */}
+      {FOUNDER ? (
+        <section
+          aria-labelledby="about-heading"
+          className="bg-white py-16 sm:py-24"
+        >
+          <Container>
+            <div className="flex flex-col items-start gap-8 sm:flex-row sm:items-center sm:gap-12">
+              {FOUNDER.photo ? (
+                <Image
+                  src={FOUNDER.photo.src}
+                  width={FOUNDER.photo.width}
+                  height={FOUNDER.photo.height}
+                  alt={FOUNDER.name[lang]}
+                  className="h-36 w-36 shrink-0 rounded-full object-cover"
+                />
+              ) : null}
+              <div className="max-w-2xl">
+                <div className="text-base font-bold text-[var(--k-green)]">
+                  {L.about.label[lang]}
+                </div>
+                <h2
+                  id="about-heading"
+                  className="mt-2 text-[28px] font-extrabold leading-snug sm:text-[34px]"
+                >
+                  {FOUNDER.name[lang]}
+                </h2>
+                <div className="mt-1 text-base font-semibold text-[var(--k-muted)]">
+                  {FOUNDER.role[lang]}
+                </div>
+                <p className="mt-4 text-[17px] leading-[1.75] text-[var(--k-muted)] sm:text-lg">
+                  {FOUNDER.note[lang]}
+                </p>
+              </div>
+            </div>
+          </Container>
         </section>
+      ) : null}
 
-        {/* ================================================================= */}
-        {/* 7. FAQ ACCORDION */}
-        {/* ================================================================= */}
-        <section aria-labelledby="faq-heading" className="space-y-8">
-          <div className="space-y-2 max-w-xl">
-            <h2
-              id="faq-heading"
-              className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--text-primary)]"
-            >
-              {LANDING_COPY.faq.title[lang]}
-            </h2>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)]">
-              {LANDING_COPY.faq.subtitle[lang]}
-            </p>
+      {/* ============================== 10. FAQ ============================== */}
+      <section
+        aria-labelledby="faq-heading"
+        className="bg-[var(--k-cream)] py-16 sm:py-24"
+      >
+        <Container className="max-w-3xl">
+          <div id="faq-heading">
+            <SectionHead label={L.faq.label[lang]} title={L.faq.title[lang]} />
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {LANDING_COPY.faq.items.map((faqItem) => (
+          <div className="mt-9 border-t border-[var(--k-line)]">
+            {L.faq.items.map((item) => (
               <details
-                key={faqItem.id}
-                className="group rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 transition-all shadow-2xs hover:border-[var(--border-strong)] open:border-[var(--ok-green)]"
+                key={item.id}
+                className="group border-b border-[var(--k-line)]"
               >
-                <summary className="flex cursor-pointer items-center justify-between text-sm sm:text-base font-bold text-[var(--text-primary)] list-none gap-3 focus-visible:outline-2 focus-visible:outline-[var(--ok-green)] rounded-md">
-                  <span>{faqItem.question[lang]}</span>
-                  <span className="text-[var(--text-muted)] transition-transform duration-200 group-open:rotate-180 shrink-0">
-                    <ChevronDownIcon className="h-5 w-5" />
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-[17px] font-bold leading-snug focus-visible:outline-2 focus-visible:outline-[var(--k-green)] sm:text-[19px] [&::-webkit-details-marker]:hidden">
+                  <span>{item.question[lang]}</span>
+                  <span className="shrink-0 text-[var(--k-muted)] transition-transform duration-200 group-open:rotate-180">
+                    <ChevronDown className="h-5 w-5" />
                   </span>
                 </summary>
-                <div className="mt-3 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed border-t border-[var(--border-subtle)] pt-3">
-                  {faqItem.answer[lang]}
-                </div>
+                <p className="pb-6 text-[16px] leading-[1.75] text-[var(--k-muted)] sm:text-[17px]">
+                  {item.answer[lang]}
+                </p>
               </details>
             ))}
           </div>
-        </section>
+        </Container>
+      </section>
 
-        {/* ================================================================= */}
-        {/* 8. FINAL CTA */}
-        {/* ================================================================= */}
-        <section aria-labelledby="final-cta-heading">
-          <div className="rounded-3xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--bg-surface)] via-emerald-50/20 to-[var(--bg-subtle)] p-8 text-center space-y-6 shadow-sm flex flex-col lg:flex-row lg:gap-6 justify-between">
-            <div className="flex-1 space-y-3 text-left">
-              <h2
-                id="final-cta-heading"
-                className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--text-primary)] leading-tight"
-              >
-                {LANDING_COPY.finalCta.title[lang]}
-              </h2>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {LANDING_COPY.finalCta.subtitle[lang]}
-              </p>
-            </div>
-
-            <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-              <a
-                href={effectiveContactUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-green)] px-7 py-3.5 text-base font-bold text-white shadow-md hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <MessengerIcon className="h-5 w-5" />
-                <span>{LANDING_COPY.finalCta.primaryButton[lang]}</span>
-              </a>
-
-              <Link
-                href="/demo-brand"
-                className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[var(--border-strong)] bg-white px-7 py-3.5 text-base font-bold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <span>{LANDING_COPY.finalCta.secondaryButton[lang]}</span>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* ================================================================= */}
-        {/* FOOTER */}
-        {/* ================================================================= */}
-        <footer className="pt-6 border-t border-[var(--border-subtle)]">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 text-left">
-            <div className="flex items-center justify-center gap-5 text-xs font-semibold text-[var(--text-secondary)]">
-              <Link href="/demo-brand/privacy" className="hover:underline">
-                {LANDING_COPY.footer.privacy[lang]}
-              </Link>
-              <span>•</span>
-              <Link href="/demo-brand/terms" className="hover:underline">
-                {LANDING_COPY.footer.terms[lang]}
-              </Link>
-            </div>
-            <p className="text-xs text-[var(--text-secondary)] text-center pt-2">
-              {LANDING_COPY.footer.copyright[lang]}
+      {/* =========================== 11. FINAL CTA =========================== */}
+      <section
+        aria-labelledby="final-cta-heading"
+        className="bg-[var(--k-green)] text-white"
+      >
+        <Container className="flex flex-col gap-9 py-16 sm:py-20 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-xl">
+            <h2
+              id="final-cta-heading"
+              className="text-[28px] font-extrabold leading-[1.3] sm:text-[40px]"
+            >
+              {L.finalCta.title[lang]}
+            </h2>
+            <p className="mt-4 text-[17px] leading-relaxed text-[#D6EBE2] sm:text-[19px]">
+              {L.finalCta.subtitle[lang]}
             </p>
           </div>
-        </footer>
-      </div>
+          <div className="flex flex-col gap-3.5 sm:flex-row sm:flex-wrap">
+            <a
+              href={contact}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-xl bg-white px-7 text-[17px] font-extrabold text-[var(--k-green)] transition hover:opacity-95 active:scale-[0.98]"
+            >
+              <MessengerIcon />
+              <span>{L.finalCta.primaryButton[lang]}</span>
+            </a>
+            {CONTACT_PHONE ? (
+              <a
+                href={`tel:${CONTACT_PHONE}`}
+                className="inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-xl border-2 border-white/70 px-7 text-[17px] font-bold text-white transition hover:bg-white/10 active:scale-[0.98]"
+              >
+                <PhoneIcon />
+                <span>{L.finalCta.callButton[lang]}</span>
+              </a>
+            ) : null}
+            <Link
+              href={DEMO_PATH}
+              className="inline-flex min-h-[54px] items-center justify-center rounded-xl border-2 border-white/70 px-7 text-[17px] font-bold text-white transition hover:bg-white/10 active:scale-[0.98]"
+            >
+              {L.finalCta.secondaryButton[lang]}
+            </Link>
+          </div>
+        </Container>
+      </section>
 
-      {/* ================================================================= */}
-      {/* MOBILE STICKY BOTTOM CTA BAR */}
-      {/* ================================================================= */}
+      {/* ============================== FOOTER ============================== */}
+      <footer className="bg-[var(--k-ink)] text-white">
+        <Container className="flex flex-col gap-4 py-9 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-5 text-[15px] font-semibold text-[#D8D6CE]">
+            <Link href={LEGAL_LINKS.privacy} className="hover:underline">
+              {L.footer.privacy[lang]}
+            </Link>
+            <Link href={LEGAL_LINKS.terms} className="hover:underline">
+              {L.footer.terms[lang]}
+            </Link>
+          </div>
+          <p className="text-sm text-[#BDBAB0]">{L.footer.copyright[lang]}</p>
+        </Container>
+      </footer>
+
+      {/* ======================= MOBILE STICKY CTA BAR ======================= */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-20 bg-[var(--bg-surface)]/95 backdrop-blur-md border-t border-[var(--border-subtle)] px-4 py-3 lg:hidden shadow-sticky pb-[max(0.75rem,env(safe-area-inset-bottom))]"
         role="region"
-        aria-label="Quick Actions"
+        aria-label="Quick actions"
+        className="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--k-line)] bg-white/95 px-4 pt-3 shadow-[0_-6px_20px_rgba(27,27,24,0.08)] backdrop-blur-md lg:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]"
       >
         <div className="mx-auto flex max-w-md items-center gap-3">
           <Link
-            href="/demo-brand"
-            className="flex-1 min-h-[44px] inline-flex items-center justify-center rounded-xl border border-[var(--border-strong)] bg-white px-3 py-2.5 text-xs font-bold text-[var(--text-primary)] active:scale-[0.98] transition-all"
+            href={DEMO_PATH}
+            className="inline-flex min-h-[48px] flex-1 items-center justify-center rounded-xl border border-[var(--k-line)] bg-white px-3 text-base font-bold active:scale-[0.98]"
           >
-            {LANDING_COPY.stickyBar.demoButton[lang]}
+            {L.stickyBar.demoButton[lang]}
           </Link>
           <a
-            href={effectiveContactUrl}
+            href={contact}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ok-green)] px-4 py-2.5 text-xs font-bold text-white shadow-sm active:scale-[0.98] transition-all"
+            className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--k-green)] px-3 text-base font-bold text-white active:scale-[0.98]"
           >
-            <MessengerIcon className="h-4 w-4" />
-            <span>{LANDING_COPY.stickyBar.messageUs[lang]}</span>
+            <MessengerIcon className="h-[18px] w-[18px]" />
+            <span>{L.stickyBar.messageUs[lang]}</span>
           </a>
         </div>
       </div>

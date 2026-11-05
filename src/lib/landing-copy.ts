@@ -1,5 +1,7 @@
+// src/lib/landing-copy.ts  (replaces your current file)
 import { formatNumber, formatPrice, type SupportedLocale } from "@/lib/format";
 import { LANDING, LANDING_CLAIMS } from "@/lib/landing-config";
+import { DATA_FAQ_ANSWER } from "@/lib/landing-extra";
 
 export function getPricingLine(): { bn: string; en: string } {
   let bn = `সেটআপ ${formatPrice(LANDING.standardPrice, "bn")}।`;
@@ -18,266 +20,292 @@ export function getPricingLine(): { bn: string; en: string } {
   return { bn, en };
 }
 
+export type BenefitIcon =
+  | "telegram"
+  | "sheet"
+  | "speed"
+  | "payment"
+  | "policy"
+  | "protection"
+  | "pixel";
+
 export interface BenefitItem {
   id: string;
-  icon:
-    | "telegram"
-    | "sheet"
-    | "speed"
-    | "payment"
-    | "policy"
-    | "protection"
-    | "pixel";
-  title: {
-    bn: string;
-    en: string;
-  };
-  description: {
-    bn: string;
-    en: string;
-  };
+  icon: BenefitIcon;
+  title: { bn: string; en: string };
+  description: { bn: string; en: string };
 }
 
+const dp = LANDING.deliveryPromise;
+
 export const LANDING_COPY = {
+  // Used by the page metadata. Unchanged.
   meta: {
     title: "OrderKoro (অর্ডারকরো) - ফেসবুক সেলারদের জন্য এক পণ্যের অর্ডার পেজ",
     description:
       "ফেসবুক সেলারদের জন্য এক পণ্যের অর্ডার পেজ। কাস্টমার সাইজ ও কালার বেছে অর্ডার করে। অর্ডার সাথে সাথে আপনার টেলিগ্রামে আসে এবং নিজের গুগল শিটে জমা হয়।",
   },
+
   eyebrow: {
-    bn: "ফেসবুক ও এফ-কমার্স সেলারদের জন্য",
-    en: "For Facebook & F-commerce sellers",
+    bn: "ফেসবুক সেলারদের জন্য এক পণ্যের অর্ডার পেজ",
+    en: "Single-product order pages for Facebook sellers",
   },
+
   hero: {
-    headline: {
-      bn: "ফেসবুক অ্যাড চালান? অর্ডার ইনবক্সে হারাবেন না।",
-      en: "Running Facebook ads? Stop losing orders in inbox.",
+    line1: { bn: "ফেসবুক অ্যাড চালান?", en: "Running Facebook ads?" },
+    line2: {
+      bn: "অর্ডার ইনবক্সে হারাবেন না।",
+      en: "Stop losing orders in the inbox.",
     },
     subline: {
-      bn: `আপনার নিজের অর্ডার পেজ তৈরি করে দিই আমরা, ${LANDING.deliveryPromise.bn}।`,
-      en: `We build your custom single-product order page, ${LANDING.deliveryPromise.en}.`,
+      bn: `আপনার নিজের অর্ডার পেজ তৈরি করে দিই আমরা, ${dp.bn}। অর্ডার আসবে আপনার টেলিগ্রামে আর নিজের গুগল শিটে।`,
+      en: `We build your own order page ${dp.en}. Orders arrive in your Telegram and your own Google Sheet.`,
     },
-    primaryCta: {
-      bn: "ডেমো অর্ডার করে দেখুন",
-      en: "Try demo order",
-    },
-    secondaryCta: {
-      bn: "মেসেজ করুন",
-      en: "Message us",
-    },
-    badges: [
-      {
-        bn: "সুপার ফাস্ট স্পিড",
-        en: "Super fast speed",
-      },
-      {
-        bn: "ক্যাশ অন ডেলিভারি",
-        en: "Cash on Delivery",
-      },
-      {
-        bn: "টেলিগ্রাম অ্যালার্ট",
-        en: "Telegram alert",
-      },
-      {
-        bn: "গুগল শিট ইন্টিগ্রেশন",
-        en: "Google Sheets sync",
-      },
-    ],
-    previewCard: {
-      badge: {
-        bn: "আপনার পেজ যেমন দেখাবে",
-        en: "What your page looks like",
-      },
-      brandName: {
-        bn: "বুনন স্টোর",
-        en: "Bunon Atelier",
-      },
-      productTitle: {
-        bn: "প্রিমিয়াম সুতি পাঞ্জাবি",
-        en: "Premium Cotton Panjabi",
-      },
-      price: {
-        bn: "৳১,৪৯০",
-        en: "৳1,490",
-      },
-      oldPrice: {
-        bn: "৳১,৮৫০",
-        en: "৳1,850",
-      },
-      colorLabel: {
-        bn: "কালার: মিডনাইট ব্লু",
-        en: "Color: Midnight Blue",
-      },
-      sizeLabel: {
-        bn: "সাইজ নির্বাচন:",
-        en: "Select size:",
-      },
-      ctaButton: {
-        bn: "অর্ডার কনফার্ম করুন",
-        en: "Confirm Order",
-      },
-      pillSpeed: {
-        bn: "⚡ ১ সেকেন্ডে লোড",
-        en: "⚡ 1s fast load",
-      },
-      pillSync: {
-        bn: "✓ শিট ও টেলিগ্রাম সিঙ্ক",
-        en: "✓ Sheets & Telegram sync",
-      },
-    },
+    primaryCta: { bn: "ডেমো অর্ডার করে দেখুন", en: "Try a demo order" },
+    secondaryCta: { bn: "মেসেজ করুন", en: "Message us" },
   },
-  problemStrip: {
-    title: {
-      bn: "যে সমস্যাগুলোর সমাধান পাবেন",
-      en: "Common seller problems we solve",
+
+  trust: {
+    sheet: {
+      bn: "ডেটা আপনার নিজের গুগল শিটে",
+      en: "Your data lives in your own Google Sheet",
     },
-    items: [
-      {
-        id: "p1",
-        bn: "ইনবক্সে অর্ডার হারিয়ে যায়",
-        en: "Orders get lost in inbox",
-      },
-      {
-        id: "p2",
-        bn: "ফেক ও ডুপ্লিকেট অর্ডার",
-        en: "Fake and duplicate orders",
-      },
-      {
-        id: "p3",
-        bn: "স্লো পেজে অ্যাডের টাকা নষ্ট",
-        en: "Slow landing pages waste ad budget",
-      },
-      {
-        id: "p4",
-        bn: "খাতায় হাতে অর্ডার লেখা",
-        en: "Writing orders by hand in notebooks",
-      },
-    ],
+    telegram: {
+      bn: "নতুন অর্ডারে টেলিগ্রাম অ্যালার্ট",
+      en: "Telegram alert on every new order",
+    },
+    commission: {
+      bn: "প্রতি অর্ডারে কোনো কমিশন নেই",
+      en: "No commission on orders",
+    },
+    lighthouse: (score: number, date: string, lang: SupportedLocale) =>
+      lang === "bn"
+        ? `মোবাইল Lighthouse ${formatNumber(score, "bn")}/১০০ (${date}, লাইভ সাইটে মাপা)`
+        : `Mobile Lighthouse ${score}/100 (measured on the live site, ${date})`,
   },
-  howItWorks: {
+
+  compare: {
+    label: { bn: "পার্থক্যটা দেখুন", en: "See the difference" },
     title: {
-      bn: "কীভাবে কাজ করে?",
-      en: "How does it work?",
+      bn: "ইনবক্সে অর্ডার নেওয়া বনাম OrderKoro",
+      en: "Taking orders in the inbox vs OrderKoro",
     },
     subtitle: {
-      bn: "সহজ ৩ ধাপে আপনার অর্ডার পেজ চালু করুন",
-      en: "Launch your order page in 3 easy steps",
+      bn: "একটি পণ্য, একটি লিংক। কাস্টমার নিজে সব বেছে নেয়, আপনি শুধু কনফার্ম করেন।",
+      en: "One product, one link. The customer picks everything; you just confirm.",
+    },
+    leftTitle: { bn: "ইনবক্সে অর্ডার নিলে", en: "Taking orders in the inbox" },
+    rightTitle: { bn: "OrderKoro-তে", en: "With OrderKoro" },
+    rows: [
+      {
+        a: {
+          bn: "মেসেজের ভিড়ে অর্ডার খুঁজতে হয়",
+          en: "You dig through messages to find orders",
+        },
+        b: {
+          bn: "প্রতিটি অর্ডার আলাদা টেলিগ্রাম অ্যালার্টে, একটি কার্ডে",
+          en: "Each order arrives as its own Telegram alert, in one card",
+        },
+      },
+      {
+        a: {
+          bn: "নাম, নম্বর, ঠিকানা হাতে কপি-পেস্ট করতে হয়",
+          en: "You copy-paste names, numbers and addresses by hand",
+        },
+        b: {
+          bn: "অর্ডার আপনাআপনি আপনার গুগল শিটের নতুন সারিতে জমা হয়",
+          en: "Each order is added to your Google Sheet automatically",
+        },
+      },
+      {
+        a: {
+          bn: "ভুল সাইজ বা রঙ লিখলে আবার জিজ্ঞেস করতে হয়",
+          en: "Wrong size or colour means asking again",
+        },
+        b: {
+          bn: "কাস্টমার নিজেই সাইজ ও রঙ বেছে নেয়",
+          en: "The customer picks size and colour themselves",
+        },
+      },
+      {
+        a: {
+          bn: "একই কাস্টমার দুবার অর্ডার দিলে ধরা কঠিন",
+          en: "Double orders from one customer are hard to spot",
+        },
+        b: {
+          bn: "ডাবল ট্যাপ করলেও ডুপ্লিকেট অর্ডার ঢোকে না",
+          en: "Double taps do not create duplicate orders",
+        },
+      },
+      {
+        a: {
+          bn: "প্রতিবার ডেলিভারি চার্জ হিসাব করতে হয়",
+          en: "You work out the delivery charge every time",
+        },
+        b: {
+          bn: "এলাকা বেছে নিলে ডেলিভারি চার্জ নিজে যোগ হয়",
+          en: "Delivery charge is added once the area is chosen",
+        },
+      },
+    ],
+  },
+
+  how: {
+    label: { bn: "কীভাবে কাজ করে", en: "How it works" },
+    title: {
+      bn: "সহজ ৩ ধাপে আপনার পেজ চালু",
+      en: "Your page live in 3 simple steps",
     },
     steps: [
       {
-        number: "০১",
-        numberEn: "01",
+        number: "১",
+        numberEn: "1",
         title: {
           bn: "পণ্যের ছবি ও তথ্য দিন",
           en: "Send product photos and details",
         },
         description: {
-          bn: "পণ্যের ছবি, সাইজ, রঙ, দাম এবং ডেলিভারি চার্জের তথ্য আমাদের দিন।",
-          en: "Send your product photos, sizes, available colors, prices, and delivery charges.",
+          bn: "ছবি, সাইজ, রঙ, দাম আর ডেলিভারি চার্জ আমাদের পাঠান।",
+          en: "Send photos, sizes, colours, price and delivery charges.",
         },
       },
       {
-        number: "০২",
-        numberEn: "02",
+        number: "২",
+        numberEn: "2",
         title: {
           bn: "আমরা পেজ বানিয়ে লিংক দিই",
-          en: "We build your page and send the link",
+          en: "We build the page and send the link",
         },
         description: {
-          bn: `${LANDING.deliveryPromise.bn} আপনার পেজ তৈরি করে প্রস্তুত লিংক বুঝিয়ে দেওয়া হবে।`,
-          en: `Your high-converting page is prepared and delivered ${LANDING.deliveryPromise.en}.`,
+          bn: `${dp.bn} আপনার পেজ তৈরি হয়ে যায়। আপনি দেখে নেন।`,
+          en: `Your page is ready ${dp.en}. You review it.`,
         },
       },
       {
-        number: "০৩",
-        numberEn: "03",
+        number: "৩",
+        numberEn: "3",
         title: {
-          bn: "লিংক অ্যাডে বসান, অর্ডার আসে আপনার টেলিগ্রামে ও গুগল শিটে",
-          en: "Put the link in your ads, orders arrive in your Telegram and Google Sheet",
+          bn: "লিংক অ্যাডে বসান, অর্ডার আসে",
+          en: "Put the link in your ad, orders arrive",
         },
         description: {
-          bn: "ফেসবুক বিজ্ঞাপনে লিংক দিন। প্রতিটি নতুন অর্ডার সাথে সাথে আপনার ফোনে নোটিফিকেশন আসবে।",
-          en: "Attach the link to your Facebook ads. Every new order immediately alerts your phone.",
+          bn: "প্রতিটি নতুন অর্ডার সাথে সাথে আপনার টেলিগ্রামে আসে ও গুগল শিটে জমা হয়।",
+          en: "Every new order reaches your Telegram and Google Sheet right away.",
         },
       },
     ],
+    flow: {
+      ad: { bn: "ফেসবুক অ্যাড", en: "Facebook ad" },
+      click: { bn: "লিংকে ক্লিক", en: "Link click" },
+      page: { bn: "আপনার OrderKoro পেজ", en: "Your OrderKoro page" },
+      ordered: { bn: "কাস্টমার অর্ডার করলে", en: "When a customer orders" },
+      telegram: { bn: "টেলিগ্রাম অ্যালার্ট", en: "Telegram alert" },
+      sheet: { bn: "গুগল শিটে নতুন সারি", en: "New row in Google Sheet" },
+    },
   },
-  whatYouGet: {
+
+  proof: {
+    label: { bn: "আপনি যা দেখবেন", en: "What you will see" },
     title: {
-      bn: "যা যা পাচ্ছেন",
-      en: "What you get",
+      bn: "অর্ডার এলে ফোনে আর শিটে ঠিক এমনটাই আসে",
+      en: "This is exactly what lands on your phone and in your Sheet",
     },
     subtitle: {
-      bn: "আপনার বিজনেসের সেলস বৃদ্ধি ও সময় বাঁচানোর সব সুবিধা",
-      en: "Everything you need to boost sales and save hours every day",
+      bn: "নিচের ছবিগুলো আসল ডেমো অর্ডার থেকে নেওয়া।",
+      en: "These screenshots come from a real demo order.",
+    },
+    telegramCaption: {
+      bn: "১. নতুন অর্ডারে এই অ্যালার্ট আপনার ফোনে আসে",
+      en: "1. A new order sends this alert to your phone",
+    },
+    sheetCaption: {
+      bn: "২. একই অর্ডার আপনার শিটে নতুন সারি হয়ে জমা হয়",
+      en: "2. The same order is saved as a new row in your Sheet",
+    },
+    channelButton: {
+      bn: "পাবলিক ডেমো চ্যানেল দেখুন",
+      en: "Open the public demo channel",
+    },
+    warning: {
+      bn: "ডেমোতে আসল নাম বা নম্বর দেবেন না।",
+      en: "Do not enter a real name or phone number in the demo.",
+    },
+    channelNotice: {
+      bn: "চ্যানেলে অ্যালার্টের বাটনে ট্যাপ করেও দেখতে পারেন।",
+      en: "You can also tap the buttons on alerts in the channel.",
+    },
+  },
+
+  benefits: {
+    label: { bn: "যা যা পাচ্ছেন", en: "What you get" },
+    title: {
+      bn: "সময় বাঁচানো আর অর্ডার না হারানোর সব সুবিধা",
+      en: "Everything to save time and stop losing orders",
     },
     items: [
       {
         id: "benefit-telegram",
-        icon: "telegram" as const,
+        icon: "telegram",
         title: {
-          bn: "নতুন অর্ডার এলেই ফোনে টেলিগ্রাম মেসেজ",
-          en: "Instant Telegram notification when an order arrives",
+          bn: "টেলিগ্রামে সাথে সাথে অ্যালার্ট",
+          en: "Instant Telegram alert",
         },
         description: {
-          bn: "ইনবক্স চেক করার ঝামেলা নেই। কাস্টমার অর্ডার সাবমিট করলেই পূর্ণ বিবরণসহ টেলিগ্রামে অ্যালার্ট পাবেন।",
-          en: "No more checking messy inboxes. Instant alerts with full order details ring right on your phone.",
+          bn: "অর্ডার সাবমিট হলেই পূর্ণ বিবরণসহ আপনার ফোনে মেসেজ আসে। ইনবক্স ঘাঁটতে হয় না।",
+          en: "The moment an order is placed, you get the full details on your phone. No inbox digging.",
         },
       },
       {
         id: "benefit-sheet",
-        icon: "sheet" as const,
-        title: {
-          bn: "সব অর্ডার আপনার নিজের গুগল শিটে, ডেটা আপনার",
-          en: "All orders in your own Google Sheet, you own your data",
-        },
+        icon: "sheet",
+        title: { bn: "আপনার নিজের গুগল শিট", en: "Your own Google Sheet" },
         description: {
-          bn: "অর্ডার স্বয়ংক্রিয়ভাবে আপনার গুগল শিটে জমা হয়। ডেটার পূর্ণ মালিকানা শুধুই আপনার।",
-          en: "Every customer order auto-syncs to your Google Sheet. You retain 100% data ownership.",
+          bn: "সব অর্ডার আপনার শিটে আপনাআপনি জমা হয়। শিট আপনার, ডেটাও আপনার।",
+          en: "Every order is saved to your Sheet automatically. The Sheet and the data are yours.",
         },
       },
       {
         id: "benefit-speed",
-        icon: "speed" as const,
+        icon: "speed",
         title: {
-          bn: "মোবাইলে দ্রুত লোড",
-          en: "Fast loading on mobile",
+          bn: "মোবাইলের জন্য হালকা পেজ",
+          en: "A light page built for mobile",
         },
         description: {
-          bn: "বাংলাদেশের যেকোনো মোবাইল ৪জি কানেকশনে পলকের মধ্যে খোলে। লোডিং দেরিতে কাস্টমার হারানোর ভয় নেই।",
-          en: "Loads in the blink of an eye on mobile 4G networks, keeping bounce rates minimal.",
+          bn: "ছোট ছবি আর হালকা কোড দিয়ে বানানো, ফেসবুক অ্যাডের মোবাইল ট্রাফিকের কথা ভেবে।",
+          en: "Built with small images and light code for mobile traffic from Facebook ads.",
         },
       },
       {
         id: "benefit-payment",
-        icon: "payment" as const,
+        icon: "payment",
         title: {
           bn: LANDING_CLAIMS.mobilePayments
             ? "ক্যাশ অন ডেলিভারি (+ বিকাশ ও নগদ)"
-            : "ক্যাশ অন ডেলিভারি",
+            : "ক্যাশ অন ডেলিভারি ও এলাকাভিত্তিক চার্জ",
           en: LANDING_CLAIMS.mobilePayments
             ? "Cash on Delivery (+ bKash & Nagad)"
-            : "Cash on Delivery",
+            : "Cash on Delivery and area-based charges",
         },
         description: {
           bn: LANDING_CLAIMS.mobilePayments
-            ? "সারা দেশে ক্যাশ অন ডেলিভারির পাশাপাশি বিকাশ ও নগদ ট্রানজেকশন আইডি নেওয়ার সুবিধা।"
-            : "ক্যাশ অন ডেলিভারিতে এলাকাভিত্তিক স্বয়ংক্রিয় ডেলিভারি চার্জ গণনার সুবিধা।",
+            ? "ক্যাশ অন ডেলিভারির পাশাপাশি বিকাশ ও নগদের ট্রানজেকশন আইডি নেওয়া যায়। ডেলিভারি চার্জ এলাকা অনুযায়ী নিজে যোগ হয়।"
+            : "কাস্টমার এলাকা বেছে নিলে ডেলিভারি চার্জ নিজে থেকেই যোগ হয়ে যায়।",
           en: LANDING_CLAIMS.mobilePayments
-            ? "Nationwide Cash on Delivery with upfront TrxID collection for bKash and Nagad."
-            : "Smooth Cash on Delivery checkout with automatic location-based delivery fees.",
+            ? "Cash on Delivery plus bKash and Nagad transaction IDs. Delivery charge is added by area."
+            : "Delivery charge is added automatically once the customer chooses an area.",
         },
       },
       {
         id: "benefit-policy",
-        icon: "policy" as const,
+        icon: "policy",
         title: {
           bn: "রিটার্ন ও প্রাইভেসি পেজ রেডি",
-          en: "Return & privacy policy pages ready",
+          en: "Return and privacy pages ready",
         },
         description: {
-          bn: "ফেসবুক অ্যাড পলিসি মানতে এবং কাস্টমারের ভরসা বাড়াতে রিটার্ন ও প্রাইভেসি পেজ রেডি থাকে।",
-          en: "Pre-built return, exchange, and privacy policy pages to build buyer trust and satisfy ad policies.",
+          bn: "কাস্টমারের ভরসা বাড়াতে আর ফেসবুকের নিয়ম মানতে পেজের সাথেই থাকে।",
+          en: "Included with your page to build buyer trust and meet Facebook's requirements.",
         },
       },
       ...(LANDING_CLAIMS.duplicateProtection
@@ -286,12 +314,12 @@ export const LANDING_COPY = {
               id: "benefit-protection",
               icon: "protection" as const,
               title: {
-                bn: "ডুপ্লিকেট সাবমিট থেকে সুরক্ষা",
-                en: "Protection against duplicate submissions",
+                bn: "ডুপ্লিকেট অর্ডার থেকে সুরক্ষা",
+                en: "Protection from duplicate orders",
               },
               description: {
-                bn: "কাস্টমার বাটন ডাবল ট্যাপ করলেও ডুপ্লিকেট অর্ডার ঢুকবে না। অর্ডার ও ট্রানজেকশন আইডি সুরক্ষিত থাকে।",
-                en: "Smart deduplication prevents accidental duplicate orders when buyers tap repeatedly.",
+                bn: "কাস্টমার বাটনে দুবার ট্যাপ করলেও একটি অর্ডারই ঢোকে।",
+                en: "If a customer taps the button twice, only one order is created.",
               },
             },
           ]
@@ -302,105 +330,69 @@ export const LANDING_COPY = {
               id: "benefit-pixel",
               icon: "pixel" as const,
               title: {
-                bn: "ফেসবুক পিক্সেল ও কনভার্সন এপিআই (CAPI)",
-                en: "Facebook Pixel & Conversions API (CAPI)",
+                bn: "ফেসবুক পিক্সেল ও কনভার্সন এপিআই",
+                en: "Facebook Pixel and Conversions API",
               },
               description: {
-                bn: "ব্রাউজার ও সার্ভার দুই পাশ থেকেই নির্ভুল ইভেন্ট ট্র্যাকিং।",
-                en: "Flawless dual tracking via both browser Pixel and server-side Conversions API.",
+                bn: "ব্রাউজার ও সার্ভার দুই দিক থেকেই অর্ডার ট্র্যাকিং।",
+                en: "Order tracking from both the browser and the server.",
               },
             },
           ]
         : []),
     ] as BenefitItem[],
   },
-  demoBlock: {
-    badge: {
-      bn: "লাইভ প্রিভিউ",
-      en: "Live Preview",
-    },
+
+  who: {
+    label: { bn: "সৎ কথা", en: "Straight talk" },
     title: {
-      bn: "টেলিগ্রামে অ্যালার্ট কীভাবে আসে দেখুন",
-      en: "See how Telegram order alerts look",
+      bn: "OrderKoro কার জন্য, আর কার জন্য নয়",
+      en: "Who OrderKoro is for, and who it is not for",
     },
-    subtitle: {
-      bn: "অর্ডার সম্পন্ন হওয়া মাত্র সেকেন্ডের মধ্যে আপনার ফোনে এমন অ্যালার্ট পৌঁছে যায়:",
-      en: "The exact moment an order is placed, an instant alert arrives on your phone:",
-    },
-    warning: {
-      bn: "ডেমোতে আসল নাম/নম্বর দেবেন না।",
-      en: "Do not enter real name or phone number in the demo.",
-    },
-    channelNotice: {
-      bn: "চ্যানেলে অ্যালার্টে ট্যাপ করেও দেখতে পারেন",
-      en: "You can also tap alerts in the public channel to test it live",
-    },
-    channelButton: {
-      bn: "পাবলিক ডেমো চ্যানেল দেখুন",
-      en: "View Telegram Demo Channel",
-    },
-    tryDemoButton: {
-      bn: "ডেমো অর্ডার করে দেখুন",
-      en: "Try demo order",
-    },
-    features: [
+    forTitle: { bn: "আপনার জন্য, যদি আপনি", en: "It is for you if you" },
+    forItems: [
       {
-        bn: "কাস্টমারের নাম, ফোন নম্বর ও এলাকা",
-        en: "Customer name, phone, and area",
+        bn: "ফেসবুক অ্যাডে একটি পণ্য বিক্রি করেন",
+        en: "sell one product through Facebook ads",
       },
       {
-        bn: "পণ্যের সাইজ, রঙ, পরিমাণ ও মোট হিসাব",
-        en: "Product size, color, qty, and total",
+        bn: "বেশির ভাগ অর্ডার ক্যাশ অন ডেলিভারিতে নেন",
+        en: "take most orders as Cash on Delivery",
       },
       {
-        bn: "ক্যাশ অন ডেলিভারি বা বিকাশ TrxID ট্র্যাকিং",
-        en: "Cash on delivery or bKash TrxID tracking",
-      },
-      {
-        bn: "১-ট্যাপে অর্ডার কনফার্ম বা ক্যানসেল বাটন",
-        en: "1-tap order confirm and cancel buttons",
+        bn: "ইনবক্সে অর্ডার সামলাতে হিমশিম খান",
+        en: "struggle to manage orders in the inbox",
       },
     ],
-    mock: {
-      tag: "ডেমো",
-      orderNumber: "BNN-1042",
-      status: "NEW",
-      customerLabel: { bn: "Customer:", en: "Customer:" },
-      customerValue: "তানজিম আহমেদ",
-      phoneLabel: { bn: "Phone:", en: "Phone:" },
-      phoneValue: "01XXX-XXX***",
-      addressLabel: { bn: "Address:", en: "Address:" },
-      addressValue: "***, Dhaka (ঢাকা সিটি)",
-      itemLabel: { bn: "Item:", en: "Item:" },
-      itemValue: {
-        bn: "প্রিমিয়াম সুতি পাঞ্জাবি (নকশী কলার)",
-        en: "Premium Cotton Panjabi (Nakshi Collar)",
-      },
-      colorLabel: { bn: "Color:", en: "Color:" },
-      colorValue: { bn: "কালো (Black)", en: "Black" },
-      sizeLabel: { bn: "Size:", en: "Size:" },
-      sizeValue: "L (42)",
-      qtyLabel: { bn: "Qty:", en: "Qty:" },
-      qtyValue: "1 × ৳1490",
-      deliveryLabel: { bn: "Delivery:", en: "Delivery:" },
-      deliveryValue: "৳70",
-      paymentLabel: { bn: "Payment:", en: "Payment:" },
-      paymentValue: { bn: "Cash on Delivery", en: "Cash on Delivery" },
-      totalLabel: { bn: "Total Payable:", en: "Total Payable:" },
-      totalValue: "৳1560",
-      btnConfirm: { bn: "✅ Confirm", en: "✅ Confirm" },
-      btnNoAnswer: { bn: "📵 No answer", en: "📵 No answer" },
-      btnCancel: { bn: "❌ Cancel", en: "❌ Cancel" },
+    notTitle: {
+      bn: "আপনার জন্য নয়, যদি আপনি",
+      en: "It is not for you if you",
     },
+    notItems: [
+      {
+        bn: "শত শত পণ্যের পূর্ণ অনলাইন স্টোর চান",
+        en: "want a full online store with hundreds of products",
+      },
+      {
+        bn: "কার্টে একসাথে অনেক পণ্য কেনার ব্যবস্থা চান",
+        en: "need a cart for buying many products at once",
+      },
+      {
+        bn: "অনলাইনে কার্ড পেমেন্ট গেটওয়ে চান",
+        en: "need an online card payment gateway",
+      },
+    ],
   },
+
   pricing: {
+    label: { bn: "প্রাইসিং", en: "Pricing" },
     title: {
-      bn: "সহজ ও স্বচ্ছ প্রাইসিং",
-      en: "Simple, transparent pricing",
+      bn: "সহজ ও স্বচ্ছ, কোনো গোপন চার্জ নেই",
+      en: "Simple and transparent, no hidden charges",
     },
     subtitle: {
-      bn: "কোনো গোপন চার্জ নেই। যা লেখা আছে ঠিক তাই।",
-      en: "No hidden charges. Exactly what you see.",
+      bn: "যা লেখা আছে ঠিক তাই।",
+      en: "Exactly what you see.",
     },
     earlyCard: {
       badge: (total: number, lang: SupportedLocale) =>
@@ -409,10 +401,7 @@ export const LANDING_COPY = {
           : `First ${formatNumber(total, "en")} sellers`,
       price: (amount: number, lang: SupportedLocale) =>
         formatPrice(amount, lang),
-      oneTimeLabel: {
-        bn: "একবারই",
-        en: "one-time",
-      },
+      oneTimeLabel: { bn: "একবারই", en: "one-time" },
       remainingText: (
         remaining: number,
         total: number,
@@ -431,18 +420,12 @@ export const LANDING_COPY = {
       },
       nextPriceNote: {
         bn: `এরপর সেটআপ ফি ${formatPrice(LANDING.standardPrice, "bn")} (প্রথম ${formatNumber(LANDING.standardIncludedMonths, "bn")} মাসের হোস্টিং ও সাপোর্টসহ)।`,
-        en: `After this, setup fee is ${formatPrice(LANDING.standardPrice, "en")} (including first ${formatNumber(LANDING.standardIncludedMonths, "en")} months hosting & support).`,
+        en: `After this, the setup fee is ${formatPrice(LANDING.standardPrice, "en")} (including the first ${formatNumber(LANDING.standardIncludedMonths, "en")} months of hosting and support).`,
       },
-      ctaButton: {
-        bn: "লঞ্চ অফারে শুরু করুন",
-        en: "Claim launch offer",
-      },
+      ctaButton: { bn: "লঞ্চ অফারে শুরু করুন", en: "Claim the launch offer" },
     },
     standardCard: {
-      badge: {
-        bn: "স্ট্যান্ডার্ড প্যাকেজ",
-        en: "Standard package",
-      },
+      badge: { bn: "স্ট্যান্ডার্ড প্যাকেজ", en: "Standard package" },
       title: {
         bn: "কমপ্লিট অর্ডার পেজ সেটআপ",
         en: "Complete order page setup",
@@ -452,66 +435,53 @@ export const LANDING_COPY = {
       includedNote: (months: number, lang: SupportedLocale) =>
         lang === "bn"
           ? `প্রথম ${formatNumber(months, "bn")} মাসের হোস্টিং ও সাপোর্টসহ`
-          : `Includes first ${formatNumber(months, "en")} months hosting & support`,
-      featuresTitle: {
-        bn: "কী কী পাবেন:",
-        en: "What's included:",
-      },
+          : `Includes the first ${formatNumber(months, "en")} months of hosting and support`,
+      featuresTitle: { bn: "কী কী পাবেন", en: "What is included" },
       features: [
         {
-          bn: "১টি পণ্যের জন্য ফাস্ট-লোডিং ল্যান্ডিং পেজ",
-          en: "Fast-loading landing page for 1 product",
+          bn: "১টি পণ্যের জন্য ফাস্ট-লোডিং পেজ",
+          en: "A fast-loading page for 1 product",
         },
         {
-          bn: "প্রতি অর্ডারে ইনস্ট্যান্ট টেলিগ্রাম অ্যালার্ট",
-          en: "Instant Telegram alert on every order",
+          bn: "প্রতি অর্ডারে টেলিগ্রাম অ্যালার্ট",
+          en: "A Telegram alert on every order",
         },
         {
-          bn: "আপনার নিজস্ব গুগল শিটে সব ডেটা সংরক্ষণ",
-          en: "All order data saved to your own Google Sheet",
+          bn: "আপনার নিজের গুগল শিটে সব ডেটা",
+          en: "All order data in your own Google Sheet",
         },
         {
-          bn: "ক্যাশ অন ডেলিভারি ও মোবাইল পেমেন্ট (বিকাশ ও নগদ)",
-          en: "Cash on Delivery & mobile payments (bKash & Nagad)",
+          bn: LANDING_CLAIMS.mobilePayments
+            ? "ক্যাশ অন ডেলিভারি ও মোবাইল পেমেন্ট (বিকাশ ও নগদ)"
+            : "ক্যাশ অন ডেলিভারি ও এলাকাভিত্তিক ডেলিভারি চার্জ",
+          en: LANDING_CLAIMS.mobilePayments
+            ? "Cash on Delivery and mobile payments (bKash & Nagad)"
+            : "Cash on Delivery and area-based delivery charges",
         },
         {
-          bn: "রিটার্ন পলিসি ও প্রাইভেসি পলিসি পেজ",
-          en: "Dedicated return and privacy policy pages",
-        },
-        {
-          bn: `প্রথম ${formatNumber(LANDING.standardIncludedMonths, "bn")} মাসের হোস্টিং ও টেকনিক্যাল সাপোর্ট`,
-          en: `First ${formatNumber(LANDING.standardIncludedMonths, "en")} months hosting & technical support`,
+          bn: "রিটার্ন ও প্রাইভেসি পলিসি পেজ",
+          en: "Return and privacy policy pages",
         },
       ],
-      extraCostsTitle: {
-        bn: "আলাদা খরচ:",
-        en: "Separate costs:",
-      },
+      extraCostsTitle: { bn: "আলাদা খরচ", en: "Separate costs" },
       extraCosts: [
+        { bn: "ফেসবুক অ্যাডের নিজস্ব খরচ", en: "Your Facebook ad spend" },
         {
-          bn: "ফেসবুক অ্যাডের নিজস্ব খরচ",
-          en: "Facebook advertising spend",
-        },
-        {
-          bn: "আলাদা কাস্টম ডোমেইন (.com ইত্যাদি) চাইলে তার খরচ",
-          en: "Custom domain (.com etc.) if desired",
+          bn: "আলাদা ডোমেইন চাইলে তার খরচ",
+          en: "A custom domain, if you want one",
         },
       ],
-      ctaButton: {
-        bn: "সেটআপ শুরু করুন",
-        en: "Get started",
-      },
+      ctaButton: { bn: "সেটআপ শুরু করুন", en: "Get started" },
     },
   },
+
+  about: {
+    label: { bn: "যিনি আপনার পেজ বানাবেন", en: "Who builds your page" },
+  },
+
   faq: {
-    title: {
-      bn: "সচরাচর সাধারণ জিজ্ঞাসা (FAQ)",
-      en: "Frequently asked questions (FAQ)",
-    },
-    subtitle: {
-      bn: "আপনার মনের যেকোনো প্রশ্নের স্পষ্ট উত্তর",
-      en: "Clear answers to your questions",
-    },
+    label: { bn: "প্রশ্নোত্তর", en: "FAQ" },
+    title: { bn: "সচরাচর জিজ্ঞাসা", en: "Frequently asked questions" },
     items: [
       {
         id: "faq-data",
@@ -519,20 +489,17 @@ export const LANDING_COPY = {
           bn: "ডেটা কার কাছে থাকে?",
           en: "Who owns the customer data?",
         },
-        answer: {
-          bn: "আপনার কাস্টমারের সমস্ত ডেটা শুধুই আপনার নিজস্ব গুগল শিটে জমা হয়। আমরা কোনো কাস্টমার ডেটা বিক্রি, শেয়ার বা অন্য কোনো উদ্দেশ্যে ব্যবহার করি না। সম্পূর্ণ ডেটার মালিকানা আপনার নিজের।",
-          en: "All customer data is saved directly into your own Google Sheet. We do not sell, share, or store customer data anywhere else. You retain 100% data ownership.",
-        },
+        answer: DATA_FAQ_ANSWER,
       },
       {
         id: "faq-delivery-time",
         question: {
           bn: "কতদিনে পেজ পাব?",
-          en: "How long does it take to get the page?",
+          en: "How long until I get my page?",
         },
         answer: {
-          bn: `আপনার পণ্যের ছবি, সাইজ, কালার, মূল্য ও ডেলিভারি তথ্য দেওয়ার ${LANDING.deliveryPromise.bn} আপনার পেজ লাইভ করে লিঙ্ক বুঝিয়ে দেওয়া হয়।`,
-          en: `Once you provide product photos, sizes, colors, pricing, and delivery details, your page is delivered live ${LANDING.deliveryPromise.en}.`,
+          bn: `ছবি, সাইজ, রঙ, দাম ও ডেলিভারি তথ্য দেওয়ার ${dp.bn} আপনার পেজ লাইভ করে লিংক বুঝিয়ে দেওয়া হয়।`,
+          en: `Once you send the photos, sizes, colours, price and delivery details, your page goes live ${dp.en} and we send you the link.`,
         },
       },
       {
@@ -542,19 +509,19 @@ export const LANDING_COPY = {
           en: "What if I want to change the page?",
         },
         answer: {
-          bn: "মূল্য পরিবর্তন, স্টক আউট বা টেক্সটের ছোটখাটো সংশোধনের সাপোর্ট সেটআপের সাথে অন্তর্ভুক্ত। তবে নতুন পণ্যের আলাদা পেজ বা সম্পূর্ণ নতুন ডিজাইনের জন্য আলাদা চার্জ প্রযোজ্য।",
-          en: "Routine minor updates like price adjustments, sold-out markings, or text fixes are covered. Creating a page for a new product or a brand-new design is billed separately.",
+          bn: "দাম বদল, স্টক আউট বা লেখার ছোট সংশোধন সাপোর্টের মধ্যেই। নতুন পণ্যের পেজ বা সম্পূর্ণ নতুন ডিজাইন আলাদা।",
+          en: "Price changes, sold-out marking and small text fixes are covered. A page for a new product or a brand-new design is billed separately.",
         },
       },
       {
         id: "faq-delivery-returns",
         question: {
           bn: "ডেলিভারি ও রিটার্ন কীভাবে?",
-          en: "How are delivery and returns handled?",
+          en: "How do delivery and returns work?",
         },
         answer: {
-          bn: "অর্ডার ফর্মে গ্রাহকের এলাকা অনুযায়ী (যেমন: ঢাকা সিটি, ঢাকার বাইরে) সঠিক ডেলিভারি চার্জ স্বয়ংক্রিয়ভাবে যোগ হয়। এছাড়া ফেসবুক পলিসি মানতে আপনার রিটার্ন ও এক্সচেঞ্জ পলিসির আলাদা পেজ অর্ডার পেজের সাথেই দেওয়া থাকে।",
-          en: "Delivery charges are calculated automatically based on the customer's area (e.g. Dhaka City, Outside Dhaka). Compliant return and exchange policy pages are also included with your order page.",
+          bn: "কাস্টমারের এলাকা অনুযায়ী ডেলিভারি চার্জ নিজে থেকে যোগ হয়। আপনার রিটার্ন ও এক্সচেঞ্জ পলিসির আলাদা পেজ অর্ডার পেজের সাথেই থাকে।",
+          en: "Delivery charge is added automatically by the customer's area. Your return and exchange policy has its own page, included with your order page.",
         },
       },
       {
@@ -565,63 +532,46 @@ export const LANDING_COPY = {
         },
         answer: {
           bn: LANDING_CLAIMS.pixelCapi
-            ? "আমরা ব্রাউজার পিক্সেল এবং সার্ভার-সাইড কনভার্সন এপিআই (CAPI) দুটোই যুক্ত করে দিই, যাতে আইওএস বা অ্যাডব্লকার থাকলেও ১০০% সেলস ট্র্যাক হয়।"
-            : "শিগগিরই আসছে। আমরা ব্রাউজার ও সার্ভার-সাইড (CAPI) ট্র্যাকিং নিখুঁতভাবে যুক্ত করার কাজ করছি।",
+            ? "ব্রাউজার পিক্সেল এবং সার্ভার-সাইড কনভার্সন এপিআই দুটোই যুক্ত করে দিই, যাতে অর্ডার ট্র্যাকিং আরও নির্ভুল হয়।"
+            : "শিগগিরই আসছে। ব্রাউজার ও সার্ভার-সাইড ট্র্যাকিং যুক্ত করার কাজ চলছে।",
           en: LANDING_CLAIMS.pixelCapi
-            ? "We connect both browser Pixel and server-side Conversions API (CAPI) so you track 100% of sales even with iOS restrictions and ad blockers."
-            : "Coming soon. We are currently implementing seamless browser and server-side (CAPI) tracking.",
+            ? "We set up both the browser Pixel and the server-side Conversions API so order tracking is more accurate."
+            : "Coming soon. We are working on browser and server-side tracking.",
         },
       },
       {
         id: "faq-start",
-        question: {
-          bn: "কীভাবে শুরু করব?",
-          en: "How do I get started?",
-        },
+        question: { bn: "কীভাবে শুরু করব?", en: "How do I get started?" },
         answer: {
-          bn: "আমাদের মেসেঞ্জারে একটি মেসেজ দিন। আপনার পণ্যের ছবি ও বিবরণ পাঠান। আমরা পেজ প্রস্তুত করে ডেমো দেখাব, পছন্দ হলে ফাইনাল ডেলিভারি বুঝে নিন।",
-          en: "Simply send us a message on Messenger. Provide your product photos and details. We will build your page, let you review the demo, and deliver your live link.",
+          bn: "আমাদের মেসেঞ্জারে একটি মেসেজ দিন, পণ্যের ছবি ও তথ্য পাঠান। আমরা পেজ বানিয়ে দেখাব, পছন্দ হলে তবেই চূড়ান্ত করুন।",
+          en: "Send us a message on Messenger with your product photos and details. We build the page and show it to you; finalise it only if you like it.",
         },
       },
     ],
   },
+
   finalCta: {
     title: {
       bn: "আজই আপনার পণ্যের অর্ডার পেজ চালু করুন",
-      en: "Launch your single-product order page today",
+      en: "Launch your product's order page today",
     },
     subtitle: {
-      bn: "অর্ডার ইনবক্সে হারানোর দিন শেষ। ২৪ ঘণ্টার মধ্যে আপনার পেজ রেডি করে দিই আমরা।",
-      en: "Stop losing orders in inbox chaos. Get your high-converting page ready within 24 hours.",
+      bn: `অর্ডার ইনবক্সে হারানোর দিন শেষ। ${dp.bn} আপনার পেজ রেডি করে দিই আমরা।`,
+      en: `No more losing orders in the inbox. We get your page ready ${dp.en}.`,
     },
-    primaryButton: {
-      bn: "মেসেজ করুন",
-      en: "Message us",
-    },
-    secondaryButton: {
-      bn: "ডেমো অর্ডার করে দেখুন",
-      en: "Try demo order",
-    },
+    primaryButton: { bn: "মেসেজ করুন", en: "Message us" },
+    secondaryButton: { bn: "ডেমো অর্ডার করে দেখুন", en: "Try a demo order" },
+    callButton: { bn: "কল করুন", en: "Call us" },
   },
+
   stickyBar: {
-    messageUs: {
-      bn: "মেসেজ করুন",
-      en: "Message us",
-    },
-    demoButton: {
-      bn: "ডেমো দেখুন",
-      en: "Try demo",
-    },
+    messageUs: { bn: "মেসেজ করুন", en: "Message us" },
+    demoButton: { bn: "ডেমো দেখুন", en: "Try demo" },
   },
+
   footer: {
-    privacy: {
-      bn: "প্রাইভেসি পলিসি",
-      en: "Privacy Policy",
-    },
-    terms: {
-      bn: "শর্তাবলী",
-      en: "Terms & Conditions",
-    },
+    privacy: { bn: "প্রাইভেসি পলিসি", en: "Privacy Policy" },
+    terms: { bn: "শর্তাবলী", en: "Terms & Conditions" },
     copyright: {
       bn: "© ২০২৬ OrderKoro। সর্বস্বত্ব সংরক্ষিত।",
       en: "© 2026 OrderKoro. All rights reserved.",
