@@ -317,7 +317,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
     >
       {/* ============================ 1. HERO ============================ */}
       <section aria-labelledby="hero-heading" className="bg-[var(--k-cream)]">
-        <Container className="py-10 sm:py-16 lg:py-20">
+        <Container className="py-16 lg:py-20">
           <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
             <div>
               <span className="inline-flex items-center gap-2.5 rounded-full border border-[var(--k-line)] bg-white px-4 py-2 text-xs font-semibold text-[var(--k-muted)] sm:text-[15px]">
