@@ -63,6 +63,71 @@ export const LANDING_COPY = {
     },
     primaryCta: { bn: "ডেমো অর্ডার করে দেখুন", en: "Try a demo order" },
     secondaryCta: { bn: "মেসেজ করুন", en: "Message us" },
+    // Sample card shown on the right until a real screenshot is set in landing-extra.ts.
+    // Keep the fields in line with your real Telegram alert, and keep it labelled as a sample.
+    sample: {
+      tag: {
+        bn: "নমুনা অ্যালার্ট · ডেমো ডেটা",
+        en: "Sample alert · demo data",
+      },
+      botName: "OrderKoro Bot",
+      heading: { bn: "নতুন অর্ডার", en: "New order" },
+      orderNo: "BNN-1042",
+      status: "NEW",
+      rows: [
+        {
+          label: { bn: "কাস্টমার", en: "Customer" },
+          value: { bn: "তানজিম আহমেদ", en: "Tanzim Ahmed" },
+        },
+        {
+          label: { bn: "ফোন", en: "Phone" },
+          value: { bn: "01XXX-XXX***", en: "01XXX-XXX***" },
+        },
+        {
+          label: { bn: "এলাকা", en: "Area" },
+          value: { bn: "***, ঢাকা সিটি", en: "***, Dhaka City" },
+        },
+        {
+          label: { bn: "পণ্য", en: "Item" },
+          value: {
+            bn: "প্রিমিয়াম সুতি পাঞ্জাবি",
+            en: "Premium Cotton Panjabi",
+          },
+        },
+        {
+          label: { bn: "রঙ ও সাইজ", en: "Colour & size" },
+          value: { bn: "গভীর নীল, L (42)", en: "Deep Indigo, L (42)" },
+        },
+        {
+          label: { bn: "পেমেন্ট", en: "Payment" },
+          value: { bn: "ক্যাশ অন ডেলিভারি", en: "Cash on Delivery" },
+        },
+      ],
+      totalLabel: { bn: "মোট", en: "Total" },
+      totalValue: { bn: "৳১,৫৬০", en: "৳1,560" },
+      totalNote: { bn: "(১,৪৯০ + ডেলিভারি ৭০)", en: "(1,490 + 70 delivery)" },
+      buttons: [
+        { bn: "কনফার্ম", en: "Confirm" },
+        { bn: "ফোন ধরেনি", en: "No answer" },
+        { bn: "ক্যানসেল", en: "Cancel" },
+      ],
+      sheetTitle: {
+        bn: "একই অর্ডার আপনার গুগল শিটে",
+        en: "The same order in your Google Sheet",
+      },
+      sheetCols: [
+        { bn: "অর্ডার", en: "Order" },
+        { bn: "কাস্টমার", en: "Customer" },
+        { bn: "সাইজ", en: "Size" },
+        { bn: "মোট", en: "Total" },
+      ],
+      sheetRow: [
+        { bn: "BNN-1042", en: "BNN-1042" },
+        { bn: "তানজিম আহমেদ", en: "Tanzim Ahmed" },
+        { bn: "L (42)", en: "L (42)" },
+        { bn: "৳১,৫৬০", en: "৳1,560" },
+      ],
+    },
   },
 
   trust: {

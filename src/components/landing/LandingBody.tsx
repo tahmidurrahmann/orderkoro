@@ -228,6 +228,89 @@ const BTN_PRIMARY =
 const BTN_OUTLINE =
   "inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-xl border-2 border-[var(--k-green)] bg-white px-6 text-[17px] font-bold text-[var(--k-green)] transition hover:bg-[var(--k-tint)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--k-green)]";
 
+/* ------------------- hero sample (until real screenshot) ------------------- */
+
+function HeroSample({ lang }: { lang: SupportedLocale }) {
+  const s = LANDING_COPY.hero.sample;
+  return (
+    <div className="mx-auto w-full max-w-[420px]" aria-label={s.tag[lang]}>
+      <div className="rounded-[28px] border border-[var(--k-line)] bg-white p-5 shadow-[0_24px_60px_rgba(27,27,24,0.12)] sm:p-6">
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--k-line)] pb-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--k-green)] text-white">
+              <SendIcon className="h-5 w-5" />
+            </span>
+            <span className="text-base font-bold">{s.botName}</span>
+          </div>
+          <span className="rounded-full bg-[#FDEBD0] px-3 py-1 text-[13px] font-bold text-[#8A4B00]">
+            {s.tag[lang]}
+          </span>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="text-lg font-extrabold">{s.heading[lang]}</span>
+          <span className="text-base font-bold text-[var(--k-muted)]">
+            #{s.orderNo}
+          </span>
+          <span className="rounded-md bg-[var(--k-tint)] px-2 py-0.5 text-[13px] font-extrabold text-[var(--k-green)]">
+            {s.status}
+          </span>
+        </div>
+
+        <dl className="mt-3 space-y-2 text-[15px] leading-snug">
+          {s.rows.map((r, i) => (
+            <div key={i} className="flex gap-3">
+              <dt className="w-[92px] shrink-0 text-[var(--k-muted)]">
+                {r.label[lang]}
+              </dt>
+              <dd className="font-semibold">{r.value[lang]}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="mt-4 flex items-baseline justify-between gap-3 rounded-2xl bg-[var(--k-cream)] px-4 py-3">
+          <div className="text-[15px] font-bold">
+            {s.totalLabel[lang]}
+            <span className="ml-2 text-[13px] font-medium text-[var(--k-muted)]">
+              {s.totalNote[lang]}
+            </span>
+          </div>
+          <div className="text-xl font-extrabold">{s.totalValue[lang]}</div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {s.buttons.map((b, i) => (
+            <span
+              key={i}
+              className="rounded-xl border border-[var(--k-line)] bg-[var(--k-cream)] px-2 py-2.5 text-center text-[14px] font-semibold"
+            >
+              {b[lang]}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="relative -mt-3 ml-6 rounded-2xl border border-[var(--k-line)] bg-white p-4 shadow-[0_14px_36px_rgba(27,27,24,0.1)] sm:ml-10">
+        <div className="mb-2.5 text-[14px] font-bold text-[var(--k-green)]">
+          {s.sheetTitle[lang]}
+        </div>
+        <div className="grid grid-cols-4 gap-2 text-[13px] font-semibold text-[var(--k-muted)]">
+          {s.sheetCols.map((c, i) => (
+            <div key={i}>{c[lang]}</div>
+          ))}
+        </div>
+        <div className="mt-1.5 grid grid-cols-4 gap-2 rounded-lg bg-[var(--k-tint)] px-2 py-2 text-[14px] font-bold">
+          {s.sheetRow.map((c, i) => (
+            <div key={i} className="truncate">
+              {c[lang]}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------- page ------------------------------- */
 
 export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
@@ -317,13 +400,7 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
       {/* ============================ 1. HERO ============================ */}
       <section aria-labelledby="hero-heading" className="bg-[var(--k-cream)]">
         <Container className="py-10 sm:py-16 lg:py-20">
-          <div
-            className={
-              SHOTS.demoPage
-                ? "grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16"
-                : "max-w-3xl"
-            }
-          >
+          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
             <div>
               <span className="inline-flex items-center gap-2.5 rounded-full border border-[var(--k-line)] bg-white px-4 py-2 text-[14px] font-semibold text-[var(--k-muted)] sm:text-[15px]">
                 <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--k-orange)]" />
@@ -384,7 +461,9 @@ export function LandingBody({ contactUrl, demoAlertsUrl }: LandingBodyProps) {
                   />
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <HeroSample lang={lang} />
+            )}
           </div>
         </Container>
       </section>
