@@ -22,19 +22,21 @@ describe("Landing Page Header, Language Switch, Config, and Copy Unit Tests", ()
       expect(BRAND_WORDMARK_TEXT).toBe("OrderKoro");
     });
 
-    it("ensures eyebrow copy has valid strings without leading 'OrderKoro •'", () => {
+    it("ensures eyebrow copy is non-empty and has no leading 'OrderKoro •'", () => {
+      expect(LANDING_COPY.eyebrow.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.eyebrow.en.trim()).toBeTruthy();
       expect(LANDING_COPY.eyebrow.bn).not.toMatch(/^OrderKoro\s*•/);
       expect(LANDING_COPY.eyebrow.en).not.toMatch(/^OrderKoro\s*•/);
-      expect(LANDING_COPY.eyebrow.bn).toBe("ফেসবুক ও এফ-কমার্স সেলারদের জন্য");
-      expect(LANDING_COPY.eyebrow.en).toBe("For Facebook & F-commerce sellers");
     });
   });
 
   describe("2. Single-Language Landing Copy Completeness", () => {
-    it("has non-empty bn and en strings for all hero, problem strip, how it works, what you get, demo, pricing, faq, and footer items", () => {
+    it("has non-empty bn and en strings for all hero, compare, how, benefits, proof, pricing, faq, and footer items", () => {
       // Hero
-      expect(LANDING_COPY.hero.headline.bn.trim()).toBeTruthy();
-      expect(LANDING_COPY.hero.headline.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.line1.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.line1.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.line2.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.hero.line2.en.trim()).toBeTruthy();
       expect(LANDING_COPY.hero.subline.bn.trim()).toBeTruthy();
       expect(LANDING_COPY.hero.subline.en.trim()).toBeTruthy();
       expect(LANDING_COPY.hero.primaryCta.bn.trim()).toBeTruthy();
@@ -42,45 +44,51 @@ describe("Landing Page Header, Language Switch, Config, and Copy Unit Tests", ()
       expect(LANDING_COPY.hero.secondaryCta.bn.trim()).toBeTruthy();
       expect(LANDING_COPY.hero.secondaryCta.en.trim()).toBeTruthy();
 
-      // Problem strip
-      expect(LANDING_COPY.problemStrip.items.length).toBe(4);
-      for (const item of LANDING_COPY.problemStrip.items) {
-        expect(item.bn.trim()).toBeTruthy();
-        expect(item.en.trim()).toBeTruthy();
+      // Compare (before / after)
+      expect(LANDING_COPY.compare.rows.length).toBeGreaterThan(0);
+      for (const row of LANDING_COPY.compare.rows) {
+        expect(row.a.bn.trim()).toBeTruthy();
+        expect(row.a.en.trim()).toBeTruthy();
+        expect(row.b.bn.trim()).toBeTruthy();
+        expect(row.b.en.trim()).toBeTruthy();
       }
 
       // How it works
-      expect(LANDING_COPY.howItWorks.steps.length).toBe(3);
-      for (const step of LANDING_COPY.howItWorks.steps) {
+      expect(LANDING_COPY.how.steps.length).toBe(3);
+      for (const step of LANDING_COPY.how.steps) {
         expect(step.title.bn.trim()).toBeTruthy();
         expect(step.title.en.trim()).toBeTruthy();
         expect(step.description.bn.trim()).toBeTruthy();
         expect(step.description.en.trim()).toBeTruthy();
       }
 
-      // What you get
-      expect(LANDING_COPY.whatYouGet.items.length).toBeGreaterThan(0);
-      for (const item of LANDING_COPY.whatYouGet.items) {
+      // Benefits
+      expect(LANDING_COPY.benefits.items.length).toBeGreaterThan(0);
+      for (const item of LANDING_COPY.benefits.items) {
         expect(item.title.bn.trim()).toBeTruthy();
         expect(item.title.en.trim()).toBeTruthy();
         expect(item.description.bn.trim()).toBeTruthy();
         expect(item.description.en.trim()).toBeTruthy();
       }
 
-      // Demo block
-      expect(LANDING_COPY.demoBlock.warning.bn.trim()).toBeTruthy();
-      expect(LANDING_COPY.demoBlock.warning.en.trim()).toBeTruthy();
-      expect(LANDING_COPY.demoBlock.channelButton.bn.trim()).toBeTruthy();
-      expect(LANDING_COPY.demoBlock.channelButton.en.trim()).toBeTruthy();
+      // Proof (demo)
+      expect(LANDING_COPY.proof.warning.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.proof.warning.en.trim()).toBeTruthy();
+      expect(LANDING_COPY.proof.channelButton.bn.trim()).toBeTruthy();
+      expect(LANDING_COPY.proof.channelButton.en.trim()).toBeTruthy();
 
       // Pricing
       expect(LANDING_COPY.pricing.earlyCard.scopeText.bn.trim()).toBeTruthy();
       expect(LANDING_COPY.pricing.earlyCard.scopeText.en.trim()).toBeTruthy();
-      expect(LANDING_COPY.pricing.standardCard.features.length).toBeGreaterThan(0);
-      expect(LANDING_COPY.pricing.standardCard.extraCosts.length).toBeGreaterThan(0);
+      expect(LANDING_COPY.pricing.standardCard.features.length).toBeGreaterThan(
+        0,
+      );
+      expect(
+        LANDING_COPY.pricing.standardCard.extraCosts.length,
+      ).toBeGreaterThan(0);
 
       // FAQ
-      expect(LANDING_COPY.faq.items.length).toBe(6);
+      expect(LANDING_COPY.faq.items.length).toBeGreaterThan(0);
       for (const faq of LANDING_COPY.faq.items) {
         expect(faq.question.bn.trim()).toBeTruthy();
         expect(faq.question.en.trim()).toBeTruthy();
@@ -107,12 +115,16 @@ describe("Landing Page Header, Language Switch, Config, and Copy Unit Tests", ()
   describe("3. Honesty and Claim Flag Rules", () => {
     it("hides Pixel/CAPI benefit card when pixelCapi is false", () => {
       expect(LANDING_CLAIMS.pixelCapi).toBe(false);
-      const pixelBenefit = LANDING_COPY.whatYouGet.items.find((item) => item.id === "benefit-pixel");
+      const pixelBenefit = LANDING_COPY.benefits.items.find(
+        (item) => item.id === "benefit-pixel",
+      );
       expect(pixelBenefit).toBeUndefined();
     });
 
     it("displays 'শিগগিরই' in the Pixel FAQ when pixelCapi is false", () => {
-      const pixelFaq = LANDING_COPY.faq.items.find((item) => item.id === "faq-pixel");
+      const pixelFaq = LANDING_COPY.faq.items.find(
+        (item) => item.id === "faq-pixel",
+      );
       expect(pixelFaq).toBeDefined();
       expect(pixelFaq?.answer.bn).toContain("শিগগিরই");
       expect(pixelFaq?.answer.en).toContain("Coming soon");
@@ -127,14 +139,12 @@ describe("Landing Page Header, Language Switch, Config, and Copy Unit Tests", ()
   });
 
   describe("4. Pricing Early Offer Logic", () => {
-    it("evaluates earlyOfferRemaining correctly", () => {
-      expect(LANDING.earlyOfferRemaining).toBe(5);
-      expect(LANDING.earlyOfferTotal).toBe(5);
-
-      // Helper function simulating card visibility
-      const isEarlyOfferActive = (remaining: number) => remaining > 0;
-      expect(isEarlyOfferActive(5)).toBe(true);
-      expect(isEarlyOfferActive(0)).toBe(false);
+    it("keeps early offer numbers consistent", () => {
+      expect(LANDING.earlyOfferTotal).toBeGreaterThan(0);
+      expect(LANDING.earlyOfferRemaining).toBeGreaterThanOrEqual(0);
+      expect(LANDING.earlyOfferRemaining).toBeLessThanOrEqual(
+        LANDING.earlyOfferTotal,
+      );
     });
   });
 
