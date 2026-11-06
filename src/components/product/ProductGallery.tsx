@@ -1,18 +1,28 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { createPortal } from "react-dom";
 import type { SupportedLocale } from "@/lib/format";
 import { formatNumber } from "@/lib/format";
 import type { CopyDictionary } from "@/lib/i18n";
-import StorefrontImage, { type ImagesManifest } from "@/components/ui/StorefrontImage";
+import StorefrontImage, {
+  type ImagesManifest,
+} from "@/components/ui/StorefrontImage";
 
 export interface ProductGalleryProps {
   galleryImages: string[];
   selectedIndex?: number;
   onIndexChange?: (index: number) => void;
   activeSlide?: number;
-  setActiveSlide?: React.Dispatch<React.SetStateAction<number>> | ((index: number) => void);
+  setActiveSlide?:
+    | React.Dispatch<React.SetStateAction<number>>
+    | ((index: number) => void);
   productTitleText: string;
   activeColorName: string;
   activeColorHex: string;
@@ -44,12 +54,13 @@ export default function ProductGallery({
   // Single source of truth index resolution
   const currentIndex = Math.max(
     0,
-    Math.min(galleryImages.length - 1, selectedIndex ?? activeSlide ?? 0)
+    Math.min(galleryImages.length - 1, selectedIndex ?? activeSlide ?? 0),
   );
 
   const updateIndex = useCallback(
     (newIndex: number | ((prev: number) => number)) => {
-      const resolved = typeof newIndex === "function" ? newIndex(currentIndex) : newIndex;
+      const resolved =
+        typeof newIndex === "function" ? newIndex(currentIndex) : newIndex;
       const bounded = Math.max(0, Math.min(galleryImages.length - 1, resolved));
       if (onIndexChange) {
         onIndexChange(bounded);
@@ -57,14 +68,21 @@ export default function ProductGallery({
         setActiveSlide(bounded);
       }
     },
-    [currentIndex, galleryImages.length, onIndexChange, setActiveSlide]
+    [currentIndex, galleryImages.length, onIndexChange, setActiveSlide],
   );
 
   // Lightbox & Zoom state
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
   const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
-  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isZoomAnimating, setIsZoomAnimating] = useState<boolean>(false);
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -144,11 +162,13 @@ export default function ProductGallery({
         setZoomScale(1.0);
       } else {
         const rounded = Number(clampedScale.toFixed(2));
-        setPanOffset((currentPan) => clampPan(currentPan.x, currentPan.y, rounded));
+        setPanOffset((currentPan) =>
+          clampPan(currentPan.x, currentPan.y, rounded),
+        );
         setZoomScale(rounded);
       }
     },
-    [MAX_ZOOM, MIN_ZOOM, clampPan]
+    [MAX_ZOOM, MIN_ZOOM, clampPan],
   );
 
   const isProgrammaticScrollRef = useRef<boolean>(false);
@@ -164,7 +184,8 @@ export default function ProductGallery({
         behavior: "auto",
       });
     }
-    if (programmaticScrollTimerRef.current) clearTimeout(programmaticScrollTimerRef.current);
+    if (programmaticScrollTimerRef.current)
+      clearTimeout(programmaticScrollTimerRef.current);
     programmaticScrollTimerRef.current = setTimeout(() => {
       isProgrammaticScrollRef.current = false;
     }, 120);
@@ -194,7 +215,8 @@ export default function ProductGallery({
         left: targetLeft,
         behavior: "auto",
       });
-      if (programmaticScrollTimerRef.current) clearTimeout(programmaticScrollTimerRef.current);
+      if (programmaticScrollTimerRef.current)
+        clearTimeout(programmaticScrollTimerRef.current);
       programmaticScrollTimerRef.current = setTimeout(() => {
         isProgrammaticScrollRef.current = false;
       }, 120);
@@ -249,7 +271,18 @@ export default function ProductGallery({
       if (e.key === "Escape") {
         closeGallery();
       } else if (isLightboxOpen) {
-        if ([" ", "Space", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) {
+        if (
+          [
+            " ",
+            "Space",
+            "PageUp",
+            "PageDown",
+            "ArrowUp",
+            "ArrowDown",
+            "Home",
+            "End",
+          ].includes(e.key)
+        ) {
           e.preventDefault();
         }
         if (e.key === "+" || e.key === "=") {
@@ -274,7 +307,15 @@ export default function ProductGallery({
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isLightboxOpen, galleryImages.length, handleZoomIn, handleZoomOut, resetZoom, updateIndex, closeGallery]);
+  }, [
+    isLightboxOpen,
+    galleryImages.length,
+    handleZoomIn,
+    handleZoomOut,
+    resetZoom,
+    updateIndex,
+    closeGallery,
+  ]);
 
   // Lock body scroll and prevent background scrolling while Lightbox is open
   useEffect(() => {
@@ -286,7 +327,8 @@ export default function ProductGallery({
     const originalBodyPaddingRight = document.body.style.paddingRight;
     const originalDocOverflow = document.documentElement.style.overflow;
 
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
@@ -313,7 +355,9 @@ export default function ProductGallery({
         }
 
         // Always zoom directly from center, clamping to frame boundaries
-        setPanOffset((currentPan) => clampPan(currentPan.x, currentPan.y, nextScale));
+        setPanOffset((currentPan) =>
+          clampPan(currentPan.x, currentPan.y, nextScale),
+        );
         return nextScale;
       });
     }
@@ -343,7 +387,10 @@ export default function ProductGallery({
     if (e.touches.length === 2) {
       const t1 = e.touches[0];
       const t2 = e.touches[1];
-      pinchDistRef.current = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      pinchDistRef.current = Math.hypot(
+        t2.clientX - t1.clientX,
+        t2.clientY - t1.clientY,
+      );
       initialPinchScaleRef.current = zoomScale;
       swipeStartXRef.current = null;
       swipeStartYRef.current = null;
@@ -368,7 +415,10 @@ export default function ProductGallery({
     if (e.touches.length === 2 && pinchDistRef.current > 0) {
       const t1 = e.touches[0];
       const t2 = e.touches[1];
-      const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const currentDist = Math.hypot(
+        t2.clientX - t1.clientX,
+        t2.clientY - t1.clientY,
+      );
       const factor = currentDist / pinchDistRef.current;
       const computed = initialPinchScaleRef.current * factor;
       setZoomClamped(computed);
@@ -395,7 +445,11 @@ export default function ProductGallery({
     if (e.touches.length === 0) {
       setIsDragging(false);
 
-      if (swipeStartXRef.current !== null && swipeStartYRef.current !== null && zoomScale <= 1.05) {
+      if (
+        swipeStartXRef.current !== null &&
+        swipeStartYRef.current !== null &&
+        zoomScale <= 1.05
+      ) {
         const touch = e.changedTouches[0];
         if (touch) {
           const diffX = touch.clientX - swipeStartXRef.current;
@@ -491,12 +545,20 @@ export default function ProductGallery({
                   manifest={manifest}
                 />
                 <span className="pointer-events-none absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-xs">
-                  <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <circle cx="11" cy="11" r="8" />
                     <path d="m21 21-4.3-4.3M11 8v6M8 11h6" />
                   </svg>
                   <span>
-                    {formatNumber(idx + 1, lang)}/{formatNumber(galleryImages.length, lang)}
+                    {formatNumber(idx + 1, lang)}/
+                    {formatNumber(galleryImages.length, lang)}
                   </span>
                 </span>
               </button>
@@ -512,7 +574,7 @@ export default function ProductGallery({
 
         {/* Clickable Thumbnail Strip */}
         {galleryImages.length > 1 && (
-          <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 min-[360px]:gap-2 p-1.5 sm:p-3 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] overflow-x-auto no-scrollbar">
             {galleryImages.map((thumbSrc, idx) => {
               const isCurrent = idx === currentIndex;
               return (
@@ -521,7 +583,7 @@ export default function ProductGallery({
                   type="button"
                   onClick={() => scrollToSlide(idx)}
                   aria-label={`${copy.galleryImageCount} ${idx + 1}`}
-                  className={`relative h-16 w-14 min-[360px]:h-18 min-[360px]:w-16 sm:h-20 sm:w-20 shrink-0 overflow-hidden rounded-xl border-2 cursor-pointer transition ${
+                  className={`relative h-12 w-10 min-[360px]:h-14 min-[360px]:w-12 sm:h-20 sm:w-20 shrink-0 overflow-hidden rounded-lg sm:rounded-xl border-2 cursor-pointer transition ${
                     isCurrent
                       ? "border-[var(--brand-primary)] shadow-sm ring-2 ring-[var(--brand-primary)]/20 scale-[1.02]"
                       : "border-[var(--border-subtle)] opacity-70 hover:opacity-100 hover:border-[var(--border-strong)]"
@@ -543,302 +605,310 @@ export default function ProductGallery({
       </section>
 
       {/* Fullscreen Lightbox Modal (Exact Fabrilife Style rendered directly to document.body via Portal) */}
-      {mounted && isLightboxOpen && createPortal(
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={lang === "bn" ? "পূর্ণাঙ্গ ছবি ও জুম প্রিভিউ" : "Fullscreen image preview and zoom"}
-          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[99999] flex flex-col items-center justify-center select-none overflow-hidden touch-none"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: "100%",
-            height: "100%",
-            minWidth: "100vw",
-            minHeight: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.95)",
-            zIndex: 99999,
-          }}
-        >
-          {/* Backdrop dismiss on tap outside */}
+      {mounted &&
+        isLightboxOpen &&
+        createPortal(
           <div
-            className="absolute inset-0 top-0 left-0 w-full h-full -z-10 cursor-pointer"
-            onClick={closeGallery}
-            aria-hidden="true"
-          />
-
-          {/* Top-Right Close Button (thin outlined circle with X, matching production) */}
-          <button
-            type="button"
-            onClick={closeGallery}
-            aria-label={copy.galleryCloseZoom}
-            className="absolute top-4 right-4 sm:top-5 sm:right-6 z-[100002] flex h-11 w-11 items-center justify-center rounded-full text-white transition-all duration-200 cursor-pointer active:scale-95"
-            style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.35)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              lang === "bn"
+                ? "পূর্ণাঙ্গ ছবি ও জুম প্রিভিউ"
+                : "Fullscreen image preview and zoom"
+            }
+            className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[99999] flex flex-col items-center justify-center select-none overflow-hidden touch-none"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: "100%",
+              height: "100%",
+              minWidth: "100vw",
+              minHeight: "100vh",
+              backgroundColor: "rgba(0, 0, 0, 0.95)",
+              zIndex: 99999,
             }}
           >
-            <svg
-              className="h-5 w-5 sm:h-6 sm:w-6"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-
-          {/* Unified Vertical Column: Image Card + Caption + Thumbnails + Zoom Badge + Zoom Controls Pill */}
-          <div className="relative flex flex-col items-center justify-center w-full max-w-full px-2 sm:px-4 z-20 pointer-events-none">
-            {/* White Card Container: Image + Caption bar (matches production) */}
+            {/* Backdrop dismiss on tap outside */}
             <div
-              className="flex flex-col overflow-hidden pointer-events-auto"
-              style={{
-                width: "min(600px, calc(100vh - 210px), calc(100vw - 32px))",
-                maxWidth: "600px",
-                backgroundColor: "#f5f0eb",
-                borderRadius: "12px",
-                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+              className="absolute inset-0 top-0 left-0 w-full h-full -z-10 cursor-pointer"
+              onClick={closeGallery}
+              aria-hidden="true"
+            />
+
+            {/* Top-Right Close Button (thin outlined circle with X, matching production) */}
+            <button
+              type="button"
+              onClick={closeGallery}
+              aria-label={copy.galleryCloseZoom}
+              className="absolute top-4 right-4 sm:top-5 sm:right-6 z-[100002] flex h-11 w-11 items-center justify-center rounded-full text-white transition-all duration-200 cursor-pointer active:scale-95"
+              style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "rgba(255,255,255,0.35)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
               }}
             >
-              {/* The Image Viewport Frame */}
+              <svg
+                className="h-5 w-5 sm:h-6 sm:w-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            {/* Unified Vertical Column: Image Card + Caption + Thumbnails + Zoom Badge + Zoom Controls Pill */}
+            <div className="relative flex flex-col items-center justify-center w-full max-w-full px-2 sm:px-4 z-20 pointer-events-none">
+              {/* White Card Container: Image + Caption bar (matches production) */}
               <div
-                ref={lightboxFrameRef}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                onDoubleClick={handleToggleTargetZoom}
-                className="relative overflow-hidden aspect-square flex items-center justify-center touch-none select-none"
+                className="flex flex-col overflow-hidden pointer-events-auto"
                 style={{
-                  cursor:
-                    zoomScale > 1.02
-                      ? isDragging
-                        ? "grabbing"
-                        : "grab"
-                      : "zoom-in",
+                  width: "min(600px, calc(100vh - 210px), calc(100vw - 32px))",
+                  maxWidth: "600px",
                   backgroundColor: "#f5f0eb",
+                  borderRadius: "12px",
+                  boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
                 }}
               >
+                {/* The Image Viewport Frame */}
                 <div
+                  ref={lightboxFrameRef}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onDoubleClick={handleToggleTargetZoom}
+                  className="relative overflow-hidden aspect-square flex items-center justify-center touch-none select-none"
                   style={{
-                    transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`,
-                    transformOrigin: "center center",
-                    transition: isZoomAnimating && !isDragging
-                      ? "transform 0.15s ease-out"
-                      : "none",
+                    cursor:
+                      zoomScale > 1.02
+                        ? isDragging
+                          ? "grabbing"
+                          : "grab"
+                        : "zoom-in",
+                    backgroundColor: "#f5f0eb",
                   }}
-                  onTransitionEnd={() => setIsZoomAnimating(false)}
-                  className="relative h-full w-full flex items-center justify-center will-change-transform bg-white select-none"
                 >
-                  <StorefrontImage
-                    src={galleryImages[currentIndex]}
-                    alt={`${productTitleText} (${activeColorName}) (${currentIndex + 1})`}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 740px, 800px"
-                    className="object-contain pointer-events-none select-none rounded-none"
-                    priority
-                    manifest={manifest}
+                  <div
+                    style={{
+                      transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`,
+                      transformOrigin: "center center",
+                      transition:
+                        isZoomAnimating && !isDragging
+                          ? "transform 0.15s ease-out"
+                          : "none",
+                    }}
+                    onTransitionEnd={() => setIsZoomAnimating(false)}
+                    className="relative h-full w-full flex items-center justify-center will-change-transform bg-white select-none"
+                  >
+                    <StorefrontImage
+                      src={galleryImages[currentIndex]}
+                      alt={`${productTitleText} (${activeColorName}) (${currentIndex + 1})`}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 740px, 800px"
+                      className="object-contain pointer-events-none select-none rounded-none"
+                      priority
+                      manifest={manifest}
+                    />
+                  </div>
+                </div>
+
+                {/* Caption bar at bottom of card */}
+                <div
+                  className="flex items-center gap-2.5 pointer-events-none select-none"
+                  style={{
+                    padding: "10px 14px",
+                    backgroundColor: "#f5f0eb",
+                    borderTop: "1px solid rgba(0,0,0,0.06)",
+                  }}
+                >
+                  <span
+                    className="shrink-0"
+                    style={{
+                      display: "inline-block",
+                      width: "14px",
+                      height: "14px",
+                      borderRadius: "50%",
+                      backgroundColor: activeColorHex || "#333",
+                      border: "2px solid rgba(0,0,0,0.12)",
+                    }}
+                    aria-hidden="true"
                   />
-                </div>
-              </div>
-
-              {/* Caption bar at bottom of card */}
-              <div
-                className="flex items-center gap-2.5 pointer-events-none select-none"
-                style={{
-                  padding: "10px 14px",
-                  backgroundColor: "#f5f0eb",
-                  borderTop: "1px solid rgba(0,0,0,0.06)",
-                }}
-              >
-                <span
-                  className="shrink-0"
-                  style={{
-                    display: "inline-block",
-                    width: "14px",
-                    height: "14px",
-                    borderRadius: "50%",
-                    backgroundColor: activeColorHex || "#333",
-                    border: "2px solid rgba(0,0,0,0.12)",
-                  }}
-                  aria-hidden="true"
-                />
-                <div className="min-w-0 flex-1">
-                  <p
-                    className="truncate"
-                    style={{
-                      margin: 0,
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      color: "#1a1a1a",
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {productTitleText}
-                  </p>
-                  <p
-                    className="truncate"
-                    style={{
-                      margin: 0,
-                      fontSize: "11px",
-                      fontWeight: 400,
-                      color: "#666",
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {activeColorName} ({currentIndex + 1}/
-                    {galleryImages.length})
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Thumbnails Directly Under Image Card */}
-            {galleryImages.length > 1 && (
-              <div className="mt-3 sm:mt-3.5 flex items-center justify-center gap-2 max-w-[min(600px,calc(100vw-24px))] overflow-x-auto no-scrollbar touch-pan-x z-30 pointer-events-auto">
-                {galleryImages.map((thumbSrc, thumbIdx) => {
-                  const isCurrent = thumbIdx === currentIndex;
-                  return (
-                    <button
-                      key={`lightbox-thumb-${thumbSrc}-${thumbIdx}`}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        updateIndex(thumbIdx);
-                        resetZoom();
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="truncate"
+                      style={{
+                        margin: 0,
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: "#1a1a1a",
+                        lineHeight: 1.3,
                       }}
-                      aria-label={`${copy.galleryImageCount} ${thumbIdx + 1}`}
-                      className={`relative h-12 w-12 sm:h-[50px] sm:w-[50px] shrink-0 overflow-hidden rounded transition cursor-pointer select-none border-2 ${
-                        isCurrent
-                          ? "border-white opacity-100 shadow-sm"
-                          : "border-transparent opacity-60 hover:opacity-90"
-                      }`}
                     >
-                      <StorefrontImage
-                        src={thumbSrc}
-                        alt={`Thumbnail ${thumbIdx + 1}`}
-                        fill
-                        sizes="60px"
-                        className="object-cover bg-white pointer-events-none select-none"
-                        manifest={manifest}
-                      />
-                    </button>
-                  );
-                })}
+                      {productTitleText}
+                    </p>
+                    <p
+                      className="truncate"
+                      style={{
+                        margin: 0,
+                        fontSize: "11px",
+                        fontWeight: 400,
+                        color: "#666",
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {activeColorName} ({currentIndex + 1}/
+                      {galleryImages.length})
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
 
-            {/* Zoom Level Indicator: Always preserves its exact vertical space so controls do not jump */}
-            <div className="mt-2 sm:mt-2.5 h-7 sm:h-8 flex items-center justify-center z-30 pointer-events-none select-none">
-              <div
-                className={`px-3 py-0.5 rounded-full bg-black/85 text-white text-xs sm:text-[13px] font-semibold tracking-wide border border-white/15 shadow-xl transition-all duration-200 ${
-                  zoomScale > 1.02
-                    ? "opacity-100 scale-100"
-                    : "opacity-0 scale-95 pointer-events-none invisible"
-                }`}
-                aria-hidden={zoomScale <= 1.02}
-              >
-                <span className="tabular-nums">
-                  {formatNumber(Math.round(zoomScale * 100), lang)}%
-                </span>
+              {/* Thumbnails Directly Under Image Card */}
+              {galleryImages.length > 1 && (
+                <div className="mt-3 sm:mt-3.5 flex items-center justify-center gap-2 max-w-[min(600px,calc(100vw-24px))] overflow-x-auto no-scrollbar touch-pan-x z-30 pointer-events-auto">
+                  {galleryImages.map((thumbSrc, thumbIdx) => {
+                    const isCurrent = thumbIdx === currentIndex;
+                    return (
+                      <button
+                        key={`lightbox-thumb-${thumbSrc}-${thumbIdx}`}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateIndex(thumbIdx);
+                          resetZoom();
+                        }}
+                        aria-label={`${copy.galleryImageCount} ${thumbIdx + 1}`}
+                        className={`relative h-12 w-12 sm:h-[50px] sm:w-[50px] shrink-0 overflow-hidden rounded transition cursor-pointer select-none border-2 ${
+                          isCurrent
+                            ? "border-white opacity-100 shadow-sm"
+                            : "border-transparent opacity-60 hover:opacity-90"
+                        }`}
+                      >
+                        <StorefrontImage
+                          src={thumbSrc}
+                          alt={`Thumbnail ${thumbIdx + 1}`}
+                          fill
+                          sizes="60px"
+                          className="object-cover bg-white pointer-events-none select-none"
+                          manifest={manifest}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Zoom Level Indicator: Always preserves its exact vertical space so controls do not jump */}
+              <div className="mt-2 sm:mt-2.5 h-7 sm:h-8 flex items-center justify-center z-30 pointer-events-none select-none">
+                <div
+                  className={`px-3 py-0.5 rounded-full bg-black/85 text-white text-xs sm:text-[13px] font-semibold tracking-wide border border-white/15 shadow-xl transition-all duration-200 ${
+                    zoomScale > 1.02
+                      ? "opacity-100 scale-100"
+                      : "opacity-0 scale-95 pointer-events-none invisible"
+                  }`}
+                  aria-hidden={zoomScale <= 1.02}
+                >
+                  <span className="tabular-nums">
+                    {formatNumber(Math.round(zoomScale * 100), lang)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Zoom Controls Pill: Fixed pill matching Fabrilife style */}
+              <div className="mt-1 sm:mt-1.5 flex items-center justify-center z-30 pointer-events-auto">
+                <div className="inline-flex items-center gap-2 p-1.5 rounded-full bg-[#1e1e1e]/90 sm:bg-[#222222]/90 backdrop-blur-md border border-white/10 shadow-2xl">
+                  {/* Minus Button */}
+                  <button
+                    type="button"
+                    onClick={handleZoomOut}
+                    disabled={zoomScale <= MIN_ZOOM + 0.01}
+                    aria-label={lang === "bn" ? "জুম কমান" : "Zoom out"}
+                    title={lang === "bn" ? "জুম কমান" : "Zoom out"}
+                    className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/35 active:scale-95 text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/20 cursor-pointer"
+                  >
+                    <svg
+                      className="h-4 w-4 sm:h-4.5 sm:w-4.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                  </button>
+
+                  {/* Reset Button (↻) */}
+                  <button
+                    type="button"
+                    onClick={resetZoom}
+                    aria-label={
+                      lang === "bn"
+                        ? "১০০% জুম রিসেট করুন"
+                        : "Reset zoom to 100%"
+                    }
+                    title={lang === "bn" ? "১০০% রিসেট" : "Reset to 100%"}
+                    className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/35 active:scale-95 text-white transition-all cursor-pointer"
+                  >
+                    <svg
+                      className="h-4 w-4 sm:h-4.5 sm:w-4.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                      <path d="M21 3v5h-5" />
+                      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                      <path d="M3 21v-5h5" />
+                    </svg>
+                  </button>
+
+                  {/* Plus Button */}
+                  <button
+                    type="button"
+                    onClick={handleZoomIn}
+                    disabled={zoomScale >= MAX_ZOOM - 0.01}
+                    aria-label={lang === "bn" ? "জুম বাড়ান" : "Zoom in"}
+                    title={lang === "bn" ? "জুম বাড়ান" : "Zoom in"}
+                    className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/35 active:scale-95 text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/20 cursor-pointer"
+                  >
+                    <svg
+                      className="h-4 w-4 sm:h-4.5 sm:w-4.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
-
-            {/* Zoom Controls Pill: Fixed pill matching Fabrilife style */}
-            <div className="mt-1 sm:mt-1.5 flex items-center justify-center z-30 pointer-events-auto">
-              <div className="inline-flex items-center gap-2 p-1.5 rounded-full bg-[#1e1e1e]/90 sm:bg-[#222222]/90 backdrop-blur-md border border-white/10 shadow-2xl">
-                {/* Minus Button */}
-                <button
-                  type="button"
-                  onClick={handleZoomOut}
-                  disabled={zoomScale <= MIN_ZOOM + 0.01}
-                  aria-label={lang === "bn" ? "জুম কমান" : "Zoom out"}
-                  title={lang === "bn" ? "জুম কমান" : "Zoom out"}
-                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/35 active:scale-95 text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/20 cursor-pointer"
-                >
-                  <svg
-                    className="h-4 w-4 sm:h-4.5 sm:w-4.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </button>
-
-                {/* Reset Button (↻) */}
-                <button
-                  type="button"
-                  onClick={resetZoom}
-                  aria-label={
-                    lang === "bn"
-                      ? "১০০% জুম রিসেট করুন"
-                      : "Reset zoom to 100%"
-                  }
-                  title={lang === "bn" ? "১০০% রিসেট" : "Reset to 100%"}
-                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/35 active:scale-95 text-white transition-all cursor-pointer"
-                >
-                  <svg
-                    className="h-4 w-4 sm:h-4.5 sm:w-4.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                    <path d="M21 3v5h-5" />
-                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                    <path d="M3 21v-5h5" />
-                  </svg>
-                </button>
-
-                {/* Plus Button */}
-                <button
-                  type="button"
-                  onClick={handleZoomIn}
-                  disabled={zoomScale >= MAX_ZOOM - 0.01}
-                  aria-label={lang === "bn" ? "জুম বাড়ান" : "Zoom in"}
-                  title={lang === "bn" ? "জুম বাড়ান" : "Zoom in"}
-                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/35 active:scale-95 text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/20 cursor-pointer"
-                >
-                  <svg
-                    className="h-4 w-4 sm:h-4.5 sm:w-4.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

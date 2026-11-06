@@ -37,7 +37,10 @@ import { getEnabledPaymentMethods, type PaymentMethodId } from "@/lib/payments";
 import ProductGallery from "./product/ProductGallery";
 import ProductSelectors from "./product/ProductSelectors";
 import PoweredByOrderKoro from "./PoweredByOrderKoro";
-import { clampGalleryIndex, resolveGalleryImages } from "@/lib/gallery-selection";
+import {
+  clampGalleryIndex,
+  resolveGalleryImages,
+} from "@/lib/gallery-selection";
 import DeliveryBlock from "./product/DeliveryBlock";
 import OrderForm, { type FormErrors } from "./product/OrderForm";
 import StickyOrderBar from "./product/StickyOrderBar";
@@ -109,7 +112,10 @@ export default function ProductOrderClient({
   }, [activeColor?.images, config.product.images]);
 
   // Ensure selectedIndex is always strictly clamped within current galleryImages
-  const safeSelectedIndex = clampGalleryIndex(selectedIndex, galleryImages.length);
+  const safeSelectedIndex = clampGalleryIndex(
+    selectedIndex,
+    galleryImages.length,
+  );
 
   // 3. Order Form state
   const [customerName, setCustomerName] = useState<string>("");
@@ -620,7 +626,11 @@ export default function ProductOrderClient({
 
       saveReceiptToStorage({
         orderNumber: data.orderNumber || data.summary?.orderNumber,
-        token: data.token || (data.summary as Record<string, unknown> | undefined)?.token as string | undefined,
+        token:
+          data.token ||
+          ((data.summary as Record<string, unknown> | undefined)?.token as
+            | string
+            | undefined),
         slug: config.slug,
         productTitle: config.product.title,
         colorName: activeColor.name,
@@ -696,7 +706,7 @@ export default function ProductOrderClient({
       >
         <div
           suppressHydrationWarning
-          className="mx-auto flex min-h-12 max-w-6xl items-center justify-between"
+          className="mx-auto flex min-h-12 max-w-6xl items-center justify-between px-0 xl:px-6"
         >
           <div
             suppressHydrationWarning
@@ -809,7 +819,7 @@ export default function ProductOrderClient({
       {/* =========================================================
           DESKTOP 2-COLUMN VIEW (Screens >= lg: 1024px)
          ========================================================= */}
-      <div className="hidden lg:block mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 flex-1">
+      <div className="hidden lg:block mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4 flex-1">
         <div className="grid grid-cols-12 gap-8 xl:gap-12 items-start">
           {/* Left Column: Gallery, Description, Trust, Support, Share */}
           <div className="col-span-7 space-y-6">
@@ -971,7 +981,7 @@ export default function ProductOrderClient({
         />
 
         {/* 3. Title, Selectors, Pricing */}
-        <div className="border-b border-[var(--border-subtle)] px-3 min-[360px]:px-4 pt-4 pb-5">
+        <div className="border-b border-[var(--border-subtle)] px-3 min-[360px]:px-4 pt-3 pb-4">
           <ProductSelectors
             config={{ ...config, soldOut: isSoldOut }}
             selectedColorIdx={selectedColorIdx}

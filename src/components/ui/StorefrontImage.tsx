@@ -102,7 +102,10 @@ export default function StorefrontImage({
       if (manifest[webpPath]) {
         manifestEntry = manifest[webpPath];
       } else {
-        const baseName = src.split("/").pop()?.replace(/\.[^/.]+$/, "");
+        const baseName = src
+          .split("/")
+          .pop()
+          ?.replace(/\.[^/.]+$/, "");
         if (baseName && manifest[baseName]) {
           manifestEntry = manifest[baseName];
         }
