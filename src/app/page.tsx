@@ -79,6 +79,51 @@ export default function HomePage() {
           availableLanguage: ["Bengali", "English"],
         },
       },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${siteUrl}/#software`,
+        name: "OrderKoro",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        offers: {
+          "@type": "Offer",
+          price: "1999",
+          priceCurrency: "BDT",
+          priceValidUntil: "2027-12-31",
+        },
+        description:
+          "High-converting single-product Cash on Delivery order page engine with automated Google Sheets sync and Telegram bot order management for Bangladeshi Facebook sellers.",
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${siteUrl}/#faq`,
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "OrderKoro কী এবং এটি কীভাবে কাজ করে?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "OrderKoro হলো ফেসবুক ও এফ-কমার্স সেলারদের জন্য তৈরি এক পণ্যের সুপারফাস্ট অর্ডার পেজ। কাস্টমার নিজে নাম, ঠিকানা, সাইজ ও কালার সিলেক্ট করে অর্ডার কনফার্ম করে। অর্ডার আসার সাথে সাথে সেলারের টেলিগ্রামে মেসেজ চলে যায় এবং নিজস্ব গুগল শিটে সব ডাটা স্বয়ংক্রিয়ভাবে সেভ হয়।",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "OrderKoro-র সেটআপ ফি কত?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "OrderKoro-র সার্ভিস ফি ১,৯৯৯ টাকা, যা একবারই দিতে হয়। কোনো অতিরিক্ত মাসিক চার্জ নেই। পেজ তৈরি করার পর দেখে পছন্দ হলে ফি পরিশোধ করতে হয়।",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "OrderKoro-তে কোন কোন পেমেন্ট মেথড সাপোর্ট করে?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "OrderKoro সম্পূর্ণ ক্যাশ অন ডেলিভারি (COD) এবং বিকাশ, নগদ ও রকেটে অগ্রিম পেমেন্ট সাপোর্ট করে।",
+            },
+          },
+        ],
+      },
     ],
   };
 

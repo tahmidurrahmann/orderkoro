@@ -1,0 +1,30 @@
+# OrderKoro (অর্ডারকরো)
+
+> OrderKoro is a high-converting, ultra-fast single-product Cash on Delivery (COD) storefront engine tailored specifically for Facebook and f-commerce sellers in Bangladesh.
+
+## Overview
+OrderKoro replaces fragile Facebook Messenger and WhatsApp order taking with a dedicated, mobile-optimized landing page. Customers enter their name, phone number, address, select color, size, and quantity directly. Orders automatically sync in real-time to the seller's Google Sheet and send instant interactive Telegram alerts with one-tap status action buttons.
+
+## Primary Capabilities
+- **Single-Product Mobile Storefront:** Loads in under 1 second on Bangladeshi 3G/4G networks with responsive WebP image optimization and blur placeholders.
+- **Conversion-Optimized Checkout:** Features 4:5 mobile product galleries, circular color swatches, single-row size selectors, inline quantity steppers, and sticky order buttons.
+- **Automated Dual-Sync Fulfillment:**
+  - **Google Sheets Sync:** Automatically writes 29 canonical columns to the seller's own Google Sheet with row freeze, bold headers, and edit warnings.
+  - **Telegram Bot Notifications:** Delivers instant order alerts to seller Telegram chats or groups via `@OrderKoro_Bot` with interactive action buttons (`Confirm`, `Shipped`, `Delivered`, `Returned`, `Cancel`, `Verify Payment`).
+- **Flexible Payment Methods:**
+  - Cash on Delivery (COD)
+  - Partial or full advance mobile payments (bKash, Nagad, Rocket) with TrxID validation and reservation.
+- **Multi-Zone Courier Pricing:** Automatically calculates delivery charges based on customer district (Dhaka City: ৳70, Suburbs: ৳100, Outside Dhaka: ৳130).
+
+## Pricing & Terms
+- **Service Fee:** ৳1,999 (one-time setup fee, no recurring monthly charges).
+- **Hosting & Support:** Lifetime hosting and technical support included.
+- **Risk-Free Trial:** Sellers inspect and verify their live storefront before paying.
+
+## Contact Information
+- **Founder / Lead:** Tahmidur Rahman
+- **Official Website:** https://orderkoro.vercel.app
+- **Phone / WhatsApp:** +8801843821277
+- **Telegram Bot:** https://t.me/OrderKoro_Bot
+- **Facebook Messenger:** https://m.me/61596152341071
+- **Target Market:** Bangladesh (Dhaka, Chittagong, Sylhet, Rajshahi, Khulna, Barisal, Rangpur, Mymensingh)
