@@ -247,8 +247,15 @@ async function main() {
           daysMax: 2,
         },
         {
+          id: "dhaka-suburb",
+          label: { bn: "ঢাকার আশেপাশে (সাভার, গাজীপুর, নারায়ণগঞ্জ)", en: "Dhaka Suburbs" },
+          charge: 100,
+          daysMin: 2,
+          daysMax: 3,
+        },
+        {
           id: "outside-dhaka",
-          label: { bn: "ঢাকার বাইরে", en: "Outside Dhaka" },
+          label: { bn: "ঢাকার বাইরে সারাদেশ", en: "Outside Dhaka" },
           charge: 130,
           daysMin: 3,
           daysMax: 5,
@@ -256,7 +263,10 @@ async function main() {
       ],
       districtZoneMap: {
         Dhaka: "dhaka-city",
+        Gazipur: "dhaka-suburb",
+        Narayanganj: "dhaka-suburb",
       },
+      suburbZoneId: "dhaka-suburb",
       defaultZoneId: "outside-dhaka",
     },
     returnPolicy: {
