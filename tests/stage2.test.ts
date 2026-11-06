@@ -26,7 +26,7 @@ import {
   SHEET_HEADERS,
   sanitizeSpreadsheetCell,
 } from "../src/lib/server/sheet-row";
-import { verifyHeaderRowMatch } from "../src/lib/server/sheets";
+import { parseRowNumberFromRowRef, verifyHeaderRowMatch } from "../src/lib/server/sheets";
 import {
   buildCallbackData,
   buildStatusInlineKeyboard,
@@ -176,7 +176,7 @@ describe("OrderPage Stage 2 Unit Tests", () => {
     });
   });
 
-  describe("4. Formula-injection guard & 25-column Sheet row builder", () => {
+  describe("4. Formula-injection guard & 29-column Sheet row builder", () => {
     it("prefixes cells starting with =, +, -, @ (including leading whitespace) with an apostrophe", () => {
       expect(sanitizeSpreadsheetCell("=SUM(A1:A10)")).toBe("'=SUM(A1:A10)");
       expect(sanitizeSpreadsheetCell("+8801711002233")).toBe("'+8801711002233");
@@ -247,6 +247,19 @@ describe("OrderPage Stage 2 Unit Tests", () => {
       expect(() => verifyHeaderRowMatch(badHeaders)).toThrow(
         /Column 3: expected "Status", found "WrongColumn"/
       );
+    });
+
+    it("parses row numbers from A1 rowRef across varied real-world tab names", () => {
+      expect(parseRowNumberFromRowRef("Sheet1!A15:AC15")).toBe(15);
+      expect(parseRowNumberFromRowRef("'Orders'!A15:AC15")).toBe(15);
+      expect(parseRowNumberFromRowRef("'শীট১'!A15:AC15")).toBe(15);
+      expect(parseRowNumberFromRowRef("'My Orders'!A15:AC15")).toBe(15);
+
+      // Additional edge cases
+      expect(parseRowNumberFromRowRef("'2026:Q1'!A42:AC42")).toBe(42);
+      expect(parseRowNumberFromRowRef("A99:AC99")).toBe(99);
+      expect(parseRowNumberFromRowRef("'Orders'!A105")).toBe(105);
+      expect(parseRowNumberFromRowRef("")).toBeNull();
     });
   });
 

@@ -13,6 +13,24 @@ export function verifyHeaderRowMatch(rowValues: unknown[]): void {
   }
 }
 
+/**
+ * Extracts the 1-based row number from an A1 notation row reference.
+ * Robust against tab names with spaces, quotes, non-ASCII/Bengali characters, and colons.
+ * E.g. "Sheet1!A15:AC15" -> 15
+ *      "'Orders'!A15:AC15" -> 15
+ *      "'শীট১'!A15:AC15" -> 15
+ *      "'My Orders'!A15:AC15" -> 15
+ */
+export function parseRowNumberFromRowRef(rowRef: string): number | null {
+  if (!rowRef) return null;
+  const rangePart = rowRef.includes("!")
+    ? rowRef.slice(rowRef.lastIndexOf("!") + 1)
+    : rowRef;
+
+  const match = rangePart.match(/(\d+):[A-Z]+(\d+)/) || rangePart.match(/[A-Z]+(\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
 interface CachedToken {
   accessToken: string;
   expiresAt: number;
@@ -159,17 +177,20 @@ export async function widenSheetColumns(
         sheets?: Array<{
           properties?: {
             sheetId?: number;
+            hidden?: boolean;
             gridProperties?: { columnCount?: number };
           };
         }>;
       };
-      const firstSheet = meta.sheets?.[0]?.properties;
-      if (firstSheet?.sheetId !== undefined) {
-        numericSheetId = firstSheet.sheetId;
+      const sheets = meta.sheets || [];
+      const firstVisibleSheet =
+        sheets.find((s) => !s.properties?.hidden)?.properties || sheets[0]?.properties;
+      if (firstVisibleSheet?.sheetId !== undefined) {
+        numericSheetId = firstVisibleSheet.sheetId;
       }
       if (
-        firstSheet?.gridProperties?.columnCount &&
-        firstSheet.gridProperties.columnCount >= minColumns
+        firstVisibleSheet?.gridProperties?.columnCount &&
+        firstVisibleSheet.gridProperties.columnCount >= minColumns
       ) {
         return;
       }
@@ -319,9 +340,8 @@ export async function updateSheetOrderStatus(
 
   const token = await getGoogleSheetsAccessToken();
 
-  // Extract row number from rowRef (e.g. "Sheet1!A15:Y15" -> 15)
-  const match = rowRef.match(/(\d+):[A-Z]+(\d+)/) || rowRef.match(/[A-Z]+(\d+)/);
-  let targetRow = match ? parseInt(match[1], 10) : null;
+  // Extract row number from rowRef (e.g. "Sheet1!A15:AC15" -> 15)
+  let targetRow = parseRowNumberFromRowRef(rowRef);
 
   // Verify Column A matches orderNumber
   if (targetRow) {
@@ -417,8 +437,7 @@ export async function updateSheetPaymentStatus(
   const token = await getGoogleSheetsAccessToken();
 
   // Extract row number from rowRef (e.g. "Sheet1!A15:AC15" -> 15)
-  const match = rowRef.match(/(\d+):[A-Z]+(\d+)/) || rowRef.match(/[A-Z]+(\d+)/);
-  let targetRow = match ? parseInt(match[1], 10) : null;
+  let targetRow = parseRowNumberFromRowRef(rowRef);
 
   // Verify Column A matches orderNumber
   if (targetRow) {
@@ -512,9 +531,8 @@ export async function updateSheetCustomerConfirmed(
 
   const token = await getGoogleSheetsAccessToken();
 
-  // Extract row number from rowRef (e.g. "Sheet1!A15:Y15" -> 15)
-  const match = rowRef.match(/(\d+):[A-Z]+(\d+)/) || rowRef.match(/[A-Z]+(\d+)/);
-  let targetRow = match ? parseInt(match[1], 10) : null;
+  // Extract row number from rowRef (e.g. "Sheet1!A15:AC15" -> 15)
+  let targetRow = parseRowNumberFromRowRef(rowRef);
 
   // Verify Column A matches orderNumber
   if (targetRow) {

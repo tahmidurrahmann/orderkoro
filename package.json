@@ -17,6 +17,7 @@
     "test:vm": "node scripts/run-stage2-tests.mjs",
     "check:secrets": "node scripts/check-client-bundle.mjs",
     "init-sheet": "node scripts/init-sheet.mjs",
+    "check-sheet": "node scripts/check-sheet.mjs",
     "test-telegram": "node scripts/test-telegram.mjs",
     "replay-failed": "node scripts/replay-failed.mjs",
     "validate:clients": "node scripts/validate-clients.mjs",
