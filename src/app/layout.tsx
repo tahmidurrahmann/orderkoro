@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Anek_Bangla } from "next/font/google";
 import "./globals.css";
 import "@/styles/brand-tokens.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const anekBangla = Anek_Bangla({
   subsets: ["bengali", "latin"],
@@ -10,7 +11,8 @@ const anekBangla = Anek_Bangla({
   variable: "--font-anek-bangla",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -78,6 +80,7 @@ export default function RootLayout({
         className="notranslate min-h-screen-safe bg-[var(--bg-canvas)] text-[var(--text-primary)] antialiased selection:bg-[var(--brand-primary)] selection:text-white"
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
