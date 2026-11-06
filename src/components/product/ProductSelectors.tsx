@@ -254,21 +254,21 @@ export default function ProductSelectors({
 
         {/* Quantity Stepper */}
         <div>
-          <span className="block text-sm font-semibold text-[var(--text-primary)]">
-            {copy.quantityLabel}:
-          </span>
-          <div className="mt-2 flex items-center gap-3">
-            <div className="inline-flex min-h-11 items-center rounded-xl border border-[var(--border-strong)] bg-[var(--bg-surface)]">
+          <div className="flex items-center gap-3">
+            <span className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">
+              {copy.quantityLabel}:
+            </span>
+            <div className="inline-flex h-9 sm:h-10 items-center rounded-lg sm:rounded-xl border border-[var(--border-strong)] bg-[var(--bg-surface)] shadow-2xs">
               <button
                 type="button"
                 disabled={quantity <= 1 || config.soldOut}
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 aria-label={copy.quantityDecreaseAria}
-                className="flex min-h-11 min-w-11 items-center justify-center rounded-l-xl text-lg font-bold text-[var(--text-primary)] transition hover:bg-[var(--bg-subtle)] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-l-lg sm:rounded-l-xl text-base sm:text-lg font-semibold text-[var(--text-primary)] transition hover:bg-[var(--bg-subtle)] active:bg-[var(--bg-subtle)] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 −
               </button>
-              <span className="min-w-10 text-center font-bold text-base text-[var(--text-primary)]">
+              <span className="min-w-9 sm:min-w-10 px-1 text-center font-bold text-xs sm:text-sm text-[var(--text-primary)]">
                 {formatNumber(quantity, lang)}
               </span>
               <button
@@ -280,13 +280,13 @@ export default function ProductSelectors({
                   setQuantity((q) => Math.min(config.maxQuantity ?? 5, q + 1))
                 }
                 aria-label={copy.quantityIncreaseAria}
-                className="flex min-h-11 min-w-11 items-center justify-center rounded-r-xl text-lg font-bold text-[var(--text-primary)] transition hover:bg-[var(--bg-subtle)] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-r-lg sm:rounded-r-xl text-base sm:text-lg font-semibold text-[var(--text-primary)] transition hover:bg-[var(--bg-subtle)] active:bg-[var(--bg-subtle)] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 +
               </button>
             </div>
             {quantity > 1 && (
-              <span className="text-sm font-bold text-[var(--brand-primary)]">
+              <span className="text-xs sm:text-sm font-bold text-[var(--brand-primary)]">
                 = {formatPrice(config.product.price * quantity, lang)}
               </span>
             )}

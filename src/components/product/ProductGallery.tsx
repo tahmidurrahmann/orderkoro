@@ -574,7 +574,7 @@ export default function ProductGallery({
 
         {/* Clickable Thumbnail Strip */}
         {galleryImages.length > 1 && (
-          <div className="flex items-center gap-1.5 min-[360px]:gap-2 p-1.5 sm:p-3 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2 p-2 sm:p-2.5 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] overflow-x-auto no-scrollbar">
             {galleryImages.map((thumbSrc, idx) => {
               const isCurrent = idx === currentIndex;
               return (
@@ -583,7 +583,7 @@ export default function ProductGallery({
                   type="button"
                   onClick={() => scrollToSlide(idx)}
                   aria-label={`${copy.galleryImageCount} ${idx + 1}`}
-                  className={`relative h-12 w-10 min-[360px]:h-14 min-[360px]:w-12 sm:h-20 sm:w-20 shrink-0 overflow-hidden rounded-lg sm:rounded-xl border-2 cursor-pointer transition ${
+                  className={`relative h-[62px] w-[50px] min-[360px]:h-[72px] min-[360px]:w-[58px] sm:h-20 sm:w-16 shrink-0 overflow-hidden rounded-md sm:rounded-lg border-2 cursor-pointer transition ${
                     isCurrent
                       ? "border-[var(--brand-primary)] shadow-sm ring-2 ring-[var(--brand-primary)]/20 scale-[1.02]"
                       : "border-[var(--border-subtle)] opacity-70 hover:opacity-100 hover:border-[var(--border-strong)]"
