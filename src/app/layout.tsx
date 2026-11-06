@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/brand/icons/apple-touch-icon.png" }],
   },
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
   openGraph: {
     title: "OrderKoro",
     description:

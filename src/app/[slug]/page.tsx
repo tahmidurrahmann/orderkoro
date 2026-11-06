@@ -4,12 +4,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import MetaPixel from "@/components/MetaPixel";
 import ProductOrderClient from "@/components/ProductOrderClient";
+import ProductJsonLd from "@/components/ProductJsonLd";
 import type { ImagesManifest } from "@/components/ui/StorefrontImage";
 import { getPublicClientBySlug } from "@/lib/clients";
 import { getServerClientSecrets } from "@/lib/server-clients";
 import { formatPrice } from "@/lib/format";
 import { resolveLocalizedText } from "@/lib/i18n";
 import { getSellerFavicon } from "@/lib/seller-brand";
+import { getSiteUrl } from "@/lib/site-url";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -68,6 +70,13 @@ export async function generateMetadata({
   const description = resolveLocalizedText(config.product.shortDescription, lang);
   const formattedPrice = formatPrice(config.product.price, lang);
   const ogImage = config.ogImage || config.product.images[0];
+  const fullOgUrl = ogImage
+    ? ogImage.startsWith("http://") || ogImage.startsWith("https://")
+      ? ogImage
+      : getSiteUrl(ogImage).toString()
+    : undefined;
+  const pageCanonicalUrl = getSiteUrl(`/${slug}`).toString();
+
   // Draft pages are strictly noindex
   const shouldIndex = config.status === "active" && config.seo?.index !== false;
 
@@ -76,20 +85,35 @@ export async function generateMetadata({
     title: `${title} | ${formattedPrice} | ${brandName}`,
     description,
     icons: [{ url: getSellerFavicon(config) }],
+    alternates: {
+      canonical: pageCanonicalUrl,
+    },
     robots: shouldIndex
       ? { index: true, follow: true }
       : { index: false, follow: false },
     openGraph: {
       title: `${title} | ${formattedPrice} | ${brandName}`,
       description,
+      url: pageCanonicalUrl,
+      siteName: brandName,
+      locale: lang === "en" ? "en_US" : "bn_BD",
       type: "website",
-      images: ogImage ? [{ url: ogImage }] : [],
+      images: fullOgUrl
+        ? [
+            {
+              url: fullOgUrl,
+              width: 1200,
+              height: 630,
+              alt: title,
+            },
+          ]
+        : [],
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} | ${formattedPrice} | ${brandName}`,
       description,
-      images: ogImage ? [ogImage] : [],
+      images: fullOgUrl ? [fullOgUrl] : [],
     },
   };
 }
@@ -116,6 +140,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   return (
     <>
       <MetaPixel pixelId={config.pixelId} />
+      <ProductJsonLd config={config} />
       <ProductOrderClient config={config} imagesManifest={imagesManifest} />
     </>
   );
