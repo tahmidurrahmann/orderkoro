@@ -1,17 +1,19 @@
 import React from "react";
 import type { PublicClientConfig } from "@/lib/config-schema";
+import type { SupportedLocale } from "@/lib/format";
 import { resolveLocalizedText } from "@/lib/i18n";
 import { getSiteUrl } from "@/lib/site-url";
 
 interface ProductJsonLdProps {
   config: PublicClientConfig;
+  lang?: SupportedLocale;
 }
 
-export default function ProductJsonLd({ config }: ProductJsonLdProps) {
-  const lang = config.language.default;
-  const title = resolveLocalizedText(config.product.title, lang);
-  const description = resolveLocalizedText(config.product.shortDescription, lang);
-  const brandName = resolveLocalizedText(config.brand.name, lang);
+export default function ProductJsonLd({ config, lang }: ProductJsonLdProps) {
+  const activeLang = lang || config.language.default;
+  const title = resolveLocalizedText(config.product.title, activeLang);
+  const description = resolveLocalizedText(config.product.shortDescription, activeLang);
+  const brandName = resolveLocalizedText(config.brand.name, activeLang);
   const pageUrl = getSiteUrl(`/${config.slug}`).toString();
 
   // Map image paths to absolute URLs

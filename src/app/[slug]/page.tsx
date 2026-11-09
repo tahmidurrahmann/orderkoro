@@ -8,14 +8,14 @@ import ProductJsonLd from "@/components/ProductJsonLd";
 import type { ImagesManifest } from "@/components/ui/StorefrontImage";
 import { getPublicClientBySlug } from "@/lib/clients";
 import { getServerClientSecrets } from "@/lib/server-clients";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, type SupportedLocale } from "@/lib/format";
 import { resolveLocalizedText } from "@/lib/i18n";
 import { getSellerFavicon } from "@/lib/seller-brand";
 import { getSiteUrl } from "@/lib/site-url";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ preview?: string }>;
+  searchParams: Promise<{ preview?: string; lang?: string }>;
 }
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.shop";
@@ -46,7 +46,8 @@ export async function generateMetadata({
   searchParams,
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const { preview } = await searchParams;
+  const resolvedSearchParams = await searchParams;
+  const preview = resolvedSearchParams?.preview;
   const config = getPublicClientBySlug(slug);
 
   if (!config) {
@@ -73,7 +74,11 @@ export async function generateMetadata({
     }
   }
 
-  const lang = config.language.default;
+  const langQuery = resolvedSearchParams?.lang;
+  const lang: SupportedLocale =
+    (langQuery === "en" || langQuery === "bn") && config.language.allowSwitch
+      ? langQuery
+      : config.language.default;
   const brandName = resolveLocalizedText(config.brand.name, lang);
   const title = resolveLocalizedText(config.product.title, lang);
   const description = resolveLocalizedText(
@@ -135,7 +140,8 @@ export default async function ProductPage({
   searchParams,
 }: ProductPageProps) {
   const { slug } = await params;
-  const { preview } = await searchParams;
+  const resolvedSearchParams = await searchParams;
+  const preview = resolvedSearchParams?.preview;
   const config = getPublicClientBySlug(slug);
 
   if (!config) {
@@ -154,13 +160,23 @@ export default async function ProductPage({
     }
   }
 
+  const langQuery = resolvedSearchParams?.lang;
+  const activeLang: SupportedLocale =
+    (langQuery === "en" || langQuery === "bn") && config.language.allowSwitch
+      ? langQuery
+      : config.language.default;
+
   const imagesManifest = getClientImagesManifest(slug);
 
   return (
     <>
       <MetaPixel pixelId={config.pixelId} />
-      <ProductJsonLd config={config} />
-      <ProductOrderClient config={config} imagesManifest={imagesManifest} />
+      <ProductJsonLd config={config} lang={activeLang} />
+      <ProductOrderClient
+        config={config}
+        imagesManifest={imagesManifest}
+        initialLangParam={activeLang}
+      />
     </>
   );
 }

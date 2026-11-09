@@ -5,10 +5,11 @@ import { getPublicClientBySlug } from "@/lib/clients";
 import { getServerClientSecrets } from "@/lib/server-clients";
 import { resolveLocalizedText } from "@/lib/i18n";
 import { getSellerFavicon } from "@/lib/seller-brand";
+import type { SupportedLocale } from "@/lib/format";
 
 interface LegalPageProps {
   params: Promise<{ slug: string }>;
-  searchParams?: Promise<{ preview?: string }>;
+  searchParams?: Promise<{ preview?: string; lang?: string }>;
 }
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.shop";
@@ -49,7 +50,11 @@ export async function generateMetadata({
     }
   }
 
-  const lang = config.language.default;
+  const langQuery = resolvedSearchParams.lang;
+  const lang: SupportedLocale =
+    (langQuery === "en" || langQuery === "bn") && config.language.allowSwitch
+      ? langQuery
+      : config.language.default;
   const brandName = resolveLocalizedText(config.brand.name, lang);
   const ogImage = config.ogImage || config.product.images[0];
   const pageTitle =

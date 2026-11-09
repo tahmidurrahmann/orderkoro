@@ -51,8 +51,19 @@ export default function LegalPageClient({
     if (typeof document !== "undefined") {
       document.documentElement.lang = lang;
       document.documentElement.setAttribute("data-lang", lang);
+
+      const brandName = resolveLocalizedText(config.brand.name, lang);
+      const isPrivacy = type === "privacy";
+      const pageTitle = isPrivacy
+        ? lang === "bn"
+          ? `প্রাইভেসি পলিসি | ${brandName}`
+          : `Privacy Policy | ${brandName}`
+        : lang === "bn"
+          ? `শর্তাবলী, ডেলিভারি ও রিটার্ন পলিসি | ${brandName}`
+          : `Terms, Delivery & Return Policy | ${brandName}`;
+      document.title = pageTitle;
     }
-  }, [lang]);
+  }, [lang, config, type]);
 
   function handleLanguageChange(newLang: SupportedLocale) {
     setSelectedLang(newLang);

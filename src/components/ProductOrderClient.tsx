@@ -20,7 +20,7 @@ import {
   type DhakaAreaChoice,
 } from "@/lib/delivery";
 import { filterDistricts, findDistrictById } from "@/lib/districts";
-import { calculateSavings, type SupportedLocale } from "@/lib/format";
+import { calculateSavings, formatPrice, type SupportedLocale } from "@/lib/format";
 import {
   getClientCopy,
   resolveLocalizedText,
@@ -54,11 +54,13 @@ const emptySubscribe = () => () => {};
 export interface ProductOrderClientProps {
   config: PublicClientConfig;
   imagesManifest?: ImagesManifest;
+  initialLangParam?: SupportedLocale;
 }
 
 export default function ProductOrderClient({
   config,
   imagesManifest,
+  initialLangParam,
 }: ProductOrderClientProps) {
   const router = useRouter();
   const uid = useId();
@@ -68,9 +70,9 @@ export default function ProductOrderClient({
     emptySubscribe,
     () =>
       config.language.allowSwitch
-        ? getSavedLocale(config.language.default)
+        ? (initialLangParam || getSavedLocale(config.language.default))
         : config.language.default,
-    () => config.language.default,
+    () => initialLangParam || config.language.default,
   );
   const [selectedLang, setSelectedLang] = useState<SupportedLocale | null>(
     null,
@@ -82,8 +84,21 @@ export default function ProductOrderClient({
     if (typeof document !== "undefined") {
       document.documentElement.lang = lang;
       document.documentElement.setAttribute("data-lang", lang);
+
+      const brandName = resolveLocalizedText(config.brand.name, lang);
+      const title = resolveLocalizedText(config.product.title, lang);
+      const formattedPrice = formatPrice(config.product.price, lang);
+      document.title = `${title} | ${formattedPrice} | ${brandName}`;
+
+      const descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta) {
+        descMeta.setAttribute(
+          "content",
+          resolveLocalizedText(config.product.shortDescription, lang),
+        );
+      }
     }
-  }, [lang]);
+  }, [lang, config]);
 
   function handleLanguageChange(newLang: SupportedLocale) {
     setSelectedLang(newLang);
