@@ -24,15 +24,19 @@ interface OrderStatusPageProps {
   }>;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.shop";
 
 export async function generateMetadata({
   params,
 }: OrderStatusPageProps): Promise<Metadata> {
   const { slug } = await params;
   const config = getPublicClientBySlug(slug);
-  const brandName = config ? resolveLocalizedText(config.brand.name, config.language.default) : "Store";
-  const ogImage = config ? (config.ogImage || config.product.images[0]) : undefined;
+  const brandName = config
+    ? resolveLocalizedText(config.brand.name, config.language.default)
+    : "Store";
+  const ogImage = config
+    ? config.ogImage || config.product.images[0]
+    : undefined;
 
   return {
     metadataBase: new URL(siteUrl),
@@ -71,7 +75,9 @@ function maskPhoneNumber(phone?: string): string {
   return `${first3}***${last3}`;
 }
 
-export default async function OrderStatusPage({ params }: OrderStatusPageProps) {
+export default async function OrderStatusPage({
+  params,
+}: OrderStatusPageProps) {
   const { slug, token } = await params;
 
   // 1. Per-IP Rate Limiting (60 requests per minute)
@@ -82,7 +88,13 @@ export default async function OrderStatusPage({ params }: OrderStatusPageProps) 
     "127.0.0.1";
 
   const redis = getRedisDriver();
-  const rateLimit = await checkIpRateLimit(clientIp, redis, 60, 60, "status_page");
+  const rateLimit = await checkIpRateLimit(
+    clientIp,
+    redis,
+    60,
+    60,
+    "status_page",
+  );
   if (!rateLimit.allowed) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6 text-center">

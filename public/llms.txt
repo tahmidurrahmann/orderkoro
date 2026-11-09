@@ -23,7 +23,7 @@ OrderKoro replaces fragile Facebook Messenger and WhatsApp order taking with a d
 
 ## Contact Information
 - **Founder / Lead:** Tahmidur Rahman
-- **Official Website:** https://orderkoro.vercel.app
+- **Official Website:** https://orderkoro.shop
 - **Phone / WhatsApp:** +8801843821277
 - **Telegram Bot:** https://t.me/OrderKoro_Bot
 - **Facebook Messenger:** https://m.me/61596152341071

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PlatformLegalClient } from "@/components/landing/PlatformLegalClient";
 import { PLATFORM_TERMS_COPY } from "@/lib/platform-legal-copy";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.shop";
 const pageTitle = `${PLATFORM_TERMS_COPY.title.bn} - OrderKoro`;
 const pageDescription = PLATFORM_TERMS_COPY.subtitle.bn;
 

@@ -18,11 +18,16 @@ interface ProductPageProps {
   searchParams: Promise<{ preview?: string }>;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.shop";
 
 function getClientImagesManifest(slug: string): ImagesManifest | undefined {
   try {
-    const manifestPath = path.join(process.cwd(), "public", slug, "manifest.json");
+    const manifestPath = path.join(
+      process.cwd(),
+      "public",
+      slug,
+      "manifest.json",
+    );
     if (fs.existsSync(manifestPath)) {
       return JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
     }
@@ -55,7 +60,11 @@ export async function generateMetadata({
   // Draft stores require a valid server-only previewToken
   if (config.status === "draft") {
     const secrets = getServerClientSecrets(slug);
-    if (!secrets?.previewToken || !preview || preview !== secrets.previewToken) {
+    if (
+      !secrets?.previewToken ||
+      !preview ||
+      preview !== secrets.previewToken
+    ) {
       return {
         metadataBase: new URL(siteUrl),
         title: "পেজটি পাওয়া যায়নি | Page Not Found",
@@ -67,7 +76,10 @@ export async function generateMetadata({
   const lang = config.language.default;
   const brandName = resolveLocalizedText(config.brand.name, lang);
   const title = resolveLocalizedText(config.product.title, lang);
-  const description = resolveLocalizedText(config.product.shortDescription, lang);
+  const description = resolveLocalizedText(
+    config.product.shortDescription,
+    lang,
+  );
   const formattedPrice = formatPrice(config.product.price, lang);
   const ogImage = config.ogImage || config.product.images[0];
   const fullOgUrl = ogImage
@@ -118,7 +130,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProductPage({ params, searchParams }: ProductPageProps) {
+export default async function ProductPage({
+  params,
+  searchParams,
+}: ProductPageProps) {
   const { slug } = await params;
   const { preview } = await searchParams;
   const config = getPublicClientBySlug(slug);
@@ -130,7 +145,11 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
   // Draft stores return 404 unless ?preview=<token> matches server-only previewToken
   if (config.status === "draft") {
     const secrets = getServerClientSecrets(slug);
-    if (!secrets?.previewToken || !preview || preview !== secrets.previewToken) {
+    if (
+      !secrets?.previewToken ||
+      !preview ||
+      preview !== secrets.previewToken
+    ) {
       notFound();
     }
   }

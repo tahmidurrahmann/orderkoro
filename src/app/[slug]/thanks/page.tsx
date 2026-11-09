@@ -12,7 +12,7 @@ interface ThankYouPageProps {
   searchParams?: Promise<{ preview?: string }>;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.shop";
 
 export const dynamicParams = true;
 
@@ -38,7 +38,10 @@ export async function generateMetadata({
 
   if (config.status === "draft") {
     const secrets = getServerClientSecrets(slug);
-    if (!secrets?.previewToken || resolvedSearchParams.preview !== secrets.previewToken) {
+    if (
+      !secrets?.previewToken ||
+      resolvedSearchParams.preview !== secrets.previewToken
+    ) {
       return {
         metadataBase: new URL(siteUrl),
         title: "পেজটি পাওয়া যায়নি | Page Not Found",
@@ -80,7 +83,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function ThankYouPage({ params, searchParams }: ThankYouPageProps) {
+export default async function ThankYouPage({
+  params,
+  searchParams,
+}: ThankYouPageProps) {
   const { slug } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const config = getPublicClientBySlug(slug);
@@ -91,7 +97,10 @@ export default async function ThankYouPage({ params, searchParams }: ThankYouPag
 
   if (config.status === "draft") {
     const secrets = getServerClientSecrets(slug);
-    if (!secrets?.previewToken || resolvedSearchParams.preview !== secrets.previewToken) {
+    if (
+      !secrets?.previewToken ||
+      resolvedSearchParams.preview !== secrets.previewToken
+    ) {
       notFound();
     }
   }

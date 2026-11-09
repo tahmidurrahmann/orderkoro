@@ -11,9 +11,10 @@ export default function PoweredByOrderKoro({
   lang,
   className = "",
 }: PoweredByOrderKoroProps) {
-  const text = lang === "bn" ? "OrderKoro দ্বারা চালিত" : "Powered by OrderKoro";
-  const href = `https://orderkoro.vercel.app/?utm_source=seller_page&utm_medium=footer&utm_campaign=${encodeURIComponent(
-    slug
+  const text =
+    lang === "bn" ? "OrderKoro দ্বারা চালিত" : "Powered by OrderKoro";
+  const href = `https://orderkoro.shop/?utm_source=seller_page&utm_medium=footer&utm_campaign=${encodeURIComponent(
+    slug,
   )}`;
 
   return (

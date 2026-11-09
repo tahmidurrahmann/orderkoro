@@ -11,8 +11,7 @@ const anekBangla = Anek_Bangla({
   variable: "--font-anek-bangla",
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.shop";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

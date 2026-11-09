@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingBody } from "@/components/landing/LandingBody";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
-const landingTitle = "OrderKoro (Order Koro) | অর্ডার করো - ফেসবুক সেলারদের অর্ডার পেজ";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.shop";
+const landingTitle =
+  "OrderKoro (Order Koro) | অর্ডার করো - ফেসবুক সেলারদের অর্ডার পেজ";
 const landingDescription =
   "OrderKoro (Order Koro) - ফেসবুক ও এফ-কমার্স সেলারদের জন্য এক পণ্যের সুপারফাস্ট ক্যাশ অন ডেলিভারি অর্ডার পেজ। কাস্টমার সাইজ ও কালার বেছে সহজে অর্ডার করতে পারে।";
 
@@ -67,10 +68,7 @@ export default function HomePage() {
         alternateName: ["Order Koro", "অর্ডার করো"],
         url: siteUrl,
         logo: `${siteUrl}/brand/icons/icon-512.png`,
-        sameAs: [
-          "https://t.me/OrderKoro_Bot",
-          "https://m.me/61596152341071",
-        ],
+        sameAs: ["https://t.me/OrderKoro_Bot", "https://m.me/61596152341071"],
         contactPoint: {
           "@type": "ContactPoint",
           telephone: "+8801843821277",

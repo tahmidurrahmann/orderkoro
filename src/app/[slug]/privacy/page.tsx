@@ -11,7 +11,7 @@ interface LegalPageProps {
   searchParams?: Promise<{ preview?: string }>;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orderkoro.shop";
 
 export const dynamicParams = true;
 
@@ -37,7 +37,10 @@ export async function generateMetadata({
 
   if (config.status === "draft") {
     const secrets = getServerClientSecrets(slug);
-    if (!secrets?.previewToken || resolvedSearchParams.preview !== secrets.previewToken) {
+    if (
+      !secrets?.previewToken ||
+      resolvedSearchParams.preview !== secrets.previewToken
+    ) {
       return {
         metadataBase: new URL(siteUrl),
         title: "পেজটি পাওয়া যায়নি | Page Not Found",
@@ -50,7 +53,10 @@ export async function generateMetadata({
   const brandName = resolveLocalizedText(config.brand.name, lang);
   const isDraft = config.status === "draft";
   const ogImage = config.ogImage || config.product.images[0];
-  const pageTitle = lang === "bn" ? `প্রাইভেসি পলিসি | ${brandName}` : `Privacy Policy | ${brandName}`;
+  const pageTitle =
+    lang === "bn"
+      ? `প্রাইভেসি পলিসি | ${brandName}`
+      : `Privacy Policy | ${brandName}`;
   const pageDescription =
     lang === "bn"
       ? `${brandName} এর গ্রাহক তথ্য সংগ্রহ ও সুরক্ষা নীতি।`
@@ -79,7 +85,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function PrivacyPage({ params, searchParams }: LegalPageProps) {
+export default async function PrivacyPage({
+  params,
+  searchParams,
+}: LegalPageProps) {
   const { slug } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const config = getPublicClientBySlug(slug);
@@ -90,7 +99,10 @@ export default async function PrivacyPage({ params, searchParams }: LegalPagePro
 
   if (config.status === "draft") {
     const secrets = getServerClientSecrets(slug);
-    if (!secrets?.previewToken || resolvedSearchParams.preview !== secrets.previewToken) {
+    if (
+      !secrets?.previewToken ||
+      resolvedSearchParams.preview !== secrets.previewToken
+    ) {
       notFound();
     }
   }

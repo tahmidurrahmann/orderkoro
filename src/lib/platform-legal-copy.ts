@@ -67,8 +67,8 @@ export const PLATFORM_PRIVACY_COPY: PlatformLegalDocument = {
       },
       paragraphs: [
         {
-          bn: "OrderKoro (https://orderkoro.vercel.app) ফেসবুক ও অনলাইন সেলারদের জন্য এক-পণ্যের ফাস্ট অর্ডার পেজ তৈরি ও পরিচালনার সফটওয়্যার সেবা প্রদান করে। আমরা সেলার এবং তাদের ক্রেতাদের তথ্যের গোপনীয়তা রক্ষা করতে সম্পূর্ণ দায়বদ্ধ।",
-          en: "OrderKoro (https://orderkoro.vercel.app) provides software services for single-product high-converting order pages for Facebook and online sellers. We are strictly committed to safeguarding the privacy and security of both sellers and their customers.",
+          bn: "OrderKoro (https://orderkoro.shop) ফেসবুক ও অনলাইন সেলারদের জন্য এক-পণ্যের ফাস্ট অর্ডার পেজ তৈরি ও পরিচালনার সফটওয়্যার সেবা প্রদান করে। আমরা সেলার এবং তাদের ক্রেতাদের তথ্যের গোপনীয়তা রক্ষা করতে সম্পূর্ণ দায়বদ্ধ।",
+          en: "OrderKoro (https://orderkoro.shop) provides software services for single-product high-converting order pages for Facebook and online sellers. We are strictly committed to safeguarding the privacy and security of both sellers and their customers.",
         },
         {
           bn: "আমাদের নীতি স্পষ্ট: আমরা কোনো সেলারের কাস্টমার ডেটা বিক্রি করি না, ভাড়া দিই না এবং বিজ্ঞাপনের উদ্দেশ্যে কোনো তৃতীয় পক্ষের কাছে হস্তান্তর করি না। সব অর্ডার তথ্য সরাসরি সেলারের নিজস্ব গুগল ড্রাইভে সেভ হয়।",
@@ -231,8 +231,8 @@ export const PLATFORM_TERMS_COPY: PlatformLegalDocument = {
       },
       paragraphs: [
         {
-          bn: "OrderKoro (https://orderkoro.vercel.app) প্ল্যাটফর্ম ব্যবহার বা পেজ সেটআপ সার্ভিসের জন্য অনুরোধ জানানোর মাধ্যমে আপনি এই ব্যবহারের শর্তাবলীর সাথে সম্পূর্ণ সম্মত হচ্ছেন।",
-          en: "By accessing the OrderKoro (https://orderkoro.vercel.app) platform or commissioning a single-product order page, you agree to be legally bound by these Terms and Conditions.",
+          bn: "OrderKoro (https://orderkoro.shop) প্ল্যাটফর্ম ব্যবহার বা পেজ সেটআপ সার্ভিসের জন্য অনুরোধ জানানোর মাধ্যমে আপনি এই ব্যবহারের শর্তাবলীর সাথে সম্পূর্ণ সম্মত হচ্ছেন।",
+          en: "By accessing the OrderKoro (https://orderkoro.shop) platform or commissioning a single-product order page, you agree to be legally bound by these Terms and Conditions.",
         },
       ],
     },
