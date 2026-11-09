@@ -7,10 +7,7 @@
       "bn": "টেস্ট স্টোর",
       "en": "Test Store"
     },
-    "logoUrl": {
-      "bn": "/demo-brand/logo-bn.svg",
-      "en": "/demo-brand/logo.svg"
-    },
+    "logoUrl": "/demo-brand/logo.svg",
     "primaryColor": "#1E3A5F",
     "accentColor": "#B45309"
   },
