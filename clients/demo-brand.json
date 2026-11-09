@@ -206,7 +206,7 @@
   },
   "status": "active",
   "seo": {
-    "index": true
+    "index": false
   },
   "sheetId": "1t6kpHRdTgIPnRbJiKJodSEw5HLMKm1hSx89Z0ggISYI",
   "telegramChatId": "-1004447230623",

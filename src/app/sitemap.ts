@@ -2,10 +2,6 @@ import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import { getAllClients } from "@/lib/clients";
 
-// Real last-modified constant manually updated on site content releases.
-// Never use new Date() per request to avoid misleading search crawlers.
-export const LAST_MODIFIED = new Date("2026-11-06T00:00:00.000Z");
-
 interface PublicRouteEntry {
   path: string;
   changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"];
@@ -35,7 +31,6 @@ const PUBLIC_ROUTES: readonly PublicRouteEntry[] = [
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries: MetadataRoute.Sitemap = PUBLIC_ROUTES.map((route) => ({
     url: getSiteUrl(route.path).toString(),
-    lastModified: LAST_MODIFIED,
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));
@@ -45,26 +40,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     (c) => c.status === "active" && c.seo?.index !== false && !c.testOnly,
   );
 
-  const clientEntries: MetadataRoute.Sitemap = activeClients.flatMap((client) => [
-    {
-      url: getSiteUrl(`/${client.slug}`).toString(),
-      lastModified: LAST_MODIFIED,
-      changeFrequency: "daily" as const,
-      priority: 0.9,
-    },
-    {
-      url: getSiteUrl(`/${client.slug}/privacy`).toString(),
-      lastModified: LAST_MODIFIED,
-      changeFrequency: "yearly" as const,
-      priority: 0.2,
-    },
-    {
-      url: getSiteUrl(`/${client.slug}/terms`).toString(),
-      lastModified: LAST_MODIFIED,
-      changeFrequency: "yearly" as const,
-      priority: 0.2,
-    },
-  ]);
+  const clientEntries: MetadataRoute.Sitemap = activeClients.map((client) => ({
+    url: getSiteUrl(`/${client.slug}`).toString(),
+    changeFrequency: "daily",
+    priority: 0.9,
+  }));
 
   return [...staticEntries, ...clientEntries];
 }

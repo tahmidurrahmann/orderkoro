@@ -56,7 +56,6 @@ export default function HomePage() {
           "OrderKoro Bangladesh",
           "অর্ডার করো",
           "অর্ডারকরো",
-          "orderkoro.vercel.app",
         ],
         description: landingDescription,
         inLanguage: ["bn-BD", "en-US"],
@@ -83,12 +82,6 @@ export default function HomePage() {
         name: "OrderKoro",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
-        offers: {
-          "@type": "Offer",
-          price: "1999",
-          priceCurrency: "BDT",
-          priceValidUntil: "2027-12-31",
-        },
         description:
           "High-converting single-product Cash on Delivery order page engine with automated Google Sheets sync and Telegram bot order management for Bangladeshi Facebook sellers.",
       },

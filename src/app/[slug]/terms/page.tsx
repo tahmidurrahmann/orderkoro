@@ -51,7 +51,6 @@ export async function generateMetadata({
 
   const lang = config.language.default;
   const brandName = resolveLocalizedText(config.brand.name, lang);
-  const isDraft = config.status === "draft";
   const ogImage = config.ogImage || config.product.images[0];
   const pageTitle =
     lang === "bn"
@@ -68,8 +67,7 @@ export async function generateMetadata({
     description: pageDescription,
     icons: [{ url: getSellerFavicon(config) }],
     robots: {
-      index: !isDraft,
-      follow: !isDraft,
+      index: false,
     },
     openGraph: {
       title: pageTitle,
