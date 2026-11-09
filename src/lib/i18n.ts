@@ -192,7 +192,8 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     langToggleBn: "বাং",
     langToggleEn: "EN",
     soldOutBadge: "স্টক শেষ",
-    soldOutNotice: "দুঃখিত, এই পণ্যটির স্টক বর্তমানে শেষ। নতুন স্টকের তথ্যের জন্য আমাদের কল বা মেসেজ করুন।",
+    soldOutNotice:
+      "দুঃখিত, এই পণ্যটির স্টক বর্তমানে শেষ। নতুন স্টকের তথ্যের জন্য আমাদের কল বা মেসেজ করুন।",
 
     galleryTapToZoom: "বড় করে দেখতে ছবির ওপর ট্যাপ করুন",
     galleryCloseZoom: "বন্ধ করুন",
@@ -215,13 +216,16 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
 
     detailsHeading: "পণ্যের বিস্তারিত বৈশিষ্ট্য",
     deliveryHeading: "ডেলিভারি তথ্য",
-    deliveryPromptSelectDistrict: "ডেলিভারি চার্জ ও সময় জানতে নিচে আপনার জেলা নির্বাচন করুন",
-    deliveryEstimateTemplate: "ডেলিভারি: {charge}, {daysMin} থেকে {daysMax} কার্যদিবস",
+    deliveryPromptSelectDistrict:
+      "ডেলিভারি চার্জ ও সময় জানতে নিচে আপনার জেলা নির্বাচন করুন",
+    deliveryEstimateTemplate:
+      "ডেলিভারি: {charge}, {daysMin} থেকে {daysMax} কার্যদিবস",
     deliveryFreeBadge: "ফ্রি ডেলিভারি",
     deliveryFreeThresholdHint: "{threshold} বা তার বেশি অর্ডারে ডেলিভারি ফ্রি",
 
     formHeading: "অর্ডার করতে নিচের তথ্যগুলো পূরণ করুন",
-    formSubheading: "অর্ডার কনফার্ম করার পর আমরা দ্রুত ডেলিভারি প্রক্রিয়া শুরু করব।",
+    formSubheading:
+      "অর্ডার কনফার্ম করার পর আমরা দ্রুত ডেলিভারি প্রক্রিয়া শুরু করব।",
     errorSummaryHeading: "অনুগ্রহ করে নিচের ঘরগুলো সঠিকভাবে পূরণ করুন:",
     fieldNameLabel: "আপনার নাম",
     fieldNamePlaceholder: "যেমন: মো: রাকিব হাসান",
@@ -237,17 +241,20 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     fieldDistrictError: "অনুগ্রহ করে আপনার জেলা নির্বাচন করুন",
     fieldDhakaAreaQuestion: "ঢাকা সিটি নাকি ঢাকার পার্শ্ববর্তী এলাকা?",
     fieldDhakaCityOption: "ঢাকা সিটি কর্পোরেশন (ভেতরে)",
-    fieldDhakaSuburbOption: "ঢাকার পার্শ্ববর্তী এলাকা (সাভার, কেরানীগঞ্জ, টঙ্গী, দোহার, নবাবগঞ্জ, ধামরাই)",
+    fieldDhakaSuburbOption:
+      "ঢাকার পার্শ্ববর্তী এলাকা (সাভার, কেরানীগঞ্জ, টঙ্গী, দোহার, নবাবগঞ্জ, ধামরাই)",
     fieldAddressLabel: "সম্পূর্ণ ঠিকানা",
-    fieldAddressPlaceholder: "বাসা/ফ্ল্যাট নম্বর, রোড, এলাকা বা গ্রাম, থানা/উপজেলা",
-    fieldAddressError: "ডেলিভারির জন্য আপনার বিস্তারিত ঠিকানা লিখুন (কমপক্ষে ১০ অক্ষর)",
+    fieldAddressPlaceholder:
+      "বাসা/ফ্ল্যাট নম্বর, রোড, এলাকা বা গ্রাম, থানা/উপজেলা",
+    fieldAddressError:
+      "ডেলিভারির জন্য আপনার বিস্তারিত ঠিকানা লিখুন (কমপক্ষে ১০ অক্ষর)",
     fieldNoteLabel: "বিশেষ নির্দেশনা",
     fieldNoteOptionalBadge: "(ঐচ্ছিক)",
     fieldNotePlaceholder: "ডেলিভারি সংক্রান্ত কোনো নির্দেশনা থাকলে লিখুন",
     fieldSizeError: "অনুগ্রহ করে একটি সাইজ নির্বাচন করুন",
 
     fieldPaymentMethodLabel: "পেমেন্ট মাধ্যম নির্বাচন করুন",
-    paymentMethodCod: "ক্যাশ অন ডেলিভারি (Cash on Delivery)",
+    paymentMethodCod: "ক্যাশ অন ডেলিভারি",
     paymentMethodBkash: "বিকাশ (bKash)",
     paymentMethodNagad: "নগদ (Nagad)",
     paymentMethodRocket: "রকেট (Rocket)",
@@ -269,7 +276,8 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     summaryDeliveryRow: "ডেলিভারি চার্জ",
     summaryDeliveryPending: "জেলা নির্বাচন করুন",
     summaryTotalRow: "সর্বমোট প্রদেয়",
-    summaryPaymentMethod: "পেমেন্ট মাধ্যম: ক্যাশ অন ডেলিভারি (পণ্য হাতে পেয়ে পরিশোধ)",
+    summaryPaymentMethod:
+      "পেমেন্ট মাধ্যম: ক্যাশ অন ডেলিভারি (পণ্য হাতে পেয়ে পরিশোধ)",
     submitButtonText: "অর্ডার সম্পন্ন করুন",
     submitButtonLoading: "অর্ডার পাঠানো হচ্ছে...",
     submitSoldOutText: "স্টক শেষ (অর্ডার বন্ধ আছে)",
@@ -287,7 +295,8 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     trustPolicyHeading: "রিটার্ন ও এক্সচেঞ্জ পলিসি:",
     trustContactHeading: "প্রয়োজনে সরাসরি যোগাযোগ করুন:",
     trustCodTitle: "১০০% ক্যাশ অন ডেলিভারি",
-    trustCodBody: "পণ্য হাতে পেয়ে ডেলিভারি ম্যানের সামনে দেখে মূল্য পরিশোধ করার সুবিধা।",
+    trustCodBody:
+      "পণ্য হাতে পেয়ে ডেলিভারি ম্যানের সামনে দেখে মূল্য পরিশোধ করার সুবিধা।",
     trustReturnTitle: "সহজ রিটার্ন ও পরিবর্তন নীতি",
     trustSupportHeading: "যেকোনো প্রয়োজনে সরাসরি কথা বলুন",
     trustCallButton: "কল করুন",
@@ -309,14 +318,16 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     thanksOrderNumberLabel: "অর্ডার নম্বর",
     thanksCopyOrderNo: "কপি করুন",
     thanksCopiedOrderNo: "কপি হয়েছে",
-    thanksMessageCallMode: "অর্ডারটি গৃহীত হয়েছে। আমরা শীঘ্রই আপনাকে কল করে অর্ডারটি যাচাই করব।",
+    thanksMessageCallMode:
+      "অর্ডারটি গৃহীত হয়েছে। আমরা শীঘ্রই আপনাকে কল করে অর্ডারটি যাচাই করব।",
     thanksMessageTapMode: "অর্ডারটি গৃহীত হয়েছে। আমরা শীঘ্রই এটি প্রসেস করব।",
     thanksSummaryHeading: "আপনার অর্ডারের বিবরণ",
     thanksCallUsButton: "আমাদের কল করুন",
     thanksMessengerButton: "মেসেঞ্জারে মেসেজ দিন",
     thanksBackToProduct: "পণ্যের পাতায় ফিরে যান",
     thanksGenericHeading: "ধন্যবাদ!",
-    thanksGenericBody: "এই মুহূর্তে কোনো নতুন অর্ডারের তথ্য পাওয়া যায়নি। আপনার অর্ডার সম্পর্কে জানতে আমাদের কল করুন অথবা মেসেঞ্জারে মেসেজ দিন।",
+    thanksGenericBody:
+      "এই মুহূর্তে কোনো নতুন অর্ডারের তথ্য পাওয়া যায়নি। আপনার অর্ডার সম্পর্কে জানতে আমাদের কল করুন অথবা মেসেঞ্জারে মেসেজ দিন।",
     thanksReceiptHeading: "অর্ডার রসিদ",
     thanksDateTimeLabel: "তারিখ ও সময়",
     thanksDeliveryAddressLabel: "ডেলিভারি ঠিকানা",
@@ -328,20 +339,26 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     thanksTrxIdLabel: "ট্রানজেকশন আইডি (TrxID)",
     thanksUnitPriceLabel: "একক মূল্য",
     thanksNextStepsHeading: "পরবর্তী ধাপ",
-    thanksNextStepCall: "ডেলিভারির পূর্বে বিক্রেতা আপনাকে ফোন করে অর্ডারটি নিশ্চিত করবেন।",
-    thanksNextStepTap: "বিক্রেতা সরাসরি আপনার অর্ডারটি প্রসেস করবেন এবং দ্রুত কুরিয়ারে পাঠাবেন।",
-    thanksDeliveryEstimateNote: "আনুমানিক ডেলিভারি সময়সীমা: {daysMin} থেকে {daysMax} কার্যদিবস।",
+    thanksNextStepCall:
+      "ডেলিভারির পূর্বে বিক্রেতা আপনাকে ফোন করে অর্ডারটি নিশ্চিত করবেন।",
+    thanksNextStepTap:
+      "বিক্রেতা সরাসরি আপনার অর্ডারটি প্রসেস করবেন এবং দ্রুত কুরিয়ারে পাঠাবেন।",
+    thanksDeliveryEstimateNote:
+      "আনুমানিক ডেলিভারি সময়সীমা: {daysMin} থেকে {daysMax} কার্যদিবস।",
     thanksCopyDetailsButton: "অর্ডার বিবরণ কপি করুন",
     thanksCopiedDetailsFeedback: "অর্ডার বিবরণ কপি হয়েছে!",
     thanksSaveImageButton: "রসিদ ছবি হিসেবে সেভ করুন",
     thanksSavingImageButton: "ছবি তৈরি হচ্ছে...",
-    thanksScreenshotHint: "রসিদটি সংরক্ষণ করতে একটি স্ক্রিনশট নিয়ে রাখতে পারেন।",
-    thanksScreenshotFallbackMessage: "ছবি ডাউনলোড সম্ভব না হলে একটি স্ক্রিনশট নিয়ে রাখুন।",
+    thanksScreenshotHint:
+      "রসিদটি সংরক্ষণ করতে একটি স্ক্রিনশট নিয়ে রাখতে পারেন।",
+    thanksScreenshotFallbackMessage:
+      "ছবি ডাউনলোড সম্ভব না হলে একটি স্ক্রিনশট নিয়ে রাখুন।",
     thanksSellerContactHeading: "বিক্রেতার সাথে যোগাযোগ",
     thanksStatusLinkLabel: "অর্ডার ট্র্যাকিং লিংক",
     thanksCopyStatusLinkButton: "লিংক কপি করুন",
     thanksCopiedStatusLinkFeedback: "লিংক কপি হয়েছে!",
-    thanksStatusLinkHint: "আপনার অর্ডারের বর্তমান অবস্থা দেখতে এই লিংকটি সেভ করে রাখুন",
+    thanksStatusLinkHint:
+      "আপনার অর্ডারের বর্তমান অবস্থা দেখতে এই লিংকটি সেভ করে রাখুন",
     orderStatusHeading: "অর্ডার স্ট্যাটাস",
     orderStatusTimelineHeading: "অর্ডারের অগ্রগতি",
     orderStatusDetailsHeading: "অর্ডারের বিবরণ",
@@ -355,7 +372,8 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     orderStatusConfirmingButton: "নিশ্চিত করা হচ্ছে...",
     orderStatusConfirmedBadge: "আপনি অর্ডারটি নিশ্চিত করেছেন",
     orderStatusSellerConfirmedBadge: "বিক্রেতা অর্ডারটি নিশ্চিত করেছেন",
-    orderStatusSellerWillCall: "অর্ডারটি নিশ্চিত করতে বিক্রেতা আপনার সাথে ফোনে যোগাযোগ করবেন।",
+    orderStatusSellerWillCall:
+      "অর্ডারটি নিশ্চিত করতে বিক্রেতা আপনার সাথে ফোনে যোগাযোগ করবেন।",
     orderStatusAreaLabel: "এলাকা",
     orderStatusPhoneLabel: "ফোন নম্বর",
     orderStatusItemLabel: "পণ্য",
@@ -365,7 +383,8 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     langToggleBn: "বাং",
     langToggleEn: "EN",
     soldOutBadge: "Sold Out",
-    soldOutNotice: "Sorry, this item is currently out of stock. Call or message us for restock updates.",
+    soldOutNotice:
+      "Sorry, this item is currently out of stock. Call or message us for restock updates.",
 
     galleryTapToZoom: "Tap image to view fullscreen",
     galleryCloseZoom: "Close",
@@ -388,13 +407,16 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
 
     detailsHeading: "Product Details",
     deliveryHeading: "Delivery Information",
-    deliveryPromptSelectDistrict: "Choose your district to see delivery charge and time",
+    deliveryPromptSelectDistrict:
+      "Choose your district to see delivery charge and time",
     deliveryEstimateTemplate: "Delivery: {charge}, {daysMin} to {daysMax} days",
     deliveryFreeBadge: "Free Delivery",
-    deliveryFreeThresholdHint: "Free delivery on orders of {threshold} or above",
+    deliveryFreeThresholdHint:
+      "Free delivery on orders of {threshold} or above",
 
     formHeading: "Fill in the details below to order",
-    formSubheading: "We will start the delivery process quickly after confirming your order.",
+    formSubheading:
+      "We will start the delivery process quickly after confirming your order.",
     errorSummaryHeading: "Please check the highlighted fields below:",
     fieldNameLabel: "Full Name",
     fieldNamePlaceholder: "e.g. Rakib Hasan",
@@ -410,10 +432,12 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     fieldDistrictError: "Please select your district",
     fieldDhakaAreaQuestion: "Dhaka city or suburb?",
     fieldDhakaCityOption: "Dhaka City (Inside Metro)",
-    fieldDhakaSuburbOption: "Dhaka Suburb (Savar, Keraniganj, Tongi, Dohar, Nawabganj, Dhamrai)",
+    fieldDhakaSuburbOption:
+      "Dhaka Suburb (Savar, Keraniganj, Tongi, Dohar, Nawabganj, Dhamrai)",
     fieldAddressLabel: "Full Address",
     fieldAddressPlaceholder: "House/Flat no, Road, Area/Village, Thana/Upazila",
-    fieldAddressError: "Please enter your complete delivery address (at least 10 characters)",
+    fieldAddressError:
+      "Please enter your complete delivery address (at least 10 characters)",
     fieldNoteLabel: "Order Note",
     fieldNoteOptionalBadge: "(Optional)",
     fieldNotePlaceholder: "Any special instructions for delivery",
@@ -460,7 +484,8 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     trustPolicyHeading: "Return & Exchange Policy:",
     trustContactHeading: "Need assistance? Contact us directly:",
     trustCodTitle: "Cash on Delivery",
-    trustCodBody: "Pay in cash at your doorstep when the parcel is delivered to you.",
+    trustCodBody:
+      "Pay in cash at your doorstep when the parcel is delivered to you.",
     trustReturnTitle: "Return & Exchange Policy",
     trustSupportHeading: "Need help with sizing or delivery?",
     trustCallButton: "Call us",
@@ -489,7 +514,8 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     thanksMessengerButton: "Message us on Messenger",
     thanksBackToProduct: "Back to the product",
     thanksGenericHeading: "Thank You",
-    thanksGenericBody: "No recent order details were found in this session. If you placed an order or have a question, please call or message us.",
+    thanksGenericBody:
+      "No recent order details were found in this session. If you placed an order or have a question, please call or message us.",
     thanksReceiptHeading: "Order Receipt",
     thanksDateTimeLabel: "Date & Time",
     thanksDeliveryAddressLabel: "Delivery Address",
@@ -501,15 +527,19 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     thanksTrxIdLabel: "Transaction ID (TrxID)",
     thanksUnitPriceLabel: "Unit Price",
     thanksNextStepsHeading: "What Happens Next",
-    thanksNextStepCall: "The seller will call you to confirm your order before dispatch.",
-    thanksNextStepTap: "The seller will process and dispatch your order directly.",
-    thanksDeliveryEstimateNote: "Estimated delivery: {daysMin} to {daysMax} business days.",
+    thanksNextStepCall:
+      "The seller will call you to confirm your order before dispatch.",
+    thanksNextStepTap:
+      "The seller will process and dispatch your order directly.",
+    thanksDeliveryEstimateNote:
+      "Estimated delivery: {daysMin} to {daysMax} business days.",
     thanksCopyDetailsButton: "Copy order details",
     thanksCopiedDetailsFeedback: "Order details copied!",
     thanksSaveImageButton: "Save as image",
     thanksSavingImageButton: "Generating image...",
     thanksScreenshotHint: "Take a screenshot to keep your receipt.",
-    thanksScreenshotFallbackMessage: "If saving image is not supported, please take a screenshot.",
+    thanksScreenshotFallbackMessage:
+      "If saving image is not supported, please take a screenshot.",
     thanksSellerContactHeading: "Seller Contact",
     thanksStatusLinkLabel: "Order Tracking Link",
     thanksCopyStatusLinkButton: "Copy Link",
@@ -528,7 +558,8 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
     orderStatusConfirmingButton: "Confirming...",
     orderStatusConfirmedBadge: "Confirmed by you",
     orderStatusSellerConfirmedBadge: "Confirmed by seller",
-    orderStatusSellerWillCall: "The seller will call you to confirm your order.",
+    orderStatusSellerWillCall:
+      "The seller will call you to confirm your order.",
     orderStatusAreaLabel: "Area",
     orderStatusPhoneLabel: "Phone Number",
     orderStatusItemLabel: "Item",
@@ -538,7 +569,10 @@ export const DEFAULT_COPY: Record<SupportedLocale, CopyDictionary> = {
 
 export type LocalizedText = string | { bn: string; en: string };
 
-export function resolveLocalizedText(value: LocalizedText, lang: SupportedLocale): string {
+export function resolveLocalizedText(
+  value: LocalizedText,
+  lang: SupportedLocale,
+): string {
   if (typeof value === "string") {
     return value;
   }
@@ -547,7 +581,7 @@ export function resolveLocalizedText(value: LocalizedText, lang: SupportedLocale
 
 export function getClientCopy(
   lang: SupportedLocale,
-  overrides?: { bn?: Partial<CopyDictionary>; en?: Partial<CopyDictionary> }
+  overrides?: { bn?: Partial<CopyDictionary>; en?: Partial<CopyDictionary> },
 ): CopyDictionary {
   return {
     ...DEFAULT_COPY[lang],
