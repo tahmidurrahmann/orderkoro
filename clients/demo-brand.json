@@ -178,7 +178,7 @@
     }
   },
   "contact": {
-    "phone": "01900000000",
+    "phone": "01843821277",
     "messengerPageUsername": "bunonatelier",
     "businessAddress": {
       "bn": "বাড়ি ১২, রোড ৫, ধানমন্ডি, ঢাকা ১২০৫",
@@ -190,17 +190,17 @@
     "cod": { "enabled": true },
     "bkash": {
       "enabled": true,
-      "number": "01900000000",
+      "number": "01843821277",
       "type": "personal"
     },
     "nagad": {
       "enabled": true,
-      "number": "01900000000",
+      "number": "01843821277",
       "type": "agent"
     },
     "rocket": {
       "enabled": true,
-      "number": "01900000000",
+      "number": "01843821277",
       "type": "merchant"
     }
   },
